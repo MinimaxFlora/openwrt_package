@@ -45,7 +45,7 @@ jobs:
       - name: Detect OpenWrt versions
         id: detect
         env:
-          GH_TOKEN: *** github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           # 用 gh api（GITHUB_TOKEN）避免匿名 API 限流
           TAGS=$(gh api "repos/openwrt/openwrt/tags?per_page=100" --jq '.[].name')
@@ -75,7 +75,7 @@ jobs:
         uses: sbwml/actions@free-disk
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
@@ -208,7 +208,7 @@ jobs:
       # ---- 先删除已有的 tag + release（每次重新创建，避免残留；减少 API 调用）----
       - name: Delete existing tag & release
         env:
-          GH_TOKEN: *** github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           # 不预检，直接尝试删除，不存在时忽略错误（省一次 API 调用）
           if gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag 2>/dev/null; then
