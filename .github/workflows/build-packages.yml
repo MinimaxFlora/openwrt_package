@@ -44,10 +44,13 @@ jobs:
     steps:
       - name: Detect OpenWrt versions
         id: detect
+        env:
+          GH_TOKEN: *** github.token }}
         run: |
-          TAGS=$(curl -s "https://api.github.com/repos/openwrt/openwrt/tags?per_page=100")
-          V24=$(echo "$TAGS" | grep -oE '"name": "v24\.10\.[0-9]+"' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
-          V25=$(echo "$TAGS" | grep -oE '"name": "v25\.12\.[0-9]+"' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
+          # 用 gh api（GITHUB_TOKEN）避免匿名 API 限流
+          TAGS=$(gh api "repos/openwrt/openwrt/tags?per_page=100" --jq '.[].name')
+          V24=$(echo "$TAGS" | grep -oE 'v24\.10\.[0-9]+' | sed 's/^v//' | sort -V | tail -1)
+          V25=$(echo "$TAGS" | grep -oE 'v25\.12\.[0-9]+' | sed 's/^v//' | sort -V | tail -1)
           # API 失败时兜底
           [ -z "$V24" ] && V24="24.10.8"
           [ -z "$V25" ] && V25="25.12.5"
@@ -173,7 +176,7 @@ jobs:
 
       # ---- 上传 artifact 供 release job 汇总 ----
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: packages-${{ matrix.arch }}-${{ matrix.version }}
           path: release
@@ -193,7 +196,7 @@ jobs:
 
     steps:
       - name: Download all artifacts for ${{ matrix.arch }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           pattern: packages-${{ matrix.arch }}-*
           merge-multiple: true
@@ -202,21 +205,21 @@ jobs:
       - name: Check collected files
         run: ls -lh release/
 
-      # ---- 先检测并删除已有的 tag + release（每次重新创建，避免残留）----
+      # ---- 先删除已有的 tag + release（每次重新创建，避免残留；减少 API 调用）----
       - name: Delete existing tag & release
         env:
           GH_TOKEN: *** github.token }}
         run: |
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "存在旧的 release/tag，删除: $TAG"
-            gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag
+          # 不预检，直接尝试删除，不存在时忽略错误（省一次 API 调用）
+          if gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag 2>/dev/null; then
+            echo "已删除旧的 release/tag: $TAG"
           else
             echo "没有旧 release，直接创建: $TAG"
           fi
 
       # ---- 以架构名创建全新 tag + release，上传 ipk/apk ----
       - name: Create tag & release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3.0.2
         with:
           tag_name: ${{ env.TAG }}
           name: ${{ env.TAG }}
