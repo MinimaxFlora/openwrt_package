@@ -4,21 +4,25 @@ on:
   workflow_dispatch:
     inputs:
       packages:
-        description: "选择要编译的插件"
+        description: "选择要编译的插件（分隔线为分组提示，请选下方具体插件）"
         type: choice
         options:
+          - "───── 主题 ─────"
           - "Argon 主题"
           - "Kucat 主题"
           - "Aurora 主题"
           - "Design 主题"
           - "Shadcn 主题"
+          - "───── DNS ─────"
           - "Mosdns DNS 转换器"
+          - "───── 代理插件 ─────"
           - "OpenClash 代理插件"
           - "HomeProxy 代理插件"
           - "PassWall 代理插件"
           - "PassWall2 代理插件"
           - "Nikki 代理插件"
           - "代理内核组件"
+          - "───── 实用工具 ─────"
           - "DiskMan 磁盘管理工具"
           - "MentoHUST 认证"
           - "Quickfile 文件管理"
@@ -79,6 +83,10 @@ jobs:
         id: select
         run: |
           case "${{ inputs.packages }}" in
+            "───── 主题 ─────")
+              echo "::notice::已按分组提示选择默认：Argon 主题"
+              PKGS="luci-theme-argon luci-app-argon-config"
+              ;;
             "Argon 主题")
               PKGS="luci-theme-argon luci-app-argon-config"
               ;;
@@ -94,8 +102,16 @@ jobs:
             "Shadcn 主题")
               PKGS="luci-theme-shadcn"
               ;;
+            "───── DNS ─────")
+              echo "::notice::已按分组提示选择默认：Mosdns DNS 转换器"
+              PKGS="mosdns luci-app-mosdns v2dat"
+              ;;
             "Mosdns DNS 转换器")
               PKGS="mosdns luci-app-mosdns v2dat"
+              ;;
+            "───── 代理插件 ─────")
+              echo "::notice::已按分组提示选择默认：OpenClash 代理插件"
+              PKGS="luci-app-openclash"
               ;;
             "OpenClash 代理插件")
               PKGS="luci-app-openclash"
@@ -114,6 +130,10 @@ jobs:
               ;;
             "代理内核组件")
               PKGS="chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin"
+              ;;
+            "───── 实用工具 ─────")
+              echo "::notice::已按分组提示选择默认：DiskMan 磁盘管理工具"
+              PKGS="luci-app-diskman"
               ;;
             "DiskMan 磁盘管理工具")
               PKGS="luci-app-diskman"
