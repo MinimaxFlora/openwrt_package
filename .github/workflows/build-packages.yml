@@ -7,26 +7,26 @@ on:
         description: "选择要编译的插件"
         type: choice
         options:
-          - "🎨 Argon 主题"
-          - "🎨 Kucat 主题"
-          - "🎨 Aurora 主题"
-          - "🎨 Design 主题"
-          - "🎨 Shadcn 主题"
-          - "🔀 Mosdns DNS 转换器"
-          - "🚀 OpenClash 代理插件"
-          - "🚀 HomeProxy 代理插件"
-          - "🚀 PassWall 代理插件"
-          - "🚀 PassWall2 代理插件"
-          - "🚀 Nikki 代理插件"
-          - "🧩 代理内核组件"
-          - "🔧 DiskMan 磁盘管理工具"
-          - "🔧 MentoHUST 认证"
-          - "🔧 Quickfile 文件管理"
-          - "🔧 内存清理"
-          - "🔧 Bandix-Plus 网络流量监控"
-          - "🔧 OpenList 网盘聚合工具"
-          - "🔧 AirConnect 音频服务"
-        default: "🎨 Argon 主题"
+          - "Argon 主题"
+          - "Kucat 主题"
+          - "Aurora 主题"
+          - "Design 主题"
+          - "Shadcn 主题"
+          - "Mosdns DNS 转换器"
+          - "OpenClash 代理插件"
+          - "HomeProxy 代理插件"
+          - "PassWall 代理插件"
+          - "PassWall2 代理插件"
+          - "Nikki 代理插件"
+          - "代理内核组件"
+          - "DiskMan 磁盘管理工具"
+          - "MentoHUST 认证"
+          - "Quickfile 文件管理"
+          - "内存清理"
+          - "Bandix-Plus 网络流量监控"
+          - "OpenList 网盘聚合工具"
+          - "AirConnect 音频服务"
+        default: "Argon 主题"
 
 permissions:
   contents: write
@@ -79,61 +79,61 @@ jobs:
         id: select
         run: |
           case "${{ inputs.packages }}" in
-            "🎨 Argon 主题")
+            "Argon 主题")
               PKGS="luci-theme-argon luci-app-argon-config"
               ;;
-            "🎨 Kucat 主题")
+            "Kucat 主题")
               PKGS="luci-theme-kucat luci-app-kucat-config"
               ;;
-            "🎨 Aurora 主题")
+            "Aurora 主题")
               PKGS="luci-theme-aurora luci-app-aurora-config"
               ;;
-            "🎨 Design 主题")
+            "Design 主题")
               PKGS="luci-theme-design"
               ;;
-            "🎨 Shadcn 主题")
+            "Shadcn 主题")
               PKGS="luci-theme-shadcn"
               ;;
-            "🔀 Mosdns DNS 转换器")
+            "Mosdns DNS 转换器")
               PKGS="mosdns luci-app-mosdns v2dat"
               ;;
-            "🚀 OpenClash 代理插件")
+            "OpenClash 代理插件")
               PKGS="luci-app-openclash"
               ;;
-            "🚀 HomeProxy 代理插件")
+            "HomeProxy 代理插件")
               PKGS="luci-app-homeproxy"
               ;;
-            "🚀 PassWall 代理插件")
+            "PassWall 代理插件")
               PKGS="luci-app-passwall chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin"
               ;;
-            "🚀 PassWall2 代理插件")
+            "PassWall2 代理插件")
               PKGS="luci-app-passwall2 chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin"
               ;;
-            "🚀 Nikki 代理插件")
+            "Nikki 代理插件")
               PKGS="luci-app-nikki mihomo-meta"
               ;;
-            "🧩 代理内核组件")
+            "代理内核组件")
               PKGS="chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin"
               ;;
-            "🔧 DiskMan 磁盘管理工具")
+            "DiskMan 磁盘管理工具")
               PKGS="luci-app-diskman"
               ;;
-            "🔧 MentoHUST 认证")
+            "MentoHUST 认证")
               PKGS="luci-app-mentohust mentohust"
               ;;
-            "🔧 Quickfile 文件管理")
+            "Quickfile 文件管理")
               PKGS="luci-app-quickfile quickfile"
               ;;
-            "🔧 内存清理")
+            "内存清理")
               PKGS="luci-app-ramfree"
               ;;
-            "🔧 Bandix-Plus 网络流量监控")
+            "Bandix-Plus 网络流量监控")
               PKGS="luci-app-bandix-plus bandix-plus"
               ;;
-            "🔧 OpenList 网盘聚合工具")
+            "OpenList 网盘聚合工具")
               PKGS="luci-app-openlist2 openlist2"
               ;;
-            "🔧 AirConnect 音频服务")
+            "AirConnect 音频服务")
               PKGS="luci-app-airconnect airconnect"
               ;;
             *)
