@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: OpenWrt SDK 版本
+        description: "OpenWrt SDK 版本：auto = 自动检测最新 24.x 和 25.x"
         type: choice
         options:
-          - both
+          - auto
           - "24.10.8"
           - "25.12.5"
-        default: both
+        default: auto
       arch_generic:
         description: "架构 aarch64_generic（通用 ARM64）"
         type: boolean
@@ -23,48 +23,8 @@ on:
         description: "架构 x86_64（软路由 / PC）"
         type: boolean
         default: true
-      argon:
-        description: "Argon 主题: luci-theme-argon + luci-app-argon-config"
-        type: boolean
-        default: false
-      mosdns:
-        description: "Mosdns DNS 转换器: mosdns + luci-app-mosdns + v2dat"
-        type: boolean
-        default: false
-      openclash:
-        description: "OpenClash: luci-app-openclash"
-        type: boolean
-        default: false
-      homeproxy:
-        description: "HomeProxy: luci-app-homeproxy"
-        type: boolean
-        default: false
-      passwall:
-        description: "PassWall: luci-app-passwall + 代理内核（xray/sing-box 等）"
-        type: boolean
-        default: false
-      passwall2:
-        description: "PassWall2: luci-app-passwall2 + 代理内核"
-        type: boolean
-        default: false
-      nikki:
-        description: "Nikki: luci-app-nikki + mihomo-meta"
-        type: boolean
-        default: false
-      themes:
-        description: "其他主题: Aurora / Kucat / Design / Shadcn"
-        type: boolean
-        default: false
-      tools:
-        description: "实用工具: diskman / mentohust / quickfile / ramfree / bandix / openlist2 / airconnect"
-        type: boolean
-        default: false
-      all:
-        description: "全部 45 个包（忽略以上勾选）"
-        type: boolean
-        default: false
-      extra_packages:
-        description: "额外包名（空格分隔，可选，如：shadowsocksr-libev sing-box）"
+      packages:
+        description: "要编译的包名（空格分隔，如 luci-theme-argon mosdns luci-app-mosdns v2dat）；留空 = 编译全部 45 个包"
         type: string
         default: ""
 
@@ -76,20 +36,40 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # ---- 确定要编译的 SDK 版本列表 ----
+  detect:
+    runs-on: ubuntu-24.04
+    outputs:
+      versions: ${{ steps.detect.outputs.versions }}
+    steps:
+      - name: Detect OpenWrt versions
+        id: detect
+        run: |
+          if [ "${{ inputs.version }}" != "auto" ]; then
+            echo "versions=[\"${{ inputs.version }}\"]" >> "$GITHUB_OUTPUT"
+          else
+            TAGS=$(curl -s "https://api.github.com/repos/openwrt/openwrt/tags?per_page=100")
+            V24=$(echo "$TAGS" | grep -oE '"name": "v24\.10\.[0-9]+"' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
+            V25=$(echo "$TAGS" | grep -oE '"name": "v25\.12\.[0-9]+"' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
+            echo "Latest: 24.x=$V24 25.x=$V25"
+            echo "versions=[\"$V24\",\"$V25\"]" >> "$GITHUB_OUTPUT"
+          fi
+
+  # ---- 按 架构 x 版本 矩阵编译 ----
   build:
+    needs: detect
     name: ${{ matrix.arch }} @ ${{ matrix.version }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         arch: [aarch64_generic, aarch64_cortex-a53, x86_64]
-        version: ["24.10.8", "25.12.5"]
-    # 只跑用户勾选的 架构 x 版本 组合
+        version: ${{ fromJSON(needs.detect.outputs.versions) }}
+    # 只跑用户勾选的架构
     if: |
-      ( (inputs.arch_generic && matrix.arch == 'aarch64_generic') ||
-        (inputs.arch_cortex_a53 && matrix.arch == 'aarch64_cortex-a53') ||
-        (inputs.arch_x86_64 && matrix.arch == 'x86_64') ) &&
-      ( inputs.version == 'both' || inputs.version == matrix.version )
+      (inputs.arch_generic && matrix.arch == 'aarch64_generic') ||
+      (inputs.arch_cortex_a53 && matrix.arch == 'aarch64_cortex-a53') ||
+      (inputs.arch_x86_64 && matrix.arch == 'x86_64')
     env:
       ARCH: ${{ matrix.arch }}
       TAG: ${{ matrix.arch }}-${{ matrix.version }}
@@ -103,71 +83,23 @@ jobs:
         with:
           fetch-depth: 0
 
-      # ---- 根据勾选生成 PACKAGES 列表（本仓库就是包源 feed）----
+      # ---- 包列表：填了就用填的，没填就全部 45 个 ----
       - name: Build package selection
         id: select
         run: |
-          PKGS=""
-          GROUPS=""
+          ALL_PKGS="airconnect bandix-plus chinadns-ng dns2socks geoview hysteria ipt2socks luci-app-airconnect luci-app-argon-config luci-app-aurora-config luci-app-bandix-plus luci-app-diskman luci-app-homeproxy luci-app-kucat-config luci-app-mentohust luci-app-mosdns luci-app-nikki luci-app-openclash luci-app-openlist2 luci-app-passwall luci-app-passwall2 luci-app-quickfile luci-app-ramfree luci-theme-argon luci-theme-aurora luci-theme-design luci-theme-kucat luci-theme-shadcn mentohust microsocks mihomo-meta mosdns naiveproxy nikki openlist2 quickfile shadowsocksr-libev shadowsocks-rust shadow-tls simple-obfs sing-box tcping v2dat v2ray-geodata v2ray-plugin xray-core xray-plugin"
 
-          if [ "${{ inputs.all }}" = "true" ]; then
-            PKGS="airconnect bandix-plus chinadns-ng dns2socks geoview hysteria ipt2socks luci-app-airconnect luci-app-argon-config luci-app-aurora-config luci-app-bandix-plus luci-app-diskman luci-app-homeproxy luci-app-kucat-config luci-app-mentohust luci-app-mosdns luci-app-nikki luci-app-openclash luci-app-openlist2 luci-app-passwall luci-app-passwall2 luci-app-quickfile luci-app-ramfree luci-theme-argon luci-theme-aurora luci-theme-design luci-theme-kucat luci-theme-shadcn mentohust microsocks mihomo-meta mosdns naiveproxy nikki openlist2 quickfile shadowsocksr-libev shadowsocks-rust shadow-tls simple-obfs sing-box tcping v2dat v2ray-geodata v2ray-plugin xray-core xray-plugin"
-            GROUPS="全部"
+          INPUT="${{ inputs.packages }}"
+          if [ -n "$INPUT" ]; then
+            PKGS="$(echo "$INPUT" | tr ' ' '\n' | grep -v '^$' | sort -u | tr '\n' ' ' | sed 's/ $//')"
+            GROUPS="自定义: $PKGS"
           else
-            if [ "${{ inputs.argon }}" = "true" ]; then
-              PKGS="$PKGS luci-theme-argon luci-app-argon-config"
-              GROUPS="$GROUPS Argon"
-            fi
-            if [ "${{ inputs.mosdns }}" = "true" ]; then
-              PKGS="$PKGS mosdns luci-app-mosdns v2dat"
-              GROUPS="$GROUPS Mosdns"
-            fi
-            if [ "${{ inputs.openclash }}" = "true" ]; then
-              PKGS="$PKGS luci-app-openclash"
-              GROUPS="$GROUPS OpenClash"
-            fi
-            if [ "${{ inputs.homeproxy }}" = "true" ]; then
-              PKGS="$PKGS luci-app-homeproxy"
-              GROUPS="$GROUPS HomeProxy"
-            fi
-            if [ "${{ inputs.passwall }}" = "true" ]; then
-              PKGS="$PKGS luci-app-passwall chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin"
-              GROUPS="$GROUPS PassWall"
-            fi
-            if [ "${{ inputs.passwall2 }}" = "true" ]; then
-              PKGS="$PKGS luci-app-passwall2 chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin"
-              GROUPS="$GROUPS PassWall2"
-            fi
-            if [ "${{ inputs.nikki }}" = "true" ]; then
-              PKGS="$PKGS luci-app-nikki mihomo-meta"
-              GROUPS="$GROUPS Nikki"
-            fi
-            if [ "${{ inputs.themes }}" = "true" ]; then
-              PKGS="$PKGS luci-theme-aurora luci-app-aurora-config luci-theme-kucat luci-app-kucat-config luci-theme-design luci-theme-shadcn"
-              GROUPS="$GROUPS Themes"
-            fi
-            if [ "${{ inputs.tools }}" = "true" ]; then
-              PKGS="$PKGS luci-app-diskman luci-app-mentohust mentohust luci-app-quickfile quickfile luci-app-ramfree luci-app-bandix-plus bandix-plus luci-app-openlist2 openlist2 luci-app-airconnect airconnect"
-              GROUPS="$GROUPS Tools"
-            fi
-            if [ -n "${{ inputs.extra_packages }}" ]; then
-              PKGS="$PKGS ${{ inputs.extra_packages }}"
-              GROUPS="$GROUPS Extra"
-            fi
-          fi
-
-          # 去重
-          PKGS="$(echo "$PKGS" | tr ' ' '\n' | grep -v '^$' | sort -u | tr '\n' ' ' | sed 's/ $//')"
-          GROUPS="$(echo "$GROUPS" | xargs)"
-
-          if [ -z "$PKGS" ]; then
-            echo "::error::请至少勾选一个插件组，或填写额外包名"
-            exit 1
+            PKGS="$ALL_PKGS"
+            GROUPS="全部 45 个包"
           fi
 
           echo "PACKAGES=$PKGS" >> "$GITHUB_ENV"
           echo "SELECTED=$GROUPS" >> "$GITHUB_ENV"
-          echo "packages=$PKGS" >> "$GITHUB_OUTPUT"
           echo "Selected packages: $PKGS"
 
       # ---- 用官方 SDK 镜像编译（openwrt/gh-action-sdk）----
