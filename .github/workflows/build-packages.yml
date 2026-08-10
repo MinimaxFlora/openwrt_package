@@ -104,10 +104,10 @@ jobs:
               PKGS="luci-app-homeproxy"
               ;;
             "🚀 PassWall 代理插件")
-              PKGS="luci-app-passwall chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin"
+              PKGS="luci-app-passwall"
               ;;
             "🚀 PassWall2 代理插件")
-              PKGS="luci-app-passwall2 chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin"
+              PKGS="luci-app-passwall2"
               ;;
             "🚀 Nikki 代理插件")
               PKGS="luci-app-nikki mihomo-meta"
