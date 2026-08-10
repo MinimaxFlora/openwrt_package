@@ -22,7 +22,7 @@ on:
           - "DiskMan 磁盘管理工具"
           - "MentoHUST 认证"
           - "Quickfile 文件管理"
-          - "内存清理"
+          - "RamFree 内存清理"
           - "Bandix-Plus 网络流量监控"
           - "OpenList 网盘聚合工具"
           - "AirConnect 音频服务"
@@ -124,7 +124,7 @@ jobs:
             "Quickfile 文件管理")
               PKGS="luci-app-quickfile quickfile"
               ;;
-            "内存清理")
+            "RamFree 内存清理")
               PKGS="luci-app-ramfree"
               ;;
             "Bandix-Plus 网络流量监控")
