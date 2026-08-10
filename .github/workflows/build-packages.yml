@@ -3,30 +3,25 @@ name: Build OpenWrt Packages
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: "OpenWrt SDK 版本：auto = 自动检测最新 24.x 和 25.x"
+      packages:
+        description: "选择要编译的插件"
         type: choice
         options:
-          - auto
-          - "24.10.8"
-          - "25.12.5"
-        default: auto
-      arch_generic:
-        description: "架构 aarch64_generic（通用 ARM64）"
-        type: boolean
-        default: true
-      arch_cortex_a53:
-        description: "架构 aarch64_cortex-a53（Cortex-A53 设备）"
-        type: boolean
-        default: true
-      arch_x86_64:
-        description: "架构 x86_64（软路由 / PC）"
-        type: boolean
-        default: true
-      packages:
-        description: "要编译的包名（空格分隔，如 luci-theme-argon mosdns luci-app-mosdns v2dat）；留空 = 编译全部 45 个包"
-        type: string
-        default: ""
+          - "全部 45 个包"
+          - "Argon 主题"
+          - "Kucat 主题"
+          - "Aurora 主题"
+          - "Design 主题"
+          - "Shadcn 主题"
+          - "全部主题"
+          - "Mosdns DNS 转换器"
+          - "OpenClash"
+          - "HomeProxy"
+          - "PassWall"
+          - "PassWall2"
+          - "Nikki"
+          - "实用工具"
+        default: "全部 45 个包"
 
 permissions:
   contents: write
@@ -36,7 +31,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # ---- 确定要编译的 SDK 版本列表 ----
+  # ---- 自动检测最新 24.x 和 25.x 版本 ----
   detect:
     runs-on: ubuntu-24.04
     outputs:
@@ -45,17 +40,13 @@ jobs:
       - name: Detect OpenWrt versions
         id: detect
         run: |
-          if [ "${{ inputs.version }}" != "auto" ]; then
-            echo "versions=[\"${{ inputs.version }}\"]" >> "$GITHUB_OUTPUT"
-          else
-            TAGS=$(curl -s "https://api.github.com/repos/openwrt/openwrt/tags?per_page=100")
-            V24=$(echo "$TAGS" | grep -oE '"name": "v24\.10\.[0-9]+"' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
-            V25=$(echo "$TAGS" | grep -oE '"name": "v25\.12\.[0-9]+"' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
-            echo "Latest: 24.x=$V24 25.x=$V25"
-            echo "versions=[\"$V24\",\"$V25\"]" >> "$GITHUB_OUTPUT"
-          fi
+          TAGS=$(curl -s "https://api.github.com/repos/openwrt/openwrt/tags?per_page=100")
+          V24=$(echo "$TAGS" | grep -oE '"name": "v24\.10\.[0-9]+"' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
+          V25=$(echo "$TAGS" | grep -oE '"name": "v25\.12\.[0-9]+"' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
+          echo "Latest: 24.x=$V24 25.x=$V25"
+          echo "versions=[\"$V24\",\"$V25\"]" >> "$GITHUB_OUTPUT"
 
-  # ---- 按 架构 x 版本 矩阵编译 ----
+  # ---- 固定三个架构 x 检测到的版本 编译 ----
   build:
     needs: detect
     name: ${{ matrix.arch }} @ ${{ matrix.version }}
@@ -65,11 +56,6 @@ jobs:
       matrix:
         arch: [aarch64_generic, aarch64_cortex-a53, x86_64]
         version: ${{ fromJSON(needs.detect.outputs.versions) }}
-    # 只跑用户勾选的架构
-    if: |
-      (inputs.arch_generic && matrix.arch == 'aarch64_generic') ||
-      (inputs.arch_cortex_a53 && matrix.arch == 'aarch64_cortex-a53') ||
-      (inputs.arch_x86_64 && matrix.arch == 'x86_64')
     env:
       ARCH: ${{ matrix.arch }}
       TAG: ${{ matrix.arch }}-${{ matrix.version }}
@@ -83,23 +69,59 @@ jobs:
         with:
           fetch-depth: 0
 
-      # ---- 包列表：填了就用填的，没填就全部 45 个 ----
+      # ---- 根据下拉选择映射包列表 ----
       - name: Build package selection
         id: select
         run: |
           ALL_PKGS="airconnect bandix-plus chinadns-ng dns2socks geoview hysteria ipt2socks luci-app-airconnect luci-app-argon-config luci-app-aurora-config luci-app-bandix-plus luci-app-diskman luci-app-homeproxy luci-app-kucat-config luci-app-mentohust luci-app-mosdns luci-app-nikki luci-app-openclash luci-app-openlist2 luci-app-passwall luci-app-passwall2 luci-app-quickfile luci-app-ramfree luci-theme-argon luci-theme-aurora luci-theme-design luci-theme-kucat luci-theme-shadcn mentohust microsocks mihomo-meta mosdns naiveproxy nikki openlist2 quickfile shadowsocksr-libev shadowsocks-rust shadow-tls simple-obfs sing-box tcping v2dat v2ray-geodata v2ray-plugin xray-core xray-plugin"
 
-          INPUT="${{ inputs.packages }}"
-          if [ -n "$INPUT" ]; then
-            PKGS="$(echo "$INPUT" | tr ' ' '\n' | grep -v '^$' | sort -u | tr '\n' ' ' | sed 's/ $//')"
-            GROUPS="自定义: $PKGS"
-          else
-            PKGS="$ALL_PKGS"
-            GROUPS="全部 45 个包"
-          fi
+          case "${{ inputs.packages }}" in
+            "Argon 主题")
+              PKGS="luci-theme-argon luci-app-argon-config"
+              ;;
+            "Kucat 主题")
+              PKGS="luci-theme-kucat luci-app-kucat-config"
+              ;;
+            "Aurora 主题")
+              PKGS="luci-theme-aurora luci-app-aurora-config"
+              ;;
+            "Design 主题")
+              PKGS="luci-theme-design"
+              ;;
+            "Shadcn 主题")
+              PKGS="luci-theme-shadcn"
+              ;;
+            "全部主题")
+              PKGS="luci-theme-argon luci-app-argon-config luci-theme-kucat luci-app-kucat-config luci-theme-aurora luci-app-aurora-config luci-theme-design luci-theme-shadcn"
+              ;;
+            "Mosdns DNS 转换器")
+              PKGS="mosdns luci-app-mosdns v2dat"
+              ;;
+            "OpenClash")
+              PKGS="luci-app-openclash"
+              ;;
+            "HomeProxy")
+              PKGS="luci-app-homeproxy"
+              ;;
+            "PassWall")
+              PKGS="luci-app-passwall chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin"
+              ;;
+            "PassWall2")
+              PKGS="luci-app-passwall2 chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin"
+              ;;
+            "Nikki")
+              PKGS="luci-app-nikki mihomo-meta"
+              ;;
+            "实用工具")
+              PKGS="luci-app-diskman luci-app-mentohust mentohust luci-app-quickfile quickfile luci-app-ramfree luci-app-bandix-plus bandix-plus luci-app-openlist2 openlist2 luci-app-airconnect airconnect"
+              ;;
+            *)
+              PKGS="$ALL_PKGS"
+              ;;
+          esac
 
           echo "PACKAGES=$PKGS" >> "$GITHUB_ENV"
-          echo "SELECTED=$GROUPS" >> "$GITHUB_ENV"
+          echo "SELECTED=${{ inputs.packages }}" >> "$GITHUB_ENV"
           echo "Selected packages: $PKGS"
 
       # ---- 用官方 SDK 镜像编译（openwrt/gh-action-sdk）----
