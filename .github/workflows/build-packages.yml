@@ -171,7 +171,19 @@ jobs:
           fi
           ls -lh release/
 
-      # ---- 按架构名创建 tag + release，上传 ipk/apk ----
+      # ---- 先检测并删除已有的 tag + release（每次重新创建，避免残留）----
+      - name: Delete existing tag & release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "存在旧的 release/tag，删除: $TAG"
+            gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag
+          else
+            echo "没有旧 release，直接创建: $TAG"
+          fi
+
+      # ---- 按架构名创建全新 tag + release，上传 ipk/apk ----
       - name: Create tag & release
         uses: softprops/action-gh-release@v2
         with:
@@ -182,5 +194,4 @@ jobs:
             插件: ${{ env.SELECTED }}
             由手动触发构建生成
           files: release/**/*
-          update_existing: true
           fail_on_unmatched_files: false
