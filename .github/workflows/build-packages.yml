@@ -48,13 +48,16 @@ jobs:
           TAGS=$(curl -s "https://api.github.com/repos/openwrt/openwrt/tags?per_page=100")
           V24=$(echo "$TAGS" | grep -oE '"name": "v24\.10\.[0-9]+"' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
           V25=$(echo "$TAGS" | grep -oE '"name": "v25\.12\.[0-9]+"' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
+          # API 失败时兜底
+          [ -z "$V24" ] && V24="24.10.8"
+          [ -z "$V25" ] && V25="25.12.5"
           echo "Latest: 24.x=$V24 25.x=$V25"
           echo "versions=[\"$V24\",\"$V25\"]" >> "$GITHUB_OUTPUT"
 
-  # ---- 固定三个架构 x 检测到的版本 编译 ----
+  # ---- 编译：三架构 x 版本矩阵，只产出 ipk/apk 并上传 artifact ----
   build:
     needs: detect
-    name: ${{ matrix.arch }} @ ${{ matrix.version }}
+    name: Build ${{ matrix.arch }} @ ${{ matrix.version }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -63,7 +66,6 @@ jobs:
         version: ${{ fromJSON(needs.detect.outputs.versions) }}
     env:
       ARCH: ${{ matrix.arch }}
-      TAG: ${{ matrix.arch }}-${{ matrix.version }}
 
     steps:
       - name: Free disk space
@@ -153,28 +155,57 @@ jobs:
         if: ${{ env.SKIP_BUILD == '0' }}
         uses: MinimaxFlora/gh-action-sdk@go1.26
         env:
+          ARCH: ${{ env.ARCH }}-${{ matrix.version }}
           FEEDNAME: packages_ci
           PACKAGES: ${{ env.PACKAGES }}
           NO_REFRESH_CHECK: true
           IGNORE_ERRORS: true
 
-      # ---- 只收集本仓库编译的产物（packages_ci 目录，不含依赖包）----
+      # ---- 只收集本仓库编译的产物（packages_ci 目录的 ipk/apk，不打包）----
       - name: Collect packages
         run: |
           mkdir -p release
           find "bin/packages/${{ env.ARCH }}/packages_ci" -maxdepth 1 -type f \( -name '*.ipk' -o -name '*.apk' \) -exec cp {} release/ \; || true
-          if [ -n "$(ls -A release)" ]; then
-            tar -czf "$TAG.tar.gz" -C release .
-            mv "$TAG.tar.gz" release/
-          else
+          if [ -z "$(ls -A release)" ]; then
             echo "构建无产物" > release/EMPTY.txt
           fi
           ls -lh release/
 
+      # ---- 上传 artifact 供 release job 汇总 ----
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-${{ matrix.arch }}-${{ matrix.version }}
+          path: release
+          if-no-files-found: warn
+
+  # ---- 发布：按架构汇总 24.x + 25.x 产物，删除旧 release/tag 后重建 ----
+  release:
+    needs: [detect, build]
+    name: Release ${{ matrix.arch }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [aarch64_generic, aarch64_cortex-a53, x86_64]
+    env:
+      TAG: ${{ matrix.arch }}
+
+    steps:
+      - name: Download all artifacts for ${{ matrix.arch }}
+        uses: actions/download-artifact@v4
+        with:
+          pattern: packages-${{ matrix.arch }}-*
+          merge-multiple: true
+          path: release
+
+      - name: Check collected files
+        run: ls -lh release/
+
       # ---- 先检测并删除已有的 tag + release（每次重新创建，避免残留）----
       - name: Delete existing tag & release
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: *** github.token }}
         run: |
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "存在旧的 release/tag，删除: $TAG"
@@ -183,15 +214,16 @@ jobs:
             echo "没有旧 release，直接创建: $TAG"
           fi
 
-      # ---- 按架构名创建全新 tag + release，上传 ipk/apk ----
+      # ---- 以架构名创建全新 tag + release，上传 ipk/apk ----
       - name: Create tag & release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
           name: ${{ env.TAG }}
           body: |
-            OpenWrt ${{ matrix.version }} · ${{ matrix.arch }}
-            插件: ${{ env.SELECTED }}
+            OpenWrt ${{ matrix.arch }} · 自动构建
+            版本: ${{ join(fromJSON(needs.detect.outputs.versions), ' / ') }}
+            插件: ${{ inputs.packages }}
             由手动触发构建生成
           files: release/**/*
           fail_on_unmatched_files: false
