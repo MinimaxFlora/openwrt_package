@@ -18,7 +18,7 @@ on:
           - "🚀 PassWall 代理插件"
           - "🚀 PassWall2 代理插件"
           - "🚀 Nikki 代理插件"
-          - "🧩 代理内核组件"
+          - "🧩 HelloWorld 代理内核组件"
           - "🔧 DiskMan 磁盘管理工具"
           - "🔧 MentoHUST 认证"
           - "🔧 Quickfile 文件管理"
@@ -112,7 +112,7 @@ jobs:
             "🚀 Nikki 代理插件")
               PKGS="luci-app-nikki mihomo-meta"
               ;;
-            "🧩 代理内核组件")
+            "🧩 HelloWorld 代理内核组件")
               PKGS="chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin"
               ;;
             "🔧 DiskMan 磁盘管理工具")
