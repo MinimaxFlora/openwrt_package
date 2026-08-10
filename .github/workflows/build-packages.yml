@@ -158,11 +158,11 @@ jobs:
           NO_REFRESH_CHECK: true
           IGNORE_ERRORS: true
 
-      # ---- 收集产物（ipk/apk + tar.gz）----
+      # ---- 只收集本仓库编译的产物（packages_ci 目录，不含依赖包）----
       - name: Collect packages
         run: |
           mkdir -p release
-          find bin -type f \( -name '*.ipk' -o -name '*.apk' \) -exec cp {} release/ \; || true
+          find "bin/packages/${{ env.ARCH }}/packages_ci" -maxdepth 1 -type f \( -name '*.ipk' -o -name '*.apk' \) -exec cp {} release/ \; || true
           if [ -n "$(ls -A release)" ]; then
             tar -czf "$TAG.tar.gz" -C release .
             mv "$TAG.tar.gz" release/
