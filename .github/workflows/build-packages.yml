@@ -7,21 +7,21 @@ on:
         description: "选择要编译的插件"
         type: choice
         options:
-          - "全部 45 个包"
-          - "Argon 主题"
-          - "Kucat 主题"
-          - "Aurora 主题"
-          - "Design 主题"
-          - "Shadcn 主题"
-          - "全部主题"
-          - "Mosdns DNS 转换器"
-          - "OpenClash"
-          - "HomeProxy"
-          - "PassWall"
-          - "PassWall2"
-          - "Nikki"
-          - "实用工具"
-        default: "全部 45 个包"
+          - "📦 全部 45 个包"
+          - "🎨 Argon 主题（luci-theme-argon + luci-app-argon-config）"
+          - "🎨 Kucat 主题（luci-theme-kucat + luci-app-kucat-config）"
+          - "🎨 Aurora 主题（luci-theme-aurora + luci-app-aurora-config）"
+          - "🎨 Design 主题（luci-theme-design）"
+          - "🎨 Shadcn 主题（luci-theme-shadcn）"
+          - "🔀 Mosdns DNS 转换器（mosdns + luci-app-mosdns + v2dat）"
+          - "🚀 OpenClash 代理插件（luci-app-openclash）"
+          - "🚀 HomeProxy 代理插件（luci-app-homeproxy）"
+          - "🚀 PassWall 代理插件（luci-app-passwall + 依赖）"
+          - "🚀 PassWall2 代理插件（luci-app-passwall2 + 依赖）"
+          - "🚀 Nikki 代理插件（luci-app-nikki + mihomo-meta）"
+          - "🧩 代理内核组件（chinadns-ng / dns2socks / microsocks / tcping / xray-core / xray-plugin / sing-box / hysteria / naiveproxy / shadowsocks-rust / shadow-tls / simple-obfs / v2ray-geodata / v2ray-plugin）"
+          - "🔧 实用工具（luci-app-diskman / luci-app-mentohust / luci-app-quickfile / luci-app-ramfree / luci-app-bandix-plus / luci-app-openlist2 / luci-app-airconnect）"
+        default: "📦 全部 45 个包"
 
 permissions:
   contents: write
@@ -69,50 +69,53 @@ jobs:
         with:
           fetch-depth: 0
 
-      # ---- 根据下拉选择映射包列表 ----
+      # ---- 根据下拉选择映射包列表，并定义 SKIP_BUILD ----
       - name: Build package selection
         id: select
         run: |
           ALL_PKGS="airconnect bandix-plus chinadns-ng dns2socks geoview hysteria ipt2socks luci-app-airconnect luci-app-argon-config luci-app-aurora-config luci-app-bandix-plus luci-app-diskman luci-app-homeproxy luci-app-kucat-config luci-app-mentohust luci-app-mosdns luci-app-nikki luci-app-openclash luci-app-openlist2 luci-app-passwall luci-app-passwall2 luci-app-quickfile luci-app-ramfree luci-theme-argon luci-theme-aurora luci-theme-design luci-theme-kucat luci-theme-shadcn mentohust microsocks mihomo-meta mosdns naiveproxy nikki openlist2 quickfile shadowsocksr-libev shadowsocks-rust shadow-tls simple-obfs sing-box tcping v2dat v2ray-geodata v2ray-plugin xray-core xray-plugin"
 
           case "${{ inputs.packages }}" in
-            "Argon 主题")
+            "📦 全部 45 个包")
+              PKGS="$ALL_PKGS"
+              ;;
+            "🎨 Argon 主题（luci-theme-argon + luci-app-argon-config）")
               PKGS="luci-theme-argon luci-app-argon-config"
               ;;
-            "Kucat 主题")
+            "🎨 Kucat 主题（luci-theme-kucat + luci-app-kucat-config）")
               PKGS="luci-theme-kucat luci-app-kucat-config"
               ;;
-            "Aurora 主题")
+            "🎨 Aurora 主题（luci-theme-aurora + luci-app-aurora-config）")
               PKGS="luci-theme-aurora luci-app-aurora-config"
               ;;
-            "Design 主题")
+            "🎨 Design 主题（luci-theme-design）")
               PKGS="luci-theme-design"
               ;;
-            "Shadcn 主题")
+            "🎨 Shadcn 主题（luci-theme-shadcn）")
               PKGS="luci-theme-shadcn"
               ;;
-            "全部主题")
-              PKGS="luci-theme-argon luci-app-argon-config luci-theme-kucat luci-app-kucat-config luci-theme-aurora luci-app-aurora-config luci-theme-design luci-theme-shadcn"
-              ;;
-            "Mosdns DNS 转换器")
+            "🔀 Mosdns DNS 转换器（mosdns + luci-app-mosdns + v2dat）")
               PKGS="mosdns luci-app-mosdns v2dat"
               ;;
-            "OpenClash")
+            "🚀 OpenClash 代理插件（luci-app-openclash）")
               PKGS="luci-app-openclash"
               ;;
-            "HomeProxy")
+            "🚀 HomeProxy 代理插件（luci-app-homeproxy）")
               PKGS="luci-app-homeproxy"
               ;;
-            "PassWall")
+            "🚀 PassWall 代理插件（luci-app-passwall + 依赖）")
               PKGS="luci-app-passwall chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin"
               ;;
-            "PassWall2")
+            "🚀 PassWall2 代理插件（luci-app-passwall2 + 依赖）")
               PKGS="luci-app-passwall2 chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin"
               ;;
-            "Nikki")
+            "🚀 Nikki 代理插件（luci-app-nikki + mihomo-meta）")
               PKGS="luci-app-nikki mihomo-meta"
               ;;
-            "实用工具")
+            "🧩 代理内核组件（chinadns-ng / dns2socks / microsocks / tcping / xray-core / xray-plugin / sing-box / hysteria / naiveproxy / shadowsocks-rust / shadow-tls / simple-obfs / v2ray-geodata / v2ray-plugin）")
+              PKGS="chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin"
+              ;;
+            "🔧 实用工具（luci-app-diskman / luci-app-mentohust / luci-app-quickfile / luci-app-ramfree / luci-app-bandix-plus / luci-app-openlist2 / luci-app-airconnect）")
               PKGS="luci-app-diskman luci-app-mentohust mentohust luci-app-quickfile quickfile luci-app-ramfree luci-app-bandix-plus bandix-plus luci-app-openlist2 openlist2 luci-app-airconnect airconnect"
               ;;
             *)
@@ -120,28 +123,27 @@ jobs:
               ;;
           esac
 
+          # 不跳过任何架构/版本
+          echo "SKIP_BUILD=0" >> "$GITHUB_ENV"
           echo "PACKAGES=$PKGS" >> "$GITHUB_ENV"
           echo "SELECTED=${{ inputs.packages }}" >> "$GITHUB_ENV"
           echo "Selected packages: $PKGS"
 
-      # ---- 用官方 SDK 镜像编译（openwrt/gh-action-sdk）----
-      - name: Build Packages (${{ matrix.arch }}-${{ matrix.version }})
-        uses: openwrt/gh-action-sdk@main
+      # ---- 用 SDK 镜像编译（MinimaxFlora/gh-action-sdk@go1.26）----
+      - name: Build Packages
+        if: ${{ env.SKIP_BUILD == '0' }}
+        uses: MinimaxFlora/gh-action-sdk@go1.26
         env:
-          ARCH: ${{ env.ARCH }}-${{ matrix.version }}
-          FEEDNAME: action
+          FEEDNAME: packages_ci
           PACKAGES: ${{ env.PACKAGES }}
-          IGNORE_ERRORS: "true"
-          NO_REFRESH_CHECK: "true"
-          BUILD_LOG: "1"
-          INDEX: "1"
-          V: "s"
+          NO_REFRESH_CHECK: true
+          IGNORE_ERRORS: true
 
-      # ---- 收集产物（ipk/apk + 包索引 + tar.gz）----
+      # ---- 收集产物（ipk/apk + tar.gz）----
       - name: Collect packages
         run: |
           mkdir -p release
-          find bin -type f \( -name '*.ipk' -o -name '*.apk' -o -name 'Packages*' -o -name 'APKINDEX*' \) -exec cp {} release/ \; || true
+          find bin -type f \( -name '*.ipk' -o -name '*.apk' \) -exec cp {} release/ \; || true
           if [ -n "$(ls -A release)" ]; then
             tar -czf "$TAG.tar.gz" -C release .
             mv "$TAG.tar.gz" release/
