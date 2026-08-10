@@ -14,6 +14,6 @@ PKG_RELEASE:=20260801
 LUCI_MINIFY_CSS:=
 CONFIG_LUCI_CSSTIDY:=
 
-include ../../luci.mk
+include $(TOPDIR)/feeds/luci/luci.mk
 
 # call BuildPackage - OpenWrt buildroot signature
