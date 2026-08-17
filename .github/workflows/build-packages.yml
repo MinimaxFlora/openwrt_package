@@ -168,11 +168,14 @@ jobs:
           NO_REFRESH_CHECK: true
           IGNORE_ERRORS: true
 
-      # ---- 只收集本仓库编译的产物（packages_ci 目录的 ipk/apk，不打包）----
+      # ---- 只收集本仓库编译的产物（packages_ci + nonshared 包），不打包 ----
       - name: Collect packages
         run: |
           mkdir -p release
+          # 常规包 (packages_ci feed)
           find "bin/packages/${{ env.ARCH }}/packages_ci" -maxdepth 1 -type f \( -name '*.ipk' -o -name '*.apk' \) -exec cp {} release/ \; || true
+          # nonshared 包 (autocore 等): 输出在 bin/targets/<target>/<subtarget>/packages/
+          find "bin/targets" -type f \( -name '*.ipk' -o -name '*.apk' \) -exec cp {} release/ \; || true
           if [ -z "$(ls -A release)" ]; then
             echo "构建无产物" > release/EMPTY.txt
           fi
