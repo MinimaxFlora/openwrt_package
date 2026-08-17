@@ -23,14 +23,16 @@ define Package/autocore-arm
   MAINTAINER:=CN_SZTL
   DEPENDS:=@(arm||aarch64) \
     +TARGET_bcm27xx:bcm27xx-userland \
-    +TARGET_bcm53xx:nvram
+    +TARGET_bcm53xx:nvram \
+    +luci-base \
+    +@LUCI_LANG_zh_Hans
   VARIANT:=arm
 endef
 
 define Package/autocore-x86
   TITLE:=x86/x64 auto core loadbalance script.
   MAINTAINER:=Lean / CN_SZTL
-  DEPENDS:=@TARGET_x86 +lm-sensors +ethtool
+  DEPENDS:=@TARGET_x86 +lm-sensors +ethtool +luci-base +@LUCI_LANG_zh_Hans
   VARIANT:=x86
 endef
 
@@ -52,6 +54,10 @@ define Package/autocore/install/Default
 
 	$(INSTALL_DIR) $(1)/www/luci-static/resources/view/status/include
 	$(INSTALL_DATA) ./files/generic/35_network_speed.js $(1)/www/luci-static/resources/view/status/include/35_network_speed.js
+
+	# 中文语言包 (po2lmo 编译, 参考 default-settings)
+	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
+	po2lmo ./i18n/autocore.zh_Hans.po $(1)/usr/lib/lua/luci/i18n/autocore.zh-cn.lmo
 endef
 
 define Package/autocore-arm/install

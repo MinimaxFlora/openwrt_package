@@ -1,0 +1,14 @@
+msgid "CPU usage"
+msgstr "CPU 使用率"
+
+msgid "Help & Feedback"
+msgstr "帮助与反馈"
+
+msgid "Project Website"
+msgstr "项目主页"
+
+msgid "Issue Feedback"
+msgstr "问题反馈"
+
+msgid "Donation Address"
+msgstr "捐赠地址"
