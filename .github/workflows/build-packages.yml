@@ -26,6 +26,7 @@ on:
           - "🔧 Bandix-Plus 网络流量监控"
           - "🔧 OpenList 网盘聚合工具"
           - "🔧 AirConnect 音频服务"
+          - "🌡️ Autocore 硬件信息"
         default: "🎨 Argon 主题"
 
 permissions:
@@ -140,6 +141,9 @@ jobs:
               ;;
             "🔧 AirConnect 音频服务")
               PKGS="luci-app-airconnect airconnect"
+              ;;
+            "🌡️ Autocore 硬件信息")
+              PKGS="autocore"
               ;;
             *)
               echo "::error::未识别的选项：${{ inputs.packages }}"
