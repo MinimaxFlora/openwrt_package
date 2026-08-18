@@ -185,43 +185,6 @@ jobs:
           fi
           ls -lh release/
 
-      # ---- 修正包文件名：构建产物中 '~'（git hash 分隔符）可能被写成 '.' ----
-      # 包内版本仍是 '~' 形式（如 26.221.69441~0f2ef3d），索引按包内版本生成，
-      # 安装时按 '~' 文件名查找实际文件会失败（package mentioned in index not found）。
-      # 这里在发布前统一把文件名中 hash 前的 '.' 改回 '~'，保证下载到的包文件名正确。
-      - name: Fix package filenames
-        shell: bash
-        run: |
-          shopt -s nullglob
-          FIXED=0
-          for f in release/*.apk release/*.ipk; do
-            case "$f" in
-              *.apk) ext="apk" ;;
-              *.ipk) ext="ipk" ;;
-              *) continue ;;
-            esac
-            base="${f%.${ext}}"
-            # 匹配: '.' + 6-10 位 hex git hash，可选 '-rN' 发行号与 ipk 的 '_arch' 后缀
-            if [[ "$base" =~ \.([0-9a-fA-F]{6,10})(-r[0-9]+)?(_[^.]+)?$ ]]; then
-              hash="${BASH_REMATCH[1]}"
-              suffix="${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
-              target="${base%${BASH_REMATCH[0]}}~${hash}${suffix}.${ext}"
-              if [[ "$target" != "$f" ]]; then
-                if [[ -e "$target" ]]; then
-                  rm -f "$f"
-                  echo "移除重复: ${f##*/}（已存在 ${target##*/}）"
-                else
-                  mv -f "$f" "$target"
-                  echo "修正文件名: ${f##*/} -> ${target##*/}"
-                fi
-                FIXED=$((FIXED+1))
-              fi
-            fi
-          done
-          shopt -u nullglob
-          echo "共修正 ${FIXED} 个包文件名（~ 被写成 .）"
-          ls -lh release/
-
       # ---- 上传 artifact 供 release job 汇总 ----
       - name: Upload artifacts
         uses: actions/upload-artifact@v7.0.1
