@@ -12,6 +12,7 @@ on:
           - "🎨 Aurora 主题"
           - "🎨 Design 主题"
           - "🎨 Shadcn 主题"
+          - "🎨 Fluent 主题"
           - "🔀 Mosdns DNS 转换器"
           - "🚀 OpenClash 代理插件"
           - "🚀 HomeProxy 代理插件"
@@ -99,6 +100,9 @@ jobs:
               ;;
             "🎨 Shadcn 主题")
               PKGS="luci-theme-shadcn"
+              ;;
+            "🎨 Fluent 主题")
+              PKGS="luci-theme-fluent"
               ;;
             "🔀 Mosdns DNS 转换器")
               PKGS="mosdns luci-app-mosdns v2dat"

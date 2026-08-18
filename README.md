@@ -19,8 +19,8 @@
 
 | | | |
 | :--- | :--- | :--- |
-| 🛡️ **防炸备份** | 📦 **45 个常用包** | 🎨 **5 套 LuCI 主题** |
-| 锁定稳定版本，上游改动不影响编译 | 科学上网全家桶 + 实用工具 | Argon / Kucat / Aurora / Design / Shadcn |
+| 🛡️ **防炸备份** | 📦 **45 个常用包** | 🎨 **6 套 LuCI 主题** |
+| 锁定稳定版本，上游改动不影响编译 | 科学上网全家桶 + 实用工具 | Argon / Kucat / Aurora / Design / Shadcn / Fluent |
 | 🔄 **按需同步** | 🖥️ **全架构支持** | ⚡ **即克隆即用** |
 | 需要时手动更新，版本可控 | x86 / ARM / 全平台通用 | 直接加入 feeds 即可编译 |
 
@@ -120,6 +120,7 @@ git clone https://github.com/sbwml/packages_lang_golang -b 26.x feeds/packages/l
 | `luci-theme-aurora` | 1.2.0 | Aurora 主题 |
 | `luci-theme-design` | 7.1 | Design 主题 |
 | `luci-theme-shadcn` | 0.4.0 | Shadcn 主题 |
+| `luci-theme-fluent` | 1.0.9 | Fluent 主题 |
 | `luci-app-argon-config` | 1.0 | Argon 主题配置 |
 | `luci-app-aurora-config` | 1.2.0 | Aurora 主题配置 |
 | `luci-app-kucat-config` | 2.2.1 | Kucat 主题配置 |
