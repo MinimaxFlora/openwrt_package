@@ -1,0 +1,199 @@
+// ============================================================
+// MAC SELECTOR - Stacked Overlay Modal & Square Edit Button
+// Uses Fluent UI System Icons via SCSS mixins and LuCI dropdowns
+// ============================================================
+@use "../mixins" as *;
+@use "../icons" as *;
+
+.fluent-mac-selector-group {
+  display: flex;
+  align-items: center;
+  gap: var(--fluent-space-xs);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  > input.cbi-input-text {
+    flex: 1 1 auto !important;
+    min-width: 160px !important;
+    width: 100% !important;
+  }
+
+  > .fluent-mac-edit-btn {
+    flex-shrink: 0;
+    width: var(--fluent-input-height) !important;
+    height: var(--fluent-input-height) !important;
+    min-width: var(--fluent-input-height) !important;
+    padding: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--fluent-radius-md);
+
+    &::after {
+      @include fluent-mask-icon-by-name("fluent:edit-20-regular", 16px, currentColor);
+    }
+  }
+}
+
+// ------------------------------------------------------------
+// STACKED OVERLAY BACKDROP (z-index: 2500)
+// Stacked above any underlying modal dialog or form page
+// ------------------------------------------------------------
+.fluent-mac-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--fluent-space-lg);
+  animation: fluent-mac-fade-in 0.2s cubic-bezier(0, 0, 0.2, 1);
+}
+
+@keyframes fluent-mac-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fluent-mac-overlay-card {
+  background: var(--fluent-bg-card);
+  border: 1px solid var(--fluent-border);
+  border-radius: var(--fluent-radius-lg);
+  box-shadow: var(--fluent-shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.3));
+  width: min(90vw, 440px);
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: visible !important; // Prevent clipping dropdown popups
+  position: relative;
+  animation: fluent-mac-pop-in 0.2s cubic-bezier(0, 0, 0.2, 1);
+
+  .fluent-mac-overlay-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--fluent-space-lg) var(--fluent-space-xl);
+    border-bottom: 1px solid var(--fluent-border);
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+
+    h3 {
+      margin: 0;
+      font-size: var(--fluent-font-size-md);
+      font-weight: var(--fluent-font-weight-semibold);
+      color: var(--fluent-text);
+    }
+
+    .fluent-mac-overlay-close {
+      @include button-base;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      background: transparent;
+      border: none;
+      color: var(--fluent-text-secondary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      &::after {
+        @include fluent-mask-icon-by-name("fluent:dismiss-20-regular", 16px, currentColor);
+      }
+
+      &:hover {
+        background: var(--fluent-bg-hover);
+        color: var(--fluent-text);
+      }
+    }
+  }
+
+  .fluent-mac-overlay-body {
+    padding: var(--fluent-space-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--fluent-space-lg);
+    overflow: visible !important; // Ensure dropdown can float outside without clip
+  }
+
+  .fluent-mac-field-block {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fluent-space-xs);
+    position: relative;
+    overflow: visible !important;
+
+    .fluent-mac-label {
+      font-size: var(--fluent-font-size-sm);
+      font-weight: var(--fluent-font-weight-semibold);
+      color: var(--fluent-text-secondary);
+    }
+
+    .fluent-mac-modal-input {
+      width: 100%;
+      font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: var(--fluent-font-size-md);
+      font-weight: var(--fluent-font-weight-semibold);
+      text-align: center;
+      letter-spacing: 1px;
+      padding: var(--fluent-space-sm);
+    }
+  }
+
+  .fluent-mac-picker-row {
+    display: flex;
+    align-items: center;
+    gap: var(--fluent-space-sm);
+    width: 100%;
+    overflow: visible !important;
+
+    .fluent-mac-random-btn {
+      white-space: nowrap;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--fluent-space-xs);
+
+      &::before {
+        @include fluent-mask-icon-by-name("fluent:arrow-clockwise-20-regular", 16px, currentColor);
+      }
+    }
+  }
+
+  .fluent-mac-vendor-picker-wrap {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    overflow: visible !important;
+  }
+
+  .fluent-mac-overlay-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--fluent-space-sm);
+    padding: var(--fluent-space-md) var(--fluent-space-xl);
+    border-top: 1px solid var(--fluent-border);
+    background: var(--fluent-bg-secondary);
+    border-bottom-left-radius: inherit;
+    border-bottom-right-radius: inherit;
+  }
+}
+
+@keyframes fluent-mac-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}

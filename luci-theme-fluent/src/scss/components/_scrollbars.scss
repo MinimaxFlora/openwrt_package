@@ -1,0 +1,44 @@
+// ============================================================
+// SCROLLBARS - FluentUI 2 Custom Scrollbar Styles
+// Width: 6px, Thumb: Grey76
+// ============================================================
+@use "../mixins" as *;
+
+// Global scrollbar
+html {
+  @include custom-scrollbar;
+}
+
+// Scrollable containers
+.cbi-section,
+.cbi-section-node,
+.table-wrapper,
+.modal,
+.main-content,
+.sidebar,
+pre,
+code {
+  @include custom-scrollbar;
+}
+
+// Dropdown specific scrollbar
+.cbi-dropdown ul.dropdown,
+.fluent-custom-select ul.dropdown {
+  @include custom-scrollbar;
+}
+
+// Firefox scrollbar
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--fluent-scrollbar-thumb-bg) var(--fluent-scrollbar-track-bg);
+}
+
+// Thin scrollbar for sidebars and smaller containers
+.sidebar,
+.cbi-section-node,
+.table-wrapper {
+  &::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+}

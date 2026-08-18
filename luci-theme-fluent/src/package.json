@@ -1,0 +1,19 @@
+{
+  "name": "luci-theme-fluent-src",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "rsbuild build",
+    "watch": "rsbuild build --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@lazulikao/luci-types": "github:LazuliKao/luci-types#6511175eddeb9dcdee0046f3399b604ce74bd99c",
+    "@rspack/core": "^2.1.7",
+    "@rsbuild/core": "^2.1.9",
+    "@rsbuild/plugin-sass": "^2.0.1",
+    "@types/node": "^22.19.19",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  }
+}

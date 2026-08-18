@@ -1,0 +1,332 @@
+// ============================================================
+// MENU BUTTON (Dropdown Button)
+// Overrides and separates dropdown styling when used as a button/btn
+// ============================================================
+@use "../mixins" as *;
+@use "../icons" as *;
+
+.cbi-dropdown.cbi-button,
+.cbi-dropdown.btn {
+  // 1. Reset dropdown (input-base) properties to button styles
+  @include button-secondary;
+  border-bottom-color: var(--fluent-btn-secondary-border);
+
+  // Define default, hover and active background variables
+  --menu-btn-bg-default: var(--fluent-btn-secondary-bg);
+  --menu-btn-bg-hover: var(--fluent-btn-secondary-bg-hover);
+  --menu-btn-bg-active: var(--fluent-btn-secondary-bg-active);
+
+  // Set default background
+  background: var(--menu-btn-bg-default);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  position: relative;
+  vertical-align: middle;
+  cursor: pointer;
+
+  @include rtl {
+    direction: rtl;
+  }
+
+  // Completely disable background/background-color transitions to prevent transparency flashing when open/close toggles
+  transition:
+    border-color var(--fluent-duration-fast) var(--fluent-easing-standard),
+    color var(--fluent-duration-fast) var(--fluent-easing-standard) !important;
+
+  // Layout & size overrides
+  padding: 0 !important;
+  gap: 0 !important;
+  min-width: unset; // Buttons shouldn't have the 120px min-width of select dropdowns
+  width: auto;
+
+  // 2. Disable bottom border indicator (::after) of cbi-dropdown
+  &::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  // 3. Hover, Active & Focus State overrides to match FluentUI Button behaviour
+  // Use !important to override high-specificity focus-ripple states from _dropdown.scss / cascade.css
+  &:hover:not([disabled]) {
+    background: var(--menu-btn-bg-default);
+    border-color: var(--fluent-btn-secondary-border-hover) !important;
+    border-bottom-color: var(--fluent-btn-secondary-border-hover) !important;
+  }
+
+  &:active,
+  &:active:not([disabled]) {
+    background: var(--menu-btn-bg-default);
+    border-color: var(--fluent-btn-secondary-border-active) !important;
+    border-bottom-color: var(--fluent-btn-secondary-border-active) !important;
+  }
+
+  &:focus,
+  &.focus,
+  &[open] {
+    border-color: var(--fluent-btn-secondary-border-active) !important;
+    border-bottom-color: var(--fluent-btn-secondary-border-active) !important;
+    outline: none;
+  }
+
+  // 4. Handle primary button variants (cbi-button-apply, cbi-button-save, cbi-button-positive, important)
+  // Exclude negative classes to prevent styling conflicts on destructive action buttons
+  &.cbi-button-apply:not(.cbi-button-remove):not(.cbi-button-negative),
+  &.cbi-button-save:not(.cbi-button-remove):not(.cbi-button-negative),
+  &.cbi-button-positive:not(.cbi-button-remove):not(.cbi-button-negative),
+  &.important:not(.cbi-button-remove):not(.cbi-button-negative) {
+    @include button-primary;
+    border: 0 !important;
+
+    --menu-btn-bg-default: var(--fluent-btn-primary-bg);
+    --menu-btn-bg-hover: var(--fluent-btn-primary-bg-hover);
+    --menu-btn-bg-active: var(--fluent-btn-primary-bg-active);
+
+    background: var(--menu-btn-bg-default);
+
+    // Use !important to override high-specificity focus-ripple states from _dropdown.scss / cascade.css
+    &:hover:not([disabled]) {
+      background: var(--menu-btn-bg-default);
+      border: 0 !important;
+    }
+
+    &:active,
+    &:active:not([disabled]) {
+      background: var(--menu-btn-bg-default);
+      border: 0 !important;
+    }
+
+    &:focus,
+    &.focus,
+    &[open] {
+      border: 0 !important;
+    }
+
+    // Override the text color of the preview area to be white on primary buttons
+    > ul.preview > li,
+    > ul:not(.dropdown) > li,
+    &:not([open]):not(:has(> ul:not(.dropdown))):not(:has(> ul.preview)) > ul.dropdown > li {
+      color: var(--fluent-text-on-primary) !important;
+    }
+
+    > span.open::before {
+      border-color: var(--fluent-text-on-primary) !important;
+    }
+  }
+
+  // 5. Handle negative / remove button variants
+  &.cbi-button-remove,
+  &.cbi-button-negative {
+    @include button-base;
+    border: 0 !important;
+
+    --menu-btn-bg-default: var(--fluent-error);
+    --menu-btn-bg-hover: var(--fluent-error-hover);
+    --menu-btn-bg-active: var(--fluent-error-active);
+
+    background: var(--menu-btn-bg-default);
+    color: var(--fluent-text-on-primary);
+
+    // Use !important to override high-specificity focus-ripple states from _dropdown.scss / cascade.css
+    &:hover:not([disabled]) {
+      background: var(--menu-btn-bg-default);
+      border: 0 !important;
+    }
+
+    &:active,
+    &:active:not([disabled]) {
+      background: var(--menu-btn-bg-default);
+      border: 0 !important;
+    }
+
+    &:focus,
+    &.focus,
+    &[open] {
+      border: 0 !important;
+    }
+
+    > ul.preview > li,
+    > ul:not(.dropdown) > li,
+    &:not([open]):not(:has(> ul:not(.dropdown))):not(:has(> ul.preview)) > ul.dropdown > li {
+      color: var(--fluent-text-on-primary) !important;
+    }
+
+    > span.open::before {
+      border-color: var(--fluent-text-on-primary) !important;
+    }
+  }
+
+  // 6. Preview text list styling (the text displayed inside the button)
+  > ul.preview,
+  > ul:not(.dropdown),
+  > span.more,
+  &:not([open]):not(:has(> ul:not(.dropdown))):not(:has(> ul.preview)) > ul.dropdown {
+    padding-inline-start: var(--fluent-space-md) !important;
+    padding-inline-end: var(--fluent-space-sm) !important;
+    pointer-events: auto !important;
+    flex: 1 !important;
+    align-self: stretch;
+    transition: none !important;
+
+    // Logical border-radius matching the parent container's left corners
+    border-start-start-radius: calc(var(--fluent-radius-md) - 1px);
+    border-end-start-radius: calc(var(--fluent-radius-md) - 1px);
+
+    &:hover:not([disabled]) {
+      background: var(--menu-btn-bg-hover);
+    }
+
+    &:active:not([disabled]) {
+      background: var(--menu-btn-bg-active);
+    }
+  }
+
+  > ul.preview,
+  > ul:not(.dropdown),
+  &:not([open]):not(:has(> ul:not(.dropdown))):not(:has(> ul.preview)) > ul.dropdown {
+    padding-block: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    min-height: unset;
+    mask-image: none !important;
+
+    > li {
+      font-family: var(--fluent-font-family);
+      font-size: var(--fluent-font-size-base);
+      font-weight: var(--fluent-font-weight-regular);
+      color: inherit; // inherit from button state color
+
+      // Show selected items
+      &[selected],
+      &[display] {
+        display: inline-flex;
+        align-items: center;
+      }
+    }
+  }
+
+  // 7. Caret / Chevron open indicator styling
+  > span.open {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 100%;
+    margin-inline-start: 0 !important;
+    margin-inline-end: 0;
+    font-size: 0;
+    color: inherit;
+    pointer-events: auto !important;
+    transition:
+      color var(--fluent-duration-fast) var(--fluent-easing-standard) !important;
+
+    // Logical border-radius matching the parent container's right corners
+    border-start-end-radius: calc(var(--fluent-radius-md) - 1px);
+    border-end-end-radius: calc(var(--fluent-radius-md) - 1px);
+
+    &::before {
+      @include fluent-mask-icon-by-name("chevron-down-20-regular", 16px, currentColor);
+      content: "";
+      transition:
+        transform 0.2s cubic-bezier(0.4, 0, 0.23, 1) !important;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+      color: inherit !important;
+    }
+
+    &:has(svg)::before {
+      display: none !important;
+    }
+
+    &:hover:not([disabled]) {
+      background: var(--menu-btn-bg-hover);
+    }
+
+    &:active:not([disabled]) {
+      background: var(--menu-btn-bg-active);
+    }
+  }
+
+  // When dropdown list is open, rotate the chevron and highlight it as active
+  &[open] > span.open {
+    background: var(--menu-btn-bg-active);
+    &::before {
+      transform: rotate(180deg);
+    }
+  }
+
+  // 8. Focus visibility (matching Fluent button focus ring)
+  &:focus-visible {
+    outline: 2px solid var(--fluent-focus-color);
+    outline-offset: 2px;
+  }
+
+  // 9. Disabled state
+  &[disabled] {
+    opacity: 1;
+    cursor: not-allowed;
+    background: var(--fluent-bg-active) !important;
+    border-color: var(--fluent-bg-active) !important;
+    border-bottom-color: var(--fluent-bg-active) !important;
+    color: var(--fluent-text-disabled) !important;
+    pointer-events: none !important;
+
+    * {
+      pointer-events: none !important;
+    }
+
+    > ul.preview > li,
+    > ul:not(.dropdown) > li,
+    &:not([open]):not(:has(> ul:not(.dropdown))):not(:has(> ul.preview)) > ul.dropdown > li {
+      color: var(--fluent-text-disabled) !important;
+    }
+
+    > span.open::before {
+      border-color: var(--fluent-text-disabled) !important;
+    }
+  }
+
+  // 10. Spinning loading state
+  &.spinning {
+    padding-inline-start: 0 !important;
+    pointer-events: none !important;
+
+    * {
+      pointer-events: none !important;
+    }
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset-inline-start: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      --size: 16px;
+      --indicator-size: 2px;
+      height: var(--size);
+      width: var(--size);
+      border-radius: 50%;
+      box-sizing: border-box;
+      background: none;
+      border: var(--indicator-size) solid color-mix(in srgb, currentColor 20%, transparent);
+      border-top-color: currentColor;
+      border-right-color: currentColor;
+      animation: fluent-spin-swing 1s infinite ease;
+      z-index: 2; // Make sure the spinner is on top of any preview list backgrounds
+    }
+
+    > ul.preview,
+    > ul:not(.dropdown),
+    > span.more,
+    &:not([open]):not(:has(> ul:not(.dropdown))):not(:has(> ul.preview)) > ul.dropdown {
+      padding-inline-start: 36px !important;
+    }
+  }
+}

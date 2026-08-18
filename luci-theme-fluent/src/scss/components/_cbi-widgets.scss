@@ -1,0 +1,280 @@
+// ============================================================
+// CBI WIDGETS - FluentUI 2 LuCI widget refinements
+// Tooltips, validation, uploads, responsive data-title labels
+// ============================================================
+@use "../mixins" as *;
+
+
+.cbi-input-invalid {
+  border-color: var(--fluent-error);
+  border-bottom-color: var(--fluent-error);
+  box-shadow: inset 0 -1px 0 var(--fluent-error);
+}
+
+input[type="text"].cbi-input-invalid,
+input[type="password"].cbi-input-invalid {
+  background: var(--fluent-input-bg);
+  color: var(--fluent-text);
+
+  &:focus {
+    outline: none;
+    box-shadow:
+      inset 0 -2px 0 var(--fluent-error),
+      0 0 0 1px var(--fluent-error-light);
+  }
+}
+
+select.cbi-input-invalid {
+  background-color: var(--fluent-input-bg);
+  color: var(--fluent-text);
+  border-color: var(--fluent-error);
+  border-bottom-color: var(--fluent-error);
+}
+
+.cbi-input-file {
+  width: 100%;
+  max-width: 100%;
+  padding: var(--fluent-space-xs);
+  color: var(--fluent-text);
+  background: var(--fluent-input-bg);
+  border: 1px solid var(--fluent-input-border);
+  border-bottom-width: 2px;
+  border-radius: var(--fluent-radius-md);
+  box-sizing: border-box;
+
+  &::file-selector-button {
+    @include button-secondary;
+    margin-right: var(--fluent-space-sm);
+  }
+}
+
+#cbi-upload {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--fluent-space-sm);
+  padding: var(--fluent-space-md);
+  background: var(--fluent-card-bg);
+  border: 1px solid var(--fluent-card-border);
+  border-radius: var(--fluent-card-radius);
+  box-shadow: var(--fluent-card-shadow);
+}
+
+.fluent-bg-manager {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fluent-space-md);
+  padding: var(--fluent-space-lg);
+  background: var(--fluent-bg-card);
+  border: 1px solid var(--fluent-border);
+  border-radius: var(--fluent-radius-lg);
+  box-shadow: var(--fluent-shadow-md);
+}
+
+.fluent-bg-status,
+.fluent-bg-hint {
+  margin: 0;
+}
+
+.fluent-bg-hint {
+  color: var(--fluent-text-secondary);
+  font-size: var(--fluent-font-size-sm);
+  line-height: var(--fluent-line-height-normal);
+}
+
+.fluent-bg-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fluent-space-sm);
+}
+
+.fluent-bg-list {
+  display: grid;
+  gap: var(--fluent-space-md);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.fluent-bg-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fluent-space-sm);
+  min-width: 0;
+  padding: var(--fluent-space-sm);
+  background: var(--fluent-bg-page);
+  border: 1px solid var(--fluent-border);
+  border-radius: var(--fluent-radius-lg);
+}
+
+.fluent-bg-preview {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  border-radius: var(--fluent-radius-md);
+  background-color: var(--fluent-bg-hover);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  overflow: hidden;
+}
+
+.fluent-bg-preview-video {
+  display: block;
+  object-fit: cover;
+}
+
+.fluent-bg-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fluent-space-xxs);
+  min-width: 0;
+}
+
+.fluent-bg-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fluent-bg-size {
+  color: var(--fluent-text-secondary);
+  font-size: var(--fluent-font-size-sm);
+}
+
+.fluent-bg-item-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.fluent-bg-empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fluent-space-xxs);
+  padding: var(--fluent-space-xl);
+  color: var(--fluent-text-secondary);
+  background: var(--fluent-bg-page);
+  border: 1px dashed var(--fluent-border);
+  border-radius: var(--fluent-radius-lg);
+  text-align: center;
+}
+
+#cbi-upload.cbi-fileupload {
+  align-items: stretch;
+  padding: var(--fluent-space-lg);
+  border-radius: var(--fluent-radius-lg);
+}
+
+#cbi-upload.cbi-fileupload > p {
+  width: 100%;
+  margin: 0;
+  color: var(--fluent-text-secondary);
+}
+
+#cbi-upload.cbi-fileupload > .cbi-input-file {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+#cbi-upload.cbi-fileupload > .btn,
+#cbi-upload.cbi-fileupload > .cbi-button {
+  min-width: 120px;
+}
+
+.cbi-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--fluent-space-sm);
+  min-height: var(--fluent-checkbox-size);
+  color: var(--fluent-text);
+}
+
+.cbi-image-button {
+  @include button-secondary;
+  gap: var(--fluent-space-xs);
+  min-width: var(--fluent-btn-height);
+  padding: 0 var(--fluent-space-sm);
+}
+
+.cbi-tab-descr {
+  margin-top: var(--fluent-space-xs);
+  color: var(--fluent-text-secondary);
+  font-size: var(--fluent-font-size-sm);
+  line-height: var(--fluent-line-height-normal);
+}
+
+div[depends],
+[data-depends] {
+  min-width: 0;
+  transition: opacity var(--fluent-duration-fast) var(--fluent-easing-standard);
+
+  &[hidden],
+  &[style*="display:none"] {
+    opacity: 0;
+  }
+}
+
+div.tr[data-title] {
+  flex-direction: column;
+  gap: var(--fluent-space-xs);
+  padding: var(--fluent-space-sm) 0;
+}
+
+div.tr[data-title]::before {
+  content: attr(data-title);
+  padding: 0 var(--fluent-space-lg);
+  color: var(--fluent-text-secondary);
+  font-size: var(--fluent-font-size-sm);
+  font-weight: var(--fluent-font-weight-semibold);
+  line-height: var(--fluent-line-height-normal);
+}
+
+div.td[data-title] {
+  display: grid;
+  grid-template-columns: minmax(7rem, 40%) minmax(0, 1fr);
+  gap: var(--fluent-space-sm);
+  align-items: start;
+}
+
+div.td[data-title]::before {
+  content: attr(data-title);
+  color: var(--fluent-text-secondary);
+  font-size: var(--fluent-font-size-sm);
+  font-weight: var(--fluent-font-weight-semibold);
+  line-height: var(--fluent-line-height-normal);
+}
+
+div.td[data-type="button"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--fluent-space-xs);
+}
+
+div.td[data-type="button"]::before {
+  width: 100%;
+}
+
+div.td[data-type="fvalue"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fluent-space-xxs);
+  color: var(--fluent-text-secondary);
+}
+
+@include tablet-up {
+  div.tr[data-title] {
+    flex-direction: row;
+    gap: 0;
+    padding: 0;
+  }
+
+  div.tr[data-title]::before,
+  div.td[data-title]::before {
+    content: none;
+  }
+
+  div.td[data-title],
+  div.td[data-type="button"],
+  div.td[data-type="fvalue"] {
+    display: block;
+  }
+}

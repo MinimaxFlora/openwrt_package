@@ -1,0 +1,67 @@
+// ============================================================
+// SELECT - FluentUI 2 Select Dropdown Styles
+// Bottom-border underline indicator, 32px height
+// ============================================================
+@use "../mixins" as *;
+
+// Native select
+select {
+  @include input-base;
+  @include input-focus-ripple-v2;
+  appearance: none;
+  padding-inline-end: var(--fluent-space-xl);
+  cursor: pointer;
+
+  // Custom chevron
+  &::after {
+    content: "";
+  }
+}
+
+// LuCI select with chevron
+select.cbi-input-select {
+  @include input-base;
+  @include input-focus-ripple-v2(
+    url("../assets/select-chevron.svg"),
+    10px,
+    10px 6px
+  );
+  appearance: none;
+  padding-inline-end: var(--fluent-space-xl);
+  cursor: pointer;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  // Multiple select
+  &[multiple] {
+    height: auto;
+    min-height: calc(var(--fluent-input-height) * 4);
+    padding: var(--fluent-space-xxs);
+    background-image: none !important;
+    background-position: initial !important;
+    background-size: initial !important;
+
+    option {
+      padding: var(--fluent-space-xxs) var(--fluent-space-xs);
+      border-radius: var(--fluent-radius-sm);
+
+      &:checked {
+        background: var(--fluent-primary-lightest);
+        color: var(--fluent-primary);
+      }
+
+      &:hover {
+        background: var(--fluent-bg-hover);
+      }
+    }
+  }
+}
+
+// Disabled select
+select:disabled {
+  background-color: var(--fluent-input-bg-disabled);
+  color: var(--fluent-text-disabled);
+  cursor: not-allowed;
+  border-color: var(--fluent-border);
+  background-image: none;
+}

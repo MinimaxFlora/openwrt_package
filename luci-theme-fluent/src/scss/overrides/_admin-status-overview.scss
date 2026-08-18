@@ -1,0 +1,6 @@
+@use "overrides-utils" as *;
+@include plugin-prefix("admin-status-overview") {
+  .ifacebox > .ifacebox-body > br {
+    display: none;
+  }
+}

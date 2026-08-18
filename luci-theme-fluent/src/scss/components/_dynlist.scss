@@ -1,0 +1,245 @@
+// ============================================================
+// DYNLIST - FluentUI Dynamic List Styles (Fluent 2 Redesign)
+// ============================================================
+@use "../mixins" as *;
+@use "../icons" as *;
+
+.cbi-dynlist {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; // Force all items to stretch to the container's width
+  gap: var(--fluent-space-sm, 8px);
+  width: 100%;
+  max-width: 400px; // Aligned with standard dropdown max-width
+  line-height: 1.3;
+  min-height: 30px;
+  position: relative;
+  cursor: text;
+
+  &[name="sshkeys"] {
+    max-width: none;
+    > .item {
+      max-width: none;
+    }
+  }
+
+  // Individual items (chips) styled as block level tags to prevent Chrome offsetX bug
+  > .item {
+    display: block; // Explicitly override inline-block/inline-flex from core CSS
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    pointer-events: auto;
+    color: var(--fluent-text);
+    outline: 0;
+    cursor: move;
+    user-select: text;
+
+    &.drag-over {
+      border-top: 1px solid var(--fluent-primary);
+    }
+
+    &.dragging {
+      opacity: 0.5;
+    }
+
+    > span {
+      pointer-events: none;
+      white-space: normal;
+      word-break: break-all;
+      display: flex;
+      align-items: center;
+      height: var(--fluent-input-height);
+      padding-block: 0;
+      padding-inline: var(--fluent-space-sm) 42px; // extra padding on the inline end for absolute delete button
+      color: var(--fluent-text);
+      background: var(--fluent-bg-hover);
+      border: 1px solid var(--fluent-border);
+      border-bottom-width: 2px;
+      border-bottom-color: var(--fluent-border);
+      border-radius: var(--fluent-radius-md);
+      outline: 0;
+      box-sizing: border-box;
+    }
+
+    &:hover > span {
+      background: var(--fluent-bg-active);
+      border-color: var(--fluent-border-hover);
+      border-bottom-color: var(--fluent-border-hover);
+    }
+
+    // Absolute positioned delete button on the inline end to prevent coordinate calculations conflict
+    &::after {
+      content: "";
+      position: absolute;
+      width: 28px !important;
+      height: 28px !important;
+      inset-inline-end: 2px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: auto;
+      background-color: transparent;
+      border: none;
+      border-radius: var(--fluent-radius-round, 50%);
+      outline: 0;
+      cursor: pointer;
+      z-index: 2; // Ensure it sits on top of span and receives pointer events
+
+      // Use standard Fluent delete SVG icon (perfectly centered, 16px size)
+      @include fluent-icon-by-name("delete-20-regular", 16px, #616161);
+
+      transition:
+        background-color var(--fluent-duration-fast) var(--fluent-easing-standard),
+        color var(--fluent-duration-fast) var(--fluent-easing-standard);
+
+      &:hover {
+        background-color: var(--fluent-error-light);
+        @include fluent-icon-by-name("delete-20-regular", 16px, #d13438); // Fluent error red (light mode)
+      }
+
+      &:active {
+        background-color: var(--fluent-error-hover);
+        @include fluent-icon-by-name("delete-20-regular", 16px, #ffffff); // white
+      }
+    }
+
+    // Dark mode icon overrides (since SVGs cannot dynamically resolve CSS custom properties)
+    @include theme-dark-context {
+      &::after {
+        @include fluent-icon-by-name("delete-20-regular", 16px, #a0a0a0);
+
+        &:hover {
+          @include fluent-icon-by-name("delete-20-regular", 16px, #ff5f5f); // Bright error red for dark mode
+        }
+        &:active {
+          @include fluent-icon-by-name("delete-20-regular", 16px, #ffffff);
+        }
+      }
+    }
+  }
+
+  // Add item input group
+  > .add-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    gap: 0;
+    box-sizing: border-box;
+    min-width: 0;
+
+    > input,
+    > .cbi-dropdown {
+      flex: 1 1 auto;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    > input {
+      @include input-base;
+      @include input-focus-ripple-v2;
+
+      border-start-end-radius: 0;
+      border-end-end-radius: 0;
+      border-inline-end: none;
+
+      &:focus {
+        border-inline-end: none;
+      }
+
+      &.drag-over {
+        border-top: 1px solid var(--fluent-primary);
+      }
+    }
+
+    // treat as input when present to maintain consistent appearance and behavior, especially with add button
+    > .cbi-dropdown {
+      height: var(--fluent-input-height);
+      min-height: var(--fluent-input-height);
+    }
+
+    // Fixed width add button when present to prevent layout shift and ensure consistent appearance
+    > .cbi-button-add {
+      flex: 0 0 var(--fluent-input-height);
+      width: var(--fluent-input-height) !important;
+      min-width: var(--fluent-input-height) !important;
+      max-width: var(--fluent-input-height);
+      height: var(--fluent-input-height);
+      padding: 0 !important;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-size: 0 !important; // Hide the text '+'
+      color: transparent !important; // Enforce hiding the text '+'
+      @include button-primary;
+      @include fluent-icon-by-name("add-16-filled", 14px, #ffffff);
+      border-bottom-width: 2px;
+      border-bottom-color: var(--fluent-btn-primary-bg);
+      @include logical-radius(0, var(--fluent-radius-md), var(--fluent-radius-md), 0);
+      cursor: pointer;
+      box-sizing: border-box;
+
+      &:hover {
+        background-color: var(--fluent-btn-primary-bg-hover);
+        border-color: var(--fluent-btn-primary-bg-hover);
+        border-bottom-color: var(--fluent-btn-primary-bg-hover);
+        @include fluent-icon-by-name("add-16-filled", 14px, #ffffff);
+      }
+
+      &:active {
+        background-color: var(--fluent-btn-primary-bg-active);
+        border-color: var(--fluent-btn-primary-bg-active);
+        border-bottom-color: var(--fluent-btn-primary-bg-active);
+        @include fluent-icon-by-name("add-16-filled", 14px, #ffffff);
+      }
+
+      &.drag-over {
+        border-top: 1px solid var(--fluent-primary);
+      }
+    }
+
+    // Remove inline-end border radius when add button is present to create a connected appearance
+    &:has(> .cbi-button-add) {
+      > input,
+      > .cbi-dropdown {
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+      }
+    }
+
+    // Keep full border radius while no add button
+    &:not(:has(> .cbi-button-add)) {
+      > input,
+      > .cbi-dropdown {
+        border-radius: var(--fluent-radius-md);
+      }
+    }
+  }
+  // Nested dynlists handling (from Argon baseline)
+  > .cbi-dynlist > .add-item[ondrop] > input {
+    min-width: 13rem;
+  }
+
+  // Hide placeholder in dropdown inside dynlist, even if it is optional
+  cbi-dropdown,
+  .cbi-dropdown {
+    > ul.dropdown > li[placeholder] {
+      display: none !important;
+    }
+
+    // Hide selection checkmark and reset padding for dropdown options
+    > ul.dropdown > li {
+      padding-inline-start: var(--fluent-space-xs) !important;
+
+      &::before,
+      &::after {
+        content: none !important;
+        display: none !important;
+      }
+    }
+  }
+}

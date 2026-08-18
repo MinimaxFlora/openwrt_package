@@ -1,0 +1,7 @@
+@use "overrides-utils" as *;
+
+@include plugin-prefix("admin-services-appfilter") {
+  .slider {
+    background-color: var(--background-color-medium);
+  }
+}

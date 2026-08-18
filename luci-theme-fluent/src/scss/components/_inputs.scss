@@ -1,0 +1,139 @@
+// ============================================================
+// INPUTS - FluentUI 2 Input Field Styles
+// Bottom-border underline indicator, 32px height
+// ============================================================
+@use "../mixins" as *;
+
+// Standard input types
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"],
+
+// LuCI-specific input classes
+.cbi-input-text,
+.cbi-input-password,
+.cbi-input-date,
+.cbi-input-time,
+.cbi-input-datetime {
+  @include input-base;
+  @include input-focus-ripple-v2;
+
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+// Input group container
+.cbi-input-group {
+  display: flex;
+  align-items: center;
+  gap: var(--fluent-space-xs);
+}
+
+// Fluent-styled color field used by theme settings
+.fluent-color-field {
+  display: flex;
+  align-items: center;
+  gap: var(--fluent-space-sm);
+  width: min(100%, 420px);
+
+  > .fluent-color-field__text {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+.fluent-color-swatch {
+  @include button-secondary;
+
+  position: relative;
+  width: var(--fluent-input-height);
+  min-width: var(--fluent-input-height);
+  padding: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+  cursor: pointer;
+
+  &:focus-within {
+    outline: 2px solid var(--fluent-focus-color);
+    outline-offset: 2px;
+  }
+}
+
+.fluent-color-swatch__input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.fluent-color-swatch__preview {
+  width: calc(var(--fluent-input-height) - (var(--fluent-space-xs) * 2));
+  height: calc(var(--fluent-input-height) - (var(--fluent-space-xs) * 2));
+  border-radius: var(--fluent-radius-sm);
+  border: 1px solid var(--fluent-input-border);
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.fluent-color-swatch__input:disabled + .fluent-color-swatch__preview {
+  opacity: 0.5;
+}
+
+// Disabled state
+input:disabled,
+.cbi-input-text:disabled,
+.cbi-input-password:disabled,
+.cbi-input-date:disabled,
+.cbi-input-time:disabled,
+.cbi-input-datetime:disabled {
+  background-color: var(--fluent-input-bg-disabled);
+  color: var(--fluent-text-disabled);
+  cursor: not-allowed;
+  border-color: var(--fluent-border);
+  border-bottom-color: var(--fluent-border);
+}
+
+// Search input specific
+input[type="search"] {
+  appearance: none;
+  padding-inline-start: var(--fluent-space-xl);
+
+  &::-webkit-search-cancel-button {
+    appearance: none;
+    height: 14px;
+    width: 14px;
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
+}
+
+// Webkit date/time picker adjustments
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"],
+.cbi-input-date,
+.cbi-input-time,
+.cbi-input-datetime {
+  &::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.6;
+    filter: invert(var(--fluent-calendar-picker-invert, 0));
+    transition: opacity var(--fluent-duration-fast) var(--fluent-easing-standard);
+
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+}

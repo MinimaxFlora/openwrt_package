@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="115 80 334 334" role="img" aria-labelledby="title desc">
+  <title id="title">Network alias</title>
+  <desc id="desc">A Fluent UI style ethernet port icon showing an alias badge.</desc>
+  <g fill="none" stroke="#424242" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Cutout outer box for bottom-right badge -->
+    <path d="M139 135h239c8.8 0 16 7.2 16 16v160 M314 388 H139c-8.8 0-16-7.2-16-16V151c0-8.8 7.2-16 16-16" stroke-width="10"/>
+    <path d="M171 186h173v101h-33v27h-27v23h-55v-23h-27v-27h-31z" stroke-width="10"/>
+    <path d="M195 186v26" stroke-width="9"/>
+    <path d="M213 186v26" stroke-width="9"/>
+    <path d="M231 186v26" stroke-width="9"/>
+    <path d="M249 186v26" stroke-width="9"/>
+    <path d="M267 186v26" stroke-width="9"/>
+    <path d="M285 186v26" stroke-width="9"/>
+    <path d="M303 186v26" stroke-width="9"/>
+    <path d="M321 186v26" stroke-width="9"/>
+  </g>
+  <!-- Alias Badge (Bottom-Right) -->
+  <path fill="#424242" transform="translate(306 301.5) scale(6) rotate(-45 8 8)" d="M9.22 4.28a.75.75 0 0 1 1.06-1.06l3.5 3.5a.75.75 0 0 1 0 1.06l-3.5 3.5a.75.75 0 1 1-1.06-1.06L11.44 8H7.75a4.25 4.25 0 0 0-4.25 4.25a.75.75 0 0 1-1.5 0A5.75 5.75 0 0 1 7.75 6.5h3.69z" />
+</svg>

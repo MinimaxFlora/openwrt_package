@@ -1,0 +1,1192 @@
+// Layouts - Sidebar
+// FluentUI 2 NavigationView-style sidebar with desktop compact rail
+@use "../mixins" as *;
+@use "../icons" as *;
+@use "sass:map";
+@use "sass:list";
+
+$sidebar-icons: (
+  "Dashboard": (
+    "reg": "__icon__(fluent:home-20-regular)",
+    "fill": "__icon__(fluent:home-20-filled)"
+  ),
+  "QuickStart": (
+    "reg": "__icon__(fluent:flash-20-regular)",
+    "fill": "__icon__(fluent:flash-20-filled)"
+  ),
+  "Home": (
+    "reg": "__icon__(fluent:building-mosque-20-regular)",
+    "fill": "__icon__(fluent:building-mosque-20-filled)"
+  ),
+  "NetworkGuide": (
+    "reg": "__icon__(fluent:compass-northwest-20-regular)",
+    "fill": "__icon__(fluent:compass-northwest-20-filled)"
+  ),
+  "Status": (
+    "reg": "__icon__(fluent:heart-pulse-20-regular)",
+    "fill": "__icon__(fluent:heart-pulse-20-filled)"
+  ),
+  "System": (
+    "reg": "__icon__(fluent:settings-20-regular)",
+    "fill": "__icon__(fluent:settings-20-filled)"
+  ),
+  "Services": (
+    "reg": "__icon__(fluent:apps-20-regular)",
+    "fill": "__icon__(fluent:apps-20-filled)"
+  ),
+  "iStore": (
+    "reg": "__icon__(fluent:app-store-24-regular)",
+    "fill": "__icon__(fluent:app-store-24-filled)"
+  ),
+  "Docker": (
+    "reg": "__icon__(fluent:box-20-regular)",
+    "fill": "__icon__(fluent:box-20-filled)"
+  ),
+  "NAS": (
+    "reg": "__icon__(fluent:database-20-regular)",
+    "fill": "__icon__(fluent:database-20-filled)"
+  ),
+  "VPN": (
+    "reg": "__icon__(fluent:shield-lock-20-regular)",
+    "fill": "__icon__(fluent:shield-lock-20-filled)"
+  ),
+  "Network": (
+    "reg": "__icon__(fluent:router-20-regular)",
+    "fill": "__icon__(fluent:router-20-filled)"
+  ),
+  "Statistics": (
+    "reg": "__icon__(fluent:data-trending-20-regular)",
+    "fill": "__icon__(fluent:data-trending-20-filled)"
+  ),
+  "Log_out": (
+    "reg": "__icon__(fluent:arrow-exit-20-regular)",
+    "fill": "__icon__(fluent:arrow-exit-20-filled)"
+  )
+);
+
+$default-reg: str-replace(map.get($fluent-icons, "apps-20-regular"), '"', "'");
+$default-fill: str-replace(map.get($fluent-icons, "apps-20-filled"), '"', "'");
+$default-reg-encoded: str-replace(str-replace($default-reg, "<", "%3C"), ">", "%3E");
+$default-fill-encoded: str-replace(str-replace($default-fill, "<", "%3C"), ">", "%3E");
+
+
+@each $title, $pair in $sidebar-icons {
+  $reg-raw: map.get($pair, "reg");
+  $fill-raw: map.get($pair, "fill");
+
+  $reg: str-replace(str-replace($reg-raw, "__icon__(", ""), ")", "");
+  $fill: str-replace(str-replace($fill-raw, "__icon__(", ""), ")", "");
+
+  $svg-reg: str-replace(map.get($fluent-icons, $reg), '"', "'");
+  $svg-fill: str-replace(map.get($fluent-icons, $fill), '"', "'");
+  $svg-reg-encoded: str-replace(str-replace($svg-reg, "<", "%3C"), ">", "%3E");
+  $svg-fill-encoded: str-replace(str-replace($svg-fill, "<", "%3C"), ">", "%3E");
+
+  .main-left .nav > li > a:first-child[data-title="#{$title}"] .menu-icon::before,
+  .main-left .nav li.slide .slide-menu[data-parent="#{$title}"] li a .menu-icon::before {
+    @include set-icon-data("data:image/svg+xml,#{$svg-reg-encoded}");
+  }
+
+  .main-left .nav > li > a:first-child[data-title="#{$title}"] .menu-icon::after,
+  .main-left .nav li.slide .slide-menu[data-parent="#{$title}"] li a .menu-icon::after {
+    @include set-icon-data("data:image/svg+xml,#{$svg-fill-encoded}");
+  }
+
+  .main-left .nav li.slide .slide-menu[data-parent="#{$title}"] li a .menu-icon {
+    display: inline-flex;
+  }
+}
+
+.main-left {
+  position: fixed;
+  top: var(--fluent-header-height, 48px);
+  inset-inline-start: 0;
+  width: var(--fluent-sidebar-width, 260px);
+  height: calc(100dvh - var(--fluent-header-height, 48px));
+  background: var(--fluent-sidebar-bg);
+  border-inline-end: 1px solid var(--fluent-border);
+  z-index: var(--fluent-zindex-menu);
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition:
+    width var(--fluent-duration-normal) var(--fluent-easing-standard),
+    transform var(--fluent-duration-normal) var(--fluent-easing-standard);
+
+  @include custom-scrollbar;
+
+  .sidebar__search-slot {
+    display: none;
+    padding: var(--fluent-space-sm) var(--fluent-space-sm) 0;
+    margin-bottom: var(--fluent-space-xs);
+    flex-shrink: 0;
+  }
+}
+
+.main-right {
+  margin-inline-start: var(--fluent-sidebar-width, 260px);
+  height: 100dvh;
+  padding-top: var(--fluent-header-height, 48px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: margin-inline-start var(--fluent-duration-normal) var(--fluent-easing-standard);
+}
+
+.main-left .nav {
+  margin: 0;
+  padding: var(--fluent-space-xs) var(--fluent-space-sm) var(--fluent-space-sm);
+  list-style: none;
+  position: relative;
+
+  .fluent-sidebar-parent-slider {
+    position: absolute;
+    inset-inline-start: 3px;
+    width: 3px;
+    background-color: var(--fluent-primary);
+    border-radius: 999px;
+    transition:
+      top var(--fluent-duration-normal) var(--fluent-easing-standard),
+      height var(--fluent-duration-normal) var(--fluent-easing-standard),
+      opacity var(--fluent-duration-normal) var(--fluent-easing-standard);
+    pointer-events: none;
+    z-index: 10;
+
+    body[data-tab-animation="0"] &,
+    body[data-reduce-motion="true"] & {
+      transition: none !important;
+    }
+  }
+
+  > li > a:first-child {
+    display: flex;
+    align-items: center;
+    gap: var(--fluent-space-sm);
+    margin: 2px 0;
+    padding-block: 0;
+    padding-inline: 6px var(--fluent-space-sm);
+    min-width: 0;
+    height: 36px;
+    border-radius: var(--fluent-radius-md);
+    text-decoration: none;
+    cursor: pointer;
+    font-size: var(--fluent-font-size-base);
+    font-weight: var(--fluent-font-weight-regular);
+    color: var(--fluent-text);
+    background: transparent;
+    box-shadow: none;
+    position: relative;
+    transition:
+      background var(--fluent-duration-fast) var(--fluent-easing-standard),
+      color var(--fluent-duration-fast) var(--fluent-easing-standard),
+      border-color var(--fluent-duration-fast) var(--fluent-easing-standard);
+
+    .menu-icon {
+      position: relative;
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--fluent-text-secondary);
+
+      &::before,
+      &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        inset-inline-start: 0;
+        width: 100%;
+        height: 100%;
+        background-color: currentColor;
+        mask-size: contain;
+        mask-repeat: no-repeat;
+        mask-position: center;
+        mask-image: var(--icon-data);
+        -webkit-mask-image: var(--icon-data);
+        transition: opacity var(--fluent-duration-normal) var(--fluent-easing-standard);
+      }
+
+      &::before {
+        @include set-icon-data("data:image/svg+xml,#{$default-reg-encoded}");
+        opacity: 1;
+      }
+
+      &::after {
+        @include set-icon-data("data:image/svg+xml,#{$default-fill-encoded}");
+        opacity: 0;
+      }
+    }
+
+    .menu-label {
+      flex: 1 1 auto;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    &:hover,
+    &.active {
+      .menu-icon {
+        &::before {
+          opacity: 0;
+        }
+
+        &::after {
+          opacity: 1;
+        }
+      }
+    }
+
+    &:hover {
+      background: var(--fluent-sidebar-item-hover);
+      color: var(--fluent-text);
+
+      .menu-icon {
+        color: var(--fluent-text);
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--fluent-focus-color);
+      outline-offset: -2px;
+    }
+
+    &.active {
+      color: var(--fluent-text);
+      background: var(--fluent-sidebar-item-active);
+      font-weight: var(--fluent-font-weight-semibold);
+
+      .menu-icon {
+        color: var(--fluent-primary);
+      }
+    }
+  }
+
+  li {
+    padding: 0;
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+    transition: all var(--fluent-duration-normal) var(--fluent-easing-standard);
+
+    a {
+      display: block;
+      color: var(--fluent-text);
+      font-weight: var(--fluent-font-weight-regular);
+      box-shadow: none;
+    }
+
+    &.slide {
+      padding: 0;
+
+      &:hover {
+        background: none;
+      }
+
+      ul {
+        display: none;
+        overflow: hidden;
+      }
+
+      .slide-menu {
+        margin: 0 0 var(--fluent-space-xs) 0;
+        margin-inline-start: 36px;
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+        transition: all var(--fluent-duration-normal) var(--fluent-easing-standard);
+        position: relative;
+
+        .fluent-sidebar-slider {
+          position: absolute;
+          inset-inline-start: 0;
+          width: 3px;
+          background-color: var(--fluent-primary);
+          border-radius: var(--fluent-radius-sm);
+          transition:
+            top var(--fluent-duration-normal) var(--fluent-easing-standard),
+            height var(--fluent-duration-normal) var(--fluent-easing-standard);
+          pointer-events: none;
+          z-index: 10;
+
+          body[data-tab-animation="0"] &,
+          body[data-reduce-motion="true"] & {
+            transition: none !important;
+          }
+        }
+
+        &.has-slider {
+          li.active::before {
+            background-color: transparent !important;
+          }
+        }
+
+        &.active {
+          display: block;
+        }
+
+        li {
+          position: relative;
+          margin: 2px 0;
+          border-radius: var(--fluent-radius-md);
+          background: none;
+          transition: background var(--fluent-duration-fast) var(--fluent-easing-standard);
+
+          &::before {
+            content: "";
+            position: absolute;
+            inset-inline-start: 0;
+            top: 15%;
+            height: 70%;
+            width: 3px;
+            background-color: transparent;
+            border-radius: var(--fluent-radius-sm);
+            transition: background-color var(--fluent-duration-fast) var(--fluent-easing-standard);
+          }
+
+          &::after {
+            content: none;
+            display: none;
+          }
+
+          a {
+            text-decoration: none;
+            padding: 0 var(--fluent-space-sm);
+            height: 32px;
+            border-radius: var(--fluent-radius-md);
+            display: flex;
+            align-items: center;
+            gap: var(--fluent-space-xs);
+            box-shadow: none;
+            transition:
+              color var(--fluent-duration-fast) var(--fluent-easing-standard),
+              background var(--fluent-duration-fast) var(--fluent-easing-standard);
+
+            .menu-icon {
+              display: inline-flex;
+              position: relative;
+              width: 16px;
+              height: 16px;
+              align-items: center;
+              justify-content: center;
+              flex-shrink: 0;
+              color: inherit;
+
+              &::before,
+              &::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                inset-inline-start: 0;
+                width: 100%;
+                height: 100%;
+                background-color: currentColor;
+                mask-size: contain;
+                mask-repeat: no-repeat;
+                mask-position: center;
+                mask-image: var(--icon-data);
+                -webkit-mask-image: var(--icon-data);
+                transition: opacity var(--fluent-duration-normal) var(--fluent-easing-standard);
+              }
+
+              &::before {
+                @include set-icon-data("data:image/svg+xml,#{$default-reg-encoded}");
+                opacity: 1;
+              }
+
+              &::after {
+                @include set-icon-data("data:image/svg+xml,#{$default-fill-encoded}");
+                opacity: 0;
+              }
+            }
+
+            .menu-label {
+              flex: 1 1 auto;
+              min-width: 0;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              font-size: 13px;
+            }
+
+            $submenu-icons-spec: (
+              (
+                "reg": "__icon__(fluent:shield-lock-20-regular)",
+                "fill": "__icon__(fluent:shield-lock-20-filled)",
+                "titles": (
+                  "WireGuard"
+                ),
+                "keywords": (
+                  "wall",
+                  "clash",
+                  "ssr",
+                  "vpn",
+                  "ipsec",
+                  "tailscale",
+                  "nikki",
+                  "daed"
+                ),
+                "suffixes": (
+                  "tunnel",
+                  "tier",
+                  "proxy"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:shield-dismiss-20-regular)",
+                "fill": "__icon__(fluent:shield-dismiss-20-filled)",
+                "keywords": (
+                  "bypass"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:shield-checkmark-20-regular)",
+                "fill": "__icon__(fluent:shield-checkmark-20-filled)",
+                "keywords": (
+                  "guard"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:globe-shield-20-regular)",
+                "fill": "__icon__(fluent:globe-shield-20-filled)",
+                "keywords": (
+                  "dns"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:globe-arrow-up-20-regular)",
+                "fill": "__icon__(fluent:globe-arrow-up-20-filled)",
+                "keywords": (
+                  "ddns"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:box-20-regular)",
+                "fill": "__icon__(fluent:box-20-filled)",
+                "titles": (
+                  "Containers",
+                  "Software"
+                ),
+                "keywords": (
+                  "docker"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:folder-open-20-regular)",
+                "fill": "__icon__(fluent:folder-open-20-filled)",
+                "titles": (
+                  "Quick_File_Manager"
+                ),
+                "keywords": (
+                  "file"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:paint-brush-20-regular)",
+                "fill": "__icon__(fluent:paint-brush-20-filled)",
+                "titles": (
+                  "Argon_Config",
+                  "Fluent_Theme"
+                ),
+                "keywords": (
+                  "theme"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:settings-20-regular)",
+                "fill": "__icon__(fluent:settings-20-filled)",
+                "titles": (
+                  "Configuration",
+                  "System"
+                ),
+                "keywords": (
+                  "config",
+                  "setting"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:power-20-regular)",
+                "fill": "__icon__(fluent:power-20-filled)",
+                "titles": (
+                  "Reboot"
+                ),
+                "keywords": (
+                  "reboot"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:document-bullet-list-clock-20-regular)",
+                "fill": "__icon__(fluent:document-bullet-list-clock-20-filled)",
+                "titles": (
+                  "Events",
+                  "System_Log"
+                ),
+                "keywords": (
+                  "log"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:data-usage-20-regular)",
+                "fill": "__icon__(fluent:data-usage-20-filled)",
+                "titles": (
+                  "Traffic_Monitor"
+                ),
+                "keywords": (
+                  "monitor",
+                  "statistics",
+                  "bandix",
+                  "Graphs"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:info-20-regular)",
+                "fill": "__icon__(fluent:info-20-filled)",
+                "keywords": (
+                  "S.M.A.R.T.",
+                  "info"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:settings-cog-multiple-20-regular)",
+                "fill": "__icon__(fluent:settings-cog-multiple-20-filled)",
+                "keywords": (
+                  "Setup"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:developer-board-20-regular)",
+                "fill": "__icon__(fluent:developer-board-20-filled)",
+                "titles": (
+                  "CPU_Freq"
+                ),
+                "keywords": (
+                  "cpu"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:lightbulb-20-regular)",
+                "fill": "__icon__(fluent:lightbulb-20-filled)",
+                "titles": (
+                  "LED_Configuration"
+                ),
+                "keywords": (
+                  "led"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:key-20-regular)",
+                "fill": "__icon__(fluent:key-20-filled)",
+                "titles": (
+                  "Administration"
+                ),
+                "keywords": (
+                  "kms"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:server-20-regular)",
+                "fill": "__icon__(fluent:server-20-filled)",
+                "titles": (
+                  "DHCP"
+                ),
+                "keywords": (
+                  "upnp"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:network-adapter-16-regular)",
+                "fill": "__icon__(fluent:network-adapter-16-filled)",
+                "titles": (
+                  "Interfaces"
+                ),
+                "keywords": (
+                  "network"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:wifi-1-20-regular)",
+                "fill": "__icon__(fluent:wifi-1-20-filled)",
+                "titles": (
+                  "Wireless"
+                ),
+                "keywords": (
+                  "wireless"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:card-ui-20-regular)",
+                "fill": "__icon__(fluent:card-ui-20-filled)",
+                "keywords": (
+                  "address"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:data-funnel-20-regular)",
+                "fill": "__icon__(fluent:data-funnel-20-filled)",
+                "keywords": (
+                  "qos"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:arrow-swap-20-regular)",
+                "fill": "__icon__(fluent:arrow-swap-20-filled)",
+                "keywords": (
+                  "PortWeaver",
+                  "socat"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:connected-20-regular)",
+                "fill": "__icon__(fluent:connected-20-filled)",
+                "keywords": (
+                  "usteer",
+                  "roam",
+                  "mesh"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:share-android-20-regular)",
+                "fill": "__icon__(fluent:share-android-20-filled)",
+                "keywords": (
+                  "share"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:usb-plug-20-regular)",
+                "fill": "__icon__(fluent:usb-plug-20-filled)",
+                "keywords": (
+                  "usb"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:database-link-20-regular)",
+                "fill": "__icon__(fluent:database-link-20-filled)",
+                "keywords": (
+                  "raid"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:filter-20-regular)",
+                "fill": "__icon__(fluent:filter-20-filled)",
+                "keywords": (
+                  "filter"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:top-speed-20-regular)",
+                "fill": "__icon__(fluent:top-speed-20-filled)",
+                "keywords": (
+                  "speed",
+                  "homebox"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:data-bar-vertical-star-20-regular)",
+                "fill": "__icon__(fluent:data-bar-vertical-star-20-filled)",
+                "prefixes": (
+                  "4g",
+                  "lte",
+                  "5g"
+                ),
+                "keywords": (
+                  "sim",
+                  "modem"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:arrow-routing-20-regular)",
+                "fill": "__icon__(fluent:arrow-routing-20-filled)",
+                "titles": (
+                  "Routing"
+                ),
+                "keywords": (
+                  "routing"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:alert-urgent-20-regular)",
+                "fill": "__icon__(fluent:alert-urgent-20-filled)",
+                "keywords": (
+                  "Wake_on_LAN",
+                  "wol",
+                  "timer"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:box-multiple-20-regular)",
+                "fill": "__icon__(fluent:box-multiple-20-filled)",
+                "titles": (
+                  "Images"
+                ),
+                "keywords": (
+                  "plugin",
+                  "kit"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:document-text-20-regular)",
+                "fill": "__icon__(fluent:document-text-20-filled)",
+                "titles": (
+                  "Overview"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:virtual-network-20-regular)",
+                "fill": "__icon__(fluent:virtual-network-20-filled)",
+                "titles": (
+                  "Networks"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:storage-20-regular)",
+                "fill": "__icon__(fluent:storage-20-filled)",
+                "titles": (
+                  "Volumes",
+                  "Disk_Man"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:shield-20-regular)",
+                "fill": "__icon__(fluent:shield-20-filled)",
+                "titles": (
+                  "Firewall"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:globe-20-regular)",
+                "fill": "__icon__(fluent:globe-20-filled)",
+                "titles": (
+                  "DNS"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:heart-pulse-20-regular)",
+                "fill": "__icon__(fluent:heart-pulse-20-filled)",
+                "titles": (
+                  "Diagnostics"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:play-20-regular)",
+                "fill": "__icon__(fluent:play-20-filled)",
+                "titles": (
+                  "Startup"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:clock-20-regular)",
+                "fill": "__icon__(fluent:clock-20-filled)",
+                "titles": (
+                  "Scheduled_Tasks"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:hard-drive-20-regular)",
+                "fill": "__icon__(fluent:hard-drive-20-filled)",
+                "titles": (
+                  "Mount_Points"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:arrow-sync-20-regular)",
+                "fill": "__icon__(fluent:arrow-sync-20-filled)",
+                "titles": (
+                  "Backup_/_Flash_Firmware"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:window-console-20-regular)",
+                "fill": "__icon__(fluent:window-console-20-filled)",
+                "titles": (
+                  "Terminal"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:window-dev-tools-20-regular)",
+                "fill": "__icon__(fluent:window-dev-tools-20-filled)",
+                "titles": (
+                  "Processes"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:radar-20-regular)",
+                "fill": "__icon__(fluent:radar-20-filled)",
+                "titles": (
+                  "Channel_Analysis"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:desktop-pulse-20-regular)",
+                "fill": "__icon__(fluent:desktop-pulse-20-filled)",
+                "titles": (
+                  "Realtime_Graphs"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:shield-keyhole-20-regular)",
+                "fill": "__icon__(fluent:shield-keyhole-20-filled)",
+                "titles": (
+                  "AmneziaWG"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:broom-20-regular)",
+                "fill": "__icon__(fluent:broom-20-filled)",
+                "titles": (
+                  "Release_RAM"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:wrench-settings-20-regular)",
+                "fill": "__icon__(fluent:wrench-settings-20-filled)",
+                "titles": (
+                  "Advanced_plus"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:desktop-20-regular)",
+                "fill": "__icon__(fluent:desktop-20-filled)",
+                "titles": (
+                  "Athena_LED_Ctrl"
+                )
+              ),
+              (
+                "reg": "__icon__(fluent:timer-20-regular)",
+                "fill": "__icon__(fluent:timer-20-filled)",
+                "titles": (
+                  "Scheduled_Reboot"
+                )
+              )
+            );
+
+            @each $item in $submenu-icons-spec {
+              $titles: map.get($item, "titles");
+              $keywords: map.get($item, "keywords");
+              $prefixes: map.get($item, "prefixes");
+              $suffixes: map.get($item, "suffixes");
+              $selectors: ();
+
+              @if $titles {
+                @each $title in $titles {
+                  $selector: '&[data-title="#{$title}"]';
+                  $selectors: list.append($selectors, $selector, $separator: comma);
+                }
+              }
+
+              @if $keywords {
+                @each $keyword in $keywords {
+                  $selector: '&[data-title*="#{$keyword}" i]';
+                  $selectors: list.append($selectors, $selector, $separator: comma);
+                }
+              }
+
+              @if $prefixes {
+                @each $prefix in $prefixes {
+                  $selector: '&[data-title^="#{$prefix}" i]';
+                  $selectors: list.append($selectors, $selector, $separator: comma);
+                }
+              }
+
+              @if $suffixes {
+                @each $suffix in $suffixes {
+                  $selector: '&[data-title$="#{$suffix}" i]';
+                  $selectors: list.append($selectors, $selector, $separator: comma);
+                }
+              }
+
+              #{$selectors} {
+                .menu-icon {
+                  display: inline-flex;
+
+                  $reg-raw: map.get($item, "reg");
+                  $fill-raw: map.get($item, "fill");
+                  $reg: str-replace(str-replace($reg-raw, "__icon__(", ""), ")", "");
+                  $fill: str-replace(str-replace($fill-raw, "__icon__(", ""), ")", "");
+                  $svg-reg: str-replace(map.get($fluent-icons, $reg), '"', "'");
+                  $svg-fill: str-replace(map.get($fluent-icons, $fill), '"', "'");
+                  $svg-reg-encoded: str-replace(str-replace($svg-reg, "<", "%3C"), ">", "%3E");
+                  $svg-fill-encoded: str-replace(str-replace($svg-fill, "<", "%3C"), ">", "%3E");
+
+                  &::before {
+                    @include set-icon-data("data:image/svg+xml,#{$svg-reg-encoded}");
+                  }
+
+                  &::after {
+                    @include set-icon-data("data:image/svg+xml,#{$svg-fill-encoded}");
+                  }
+                }
+              }
+            }
+          }
+
+          &:hover {
+            background: var(--fluent-sidebar-item-hover);
+
+            &::before {
+              background-color: color-mix(in srgb, var(--fluent-primary) 30%, transparent);
+            }
+
+            a {
+              color: var(--fluent-text);
+
+              .menu-icon {
+                &::before {
+                  opacity: 0;
+                }
+
+                &::after {
+                  opacity: 1;
+                }
+              }
+            }
+          }
+
+          &.active {
+            background: var(--fluent-sidebar-item-active);
+            color: var(--fluent-text);
+
+            &::before {
+              background-color: var(--fluent-primary);
+            }
+
+            a {
+              color: var(--fluent-primary);
+              font-weight: var(--fluent-font-weight-semibold);
+
+              .menu-icon {
+                color: var(--fluent-primary);
+
+                &::before {
+                  opacity: 0;
+                }
+
+                &::after {
+                  opacity: 1;
+                }
+              }
+            }
+
+            &:hover {
+              background: var(--fluent-sidebar-item-active);
+
+              &::before {
+                background-color: var(--fluent-primary);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .menu {
+      &::after {
+        position: absolute;
+        inset-inline-end: var(--fluent-space-sm);
+        top: 50%;
+        transform: translateY(-50%) rotate(-90deg);
+        transition:
+          transform var(--fluent-duration-fast) var(--fluent-easing-standard),
+          background-color var(--fluent-duration-fast) var(--fluent-easing-standard);
+        @include fluent-mask-icon-by-name("chevron-down-20-regular", 14px, var(--fluent-text-secondary));
+      }
+
+      &.active::after {
+        transform: translateY(-50%) rotate(0deg);
+        background-color: var(--fluent-primary) !important;
+      }
+
+      @include rtl {
+        &::after {
+          transform: translateY(-50%) rotate(90deg);
+        }
+
+        &.active::after {
+          transform: translateY(-50%) rotate(0deg);
+        }
+      }
+    }
+  }
+}
+
+body[data-sidebar-state="collapsed"] {
+  .main-left {
+    width: var(--fluent-sidebar-collapsed-width, 48px);
+    overflow-x: visible;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    .sidenav-header {
+      padding: 0;
+      justify-content: center;
+      gap: 0;
+
+      .brand {
+        display: none;
+      }
+
+      .sidebar-collapse-toggle {
+        width: 100%;
+        height: 48px;
+        margin-inline-start: 0;
+        border-radius: 0;
+        justify-content: center;
+
+        &::before {
+          @include fluent-mask-icon-by-name("line-horizontal-3-20-regular", 20px, var(--fluent-text-secondary));
+        }
+      }
+    }
+  }
+
+  .main-right {
+    margin-inline-start: var(--fluent-sidebar-collapsed-width, 48px);
+    position: relative;
+    z-index: 1;
+  }
+
+  .main-left .nav {
+    padding-inline-start: 0;
+    padding-inline-end: 0;
+
+    > li > .slide-menu.active {
+      display: none;
+    }
+
+    > li {
+      position: relative;
+
+      > a:first-child {
+        justify-content: flex-start;
+        padding: 0;
+        padding-inline-start: 14px;
+
+        .menu-icon {
+          margin: 0;
+        }
+
+        .menu-label {
+          position: absolute;
+          width: 0;
+          opacity: 0;
+          overflow: hidden;
+          pointer-events: none;
+        }
+      }
+
+      > .slide-menu {
+        position: fixed;
+        top: auto;
+        inset-inline-start: calc(var(--fluent-sidebar-collapsed-width, 48px) + var(--fluent-space-sm));
+        min-width: 220px;
+        max-height: calc(100dvh - 16px);
+        margin: 0;
+        padding: var(--fluent-space-xs);
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: var(--fluent-bg-card, var(--fluent-sidebar-bg));
+        border: 1px solid var(--fluent-border);
+        border-radius: var(--fluent-radius-lg);
+        box-shadow: var(--fluent-shadow-lg);
+        z-index: calc(var(--fluent-zindex-menu) + 20);
+
+        li a {
+          padding: 0 var(--fluent-space-sm);
+        }
+
+        &.popup-open {
+          display: block;
+        }
+      }
+    }
+
+    .menu::after {
+      display: none;
+    }
+
+    > li > a.menu.popup-open {
+      background: var(--fluent-sidebar-item-active);
+
+      &::before {
+        content: "";
+        position: absolute;
+        inset-inline-start: 3px;
+        width: 3px;
+        height: 60%;
+        background: var(--fluent-primary);
+        border-radius: 999px;
+      }
+
+      .menu-icon {
+        color: var(--fluent-primary);
+
+        &::before {
+          opacity: 0;
+        }
+
+        &::after {
+          opacity: 1;
+        }
+      }
+    }
+  }
+}
+
+@include mobile-only {
+  @include direction-root(ltr) {
+    .main-left {
+      transform: translateX(-100%);
+    }
+
+    .main-left.active {
+      transform: translateX(0);
+    }
+  }
+
+  @include direction-root(rtl) {
+    .main-left {
+      transform: translateX(100%);
+    }
+
+    .main-left.active {
+      transform: translateX(0);
+    }
+  }
+
+  .main-left {
+    z-index: calc(var(--fluent-zindex-modal) + 150);
+    top: 0;
+    height: 100dvh;
+
+    .sidebar__search-slot {
+      display: block;
+      padding-top: 16px;
+    }
+  }
+
+  .main-right,
+  body[data-sidebar-state="collapsed"] .main-right {
+    margin-inline-start: 0;
+  }
+
+  .darkMask {
+    position: fixed;
+    top: 0;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: calc(var(--fluent-zindex-modal) + 149);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--fluent-duration-normal) var(--fluent-easing-standard);
+
+    &.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+}

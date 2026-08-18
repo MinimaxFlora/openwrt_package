@@ -1,0 +1,630 @@
+@use "sass:string";
+
+// FluentUI 2 SCSS Mixins
+// Aligned with official @fluentui/tokens v2
+
+// ============================================================
+// RESPONSIVE BREAKPOINTS
+// ============================================================
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+$breakpoint-xxl: 1400px;
+
+// --- Base Breakpoint Helpers ---
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == "sm" {
+    @media (min-width: $breakpoint-sm) {
+      @content;
+    }
+  } @else if $breakpoint == "md" {
+    @media (min-width: $breakpoint-md) {
+      @content;
+    }
+  } @else if $breakpoint == "lg" {
+    @media (min-width: $breakpoint-lg) {
+      @content;
+    }
+  } @else if $breakpoint == "xl" {
+    @media (min-width: $breakpoint-xl) {
+      @content;
+    }
+  } @else if $breakpoint == "xxl" {
+    @media (min-width: $breakpoint-xxl) {
+      @content;
+    }
+  }
+}
+
+@mixin respond-down($breakpoint) {
+  @if $breakpoint == "sm" {
+    @media (max-width: ($breakpoint-sm - 1px)) {
+      @content;
+    }
+  } @else if $breakpoint == "md" {
+    @media (max-width: ($breakpoint-md - 1px)) {
+      @content;
+    }
+  } @else if $breakpoint == "lg" {
+    @media (max-width: ($breakpoint-lg - 1px)) {
+      @content;
+    }
+  } @else if $breakpoint == "xl" {
+    @media (max-width: ($breakpoint-xl - 1px)) {
+      @content;
+    }
+  } @else if $breakpoint == "xxl" {
+    @media (max-width: ($breakpoint-xxl - 1px)) {
+      @content;
+    }
+  }
+}
+
+// --- Semantic Responsive Mixins (Recommended) ---
+
+/// Target mobile screen sizes (< 768px, i.e., max-width: 767px)
+@mixin mobile-only {
+  @include respond-down("md") {
+    @content;
+  }
+}
+
+/// Target small phone screen sizes (< 576px, i.e., max-width: 575px)
+@mixin phone-only {
+  @include respond-down("sm") {
+    @content;
+  }
+}
+
+/// Target tablet and smaller screens (< 992px, i.e., max-width: 991px)
+@mixin tablet-down {
+  @include respond-down("lg") {
+    @content;
+  }
+}
+
+/// Target tablet and larger screens (>= 768px)
+@mixin tablet-up {
+  @include respond-to("md") {
+    @content;
+  }
+}
+
+/// Target strictly tablet screen range (768px ~ 991px)
+@mixin tablet-only {
+  @media (min-width: $breakpoint-md) and (max-width: ($breakpoint-lg - 1px)) {
+    @content;
+  }
+}
+
+/// Target desktop and larger screens (>= 992px)
+@mixin desktop-up {
+  @include respond-to("lg") {
+    @content;
+  }
+}
+
+/// Target large desktop screens (>= 1200px)
+@mixin large-desktop-up {
+  @include respond-to("xl") {
+    @content;
+  }
+}
+
+// ============================================================
+// FLEXBOX HELPERS
+// ============================================================
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin flex-column-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+// ============================================================
+// TEXT TRUNCATION
+// ============================================================
+@mixin text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin text-clamp($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// ============================================================
+// BUTTON BASE (FluentUI Button)
+// Height: 32px, Radius: 4px, Padding: 0 16px
+// ============================================================
+%button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--fluent-btn-height);
+  padding: 0 16px;
+  font-family: var(--fluent-font-family);
+  font-size: var(--fluent-font-size-base);
+  font-weight: var(--fluent-font-weight-regular);
+  line-height: 1;
+  border: 1px solid transparent;
+  border-radius: var(--fluent-radius-md);
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+  transition:
+    background var(--fluent-duration-fast) var(--fluent-easing-standard),
+    border-color var(--fluent-duration-fast) var(--fluent-easing-standard),
+    color var(--fluent-duration-fast) var(--fluent-easing-standard);
+
+  &:disabled {
+    color: var(--fluent-text-disabled);
+    background: var(--fluent-bg-active);
+    border-color: var(--fluent-bg-active);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  // FluentUI focus indicator
+  &:focus-visible {
+    outline: 2px solid var(--fluent-focus-color);
+    outline-offset: 2px;
+  }
+}
+
+@mixin button-base {
+  @extend %button-base;
+}
+
+// ============================================================
+// BUTTON VARIANTS (FluentUI)
+// ============================================================
+%button-primary {
+  @extend %button-base;
+  background: var(--fluent-btn-primary-bg);
+  color: var(--fluent-text-on-primary);
+  border-color: var(--fluent-btn-primary-bg);
+
+  &:hover {
+    background: var(--fluent-btn-primary-bg-hover);
+    border-color: var(--fluent-btn-primary-bg-hover);
+  }
+
+  &:active {
+    background: var(--fluent-btn-primary-bg-active);
+    border-color: var(--fluent-btn-primary-bg-active);
+  }
+}
+
+@mixin button-primary {
+  @extend %button-primary;
+}
+
+%button-secondary {
+  @extend %button-base;
+  background: var(--fluent-btn-secondary-bg);
+  color: var(--fluent-text);
+  border-color: var(--fluent-btn-secondary-border);
+
+  &:hover {
+    background: var(--fluent-btn-secondary-bg-hover);
+    border-color: var(--fluent-btn-secondary-border-hover);
+  }
+
+  &:active {
+    background: var(--fluent-btn-secondary-bg-active);
+    border-color: var(--fluent-btn-secondary-border-active);
+  }
+}
+
+@mixin button-secondary {
+  @extend %button-secondary;
+}
+
+%button-text {
+  @extend %button-base;
+  background: transparent;
+  color: var(--fluent-text);
+  border-color: transparent;
+
+  &:hover {
+    background: var(--fluent-bg-hover);
+  }
+
+  &:active {
+    background: var(--fluent-bg-active);
+  }
+}
+
+@mixin button-text {
+  @extend %button-text;
+}
+// for div(dropdown)
+@mixin input-focus-ripple-v1 {
+  position: relative;
+
+  &:hover:not([disabled]):not(:focus):not(:focus-within):not(.focus):not([open]) {
+    border-color: var(--fluent-input-border-hover);
+    border-bottom-color: var(--fluent-input-border-bottom-hover);
+  }
+
+  &:focus,
+  &:focus-within,
+  &.focus,
+  &[open] {
+    outline: none;
+    border-bottom-color: var(--fluent-input-border-bottom-focus);
+
+    &::after {
+      transform: scaleX(1);
+    }
+  }
+
+  &::after {
+    box-sizing: border-box;
+    content: "";
+    position: absolute;
+    inset-inline-start: 1px;
+    bottom: -1px;
+    inset-inline-end: 1px;
+    height: 2px;
+    border-end-start-radius: var(--fluent-radius-sm);
+    border-end-end-radius: var(--fluent-radius-sm);
+    background: var(--fluent-input-border-bottom-focus);
+    transform: scaleX(0);
+    transition: transform var(--fluent-duration-fast) var(--fluent-easing-standard);
+    pointer-events: none;
+  }
+}
+// ============================================================
+// INPUT BASE (FluentUI Input)
+// Height: 32px, Radius: 4px, Bottom-border indicator
+// ============================================================
+%input-base {
+  height: var(--fluent-input-height);
+  padding: 0 var(--fluent-space-sm);
+  font-family: var(--fluent-font-family);
+  font-size: var(--fluent-font-size-base);
+  line-height: var(--fluent-line-height-normal);
+  color: var(--fluent-text);
+  background: var(--fluent-input-bg);
+  border: 1px solid var(--fluent-input-border);
+  border-bottom-width: 1px;
+  border-bottom-color: var(--fluent-input-border-bottom);
+  border-radius: var(--fluent-radius-md);
+  transition: border-color var(--fluent-duration-fast) var(--fluent-easing-standard);
+
+  &:disabled {
+    background: var(--fluent-input-bg-disabled);
+    color: var(--fluent-text-disabled);
+    cursor: not-allowed;
+  }
+
+  &::placeholder {
+    color: var(--fluent-text-disabled);
+  }
+}
+
+@mixin input-base {
+  @extend %input-base;
+}
+
+// for void elements like input
+%input-focus-ripple-v2-base {
+  background-image: linear-gradient(var(--fluent-input-border-bottom-focus), var(--fluent-input-border-bottom-focus));
+  background-position: center bottom;
+  background-size: 0 2px;
+  background-repeat: no-repeat;
+  background-origin: border-box;
+  transition:
+    background-size var(--fluent-duration-fast) var(--fluent-easing-standard),
+    border-color var(--fluent-duration-fast) var(--fluent-easing-standard);
+
+  &:hover:not([disabled]):not(:focus) {
+    border-color: var(--fluent-input-border-hover);
+    border-bottom-color: var(--fluent-input-border-bottom-hover);
+  }
+
+  &:focus {
+    outline: none;
+    border-bottom-color: var(--fluent-input-border-bottom-focus);
+    background-size: 100% 2px;
+  }
+}
+
+@mixin input-focus-ripple-v2($extra-bg: null, $extra-position: null, $extra-size: null) {
+  @if $extra-bg {
+    @include inline-end-background($extra-bg, $extra-position, center, $extra-size);
+    background-repeat: no-repeat;
+    background-origin: border-box;
+    transition:
+      background-size var(--fluent-duration-fast) var(--fluent-easing-standard),
+      border-color var(--fluent-duration-fast) var(--fluent-easing-standard);
+
+    &:hover:not([disabled]):not(:focus) {
+      border-color: var(--fluent-input-border-hover);
+      border-bottom-color: var(--fluent-input-border-bottom-hover);
+    }
+
+    &:focus {
+      outline: none;
+      border-bottom-color: var(--fluent-input-border-bottom-focus);
+      background-size:
+        100% 2px,
+        $extra-size;
+    }
+  } @else {
+    @extend %input-focus-ripple-v2-base;
+  }
+}
+
+// ============================================================
+// CARD (FluentUI Card)
+// Radius: 8px, Border: None, Shadow: sm
+// ============================================================
+@mixin card {
+  background: var(--fluent-card-bg);
+  border: none; // FluentUI / Windows 11 style: no borders on cards
+  border-radius: var(--fluent-card-radius);
+  box-shadow: var(--fluent-card-shadow);
+  padding: var(--fluent-card-padding);
+}
+
+// ============================================================
+// TABLE (FluentUI Table)
+// ============================================================
+@mixin table-base {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    background: var(--fluent-table-header-bg);
+    font-weight: var(--fluent-font-weight-semibold);
+    text-align: center;
+  }
+
+  td,
+  th {
+    padding: var(--fluent-space-xs) var(--fluent-space-sm);
+    border-bottom: 1px solid var(--fluent-table-border);
+  }
+
+  tr:hover td {
+    background: var(--fluent-table-row-hover);
+  }
+}
+
+// ============================================================
+// SCROLLBAR (FluentUI custom scrollbar)
+// ============================================================
+@mixin custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: var(--fluent-scrollbar-width);
+    height: var(--fluent-scrollbar-width);
+
+    &:horizontal {
+      height: var(--fluent-scrollbar-horizontal-height, 5px);
+    }
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--fluent-scrollbar-track-bg);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--fluent-scrollbar-thumb-bg);
+    border-radius: 3px;
+
+    &:hover {
+      background: var(--fluent-scrollbar-thumb-bg-hover);
+    }
+
+    &:horizontal {
+      background: var(--fluent-scrollbar-thumb-horizontal-bg);
+      border-radius: var(--fluent-radius-circular, 10000px);
+
+      &:hover {
+        background: var(--fluent-scrollbar-thumb-horizontal-bg-hover);
+      }
+    }
+  }
+
+  &::-webkit-scrollbar-corner {
+    background: transparent;
+    display: none;
+  }
+
+  &::-webkit-resizer {
+    background: transparent;
+  }
+}
+
+// ============================================================
+// ANIMATIONS
+// ============================================================
+@mixin fade-in($duration: var(--fluent-duration-normal)) {
+  animation: fadeIn $duration var(--fluent-easing-decelerate);
+}
+
+@mixin slide-in-up($duration: var(--fluent-duration-normal)) {
+  animation: slideInUp $duration var(--fluent-easing-decelerate);
+}
+
+@mixin slide-in-down($duration: var(--fluent-duration-normal)) {
+  animation: slideInDown $duration var(--fluent-easing-decelerate);
+}
+
+// ============================================================
+// FOCUS VISIBLE (FluentUI focus indicator)
+// 2px solid black outline, 2px offset
+// ============================================================
+@mixin focus-visible {
+  &:focus-visible {
+    outline: 2px solid var(--fluent-focus-color);
+    outline-offset: 2px;
+  }
+}
+
+// ============================================================
+// VISUALLY HIDDEN (SR ONLY)
+// ============================================================
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ============================================================
+// THEME STATE HELPERS
+// Unified effective theme selectors driven by html[data-theme]
+// ============================================================
+@mixin theme-dark {
+  [data-theme="dark"] {
+    @content;
+  }
+}
+
+@mixin theme-light {
+  [data-theme="light"] {
+    @content;
+  }
+}
+
+@mixin theme-dark-context {
+  [data-theme="dark"] & {
+    @content;
+  }
+}
+
+@mixin theme-light-context {
+  [data-theme="light"] & {
+    @content;
+  }
+}
+
+// ============================================================
+// DIRECTION HELPERS
+// Logical properties stay the default path. Use these helpers only when a
+// selector branch or physical fallback is unavoidable for RTL-exclusive cases.
+// Do not scatter raw [dir="rtl"] selectors in leaf components.
+// ============================================================
+@function _direction-is-valid($direction) {
+  @return $direction == rtl or $direction == ltr;
+}
+
+@mixin direction-root($direction) {
+  @if not _direction-is-valid($direction) {
+    @error "direction-root() only supports rtl or ltr.";
+  }
+
+  html[dir="#{$direction}"],
+  body[data-fluent-dir="#{$direction}"] {
+    @content;
+  }
+}
+
+@mixin direction-context($direction) {
+  @if not _direction-is-valid($direction) {
+    @error "direction-context() only supports rtl or ltr.";
+  }
+
+  html[dir="#{$direction}"] &,
+  body[data-fluent-dir="#{$direction}"] & {
+    @content;
+  }
+}
+
+@mixin rtl {
+  @include direction-context(rtl) {
+    @content;
+  }
+}
+
+@mixin ltr {
+  @include direction-context(ltr) {
+    @content;
+  }
+}
+
+@mixin inset-inline($start, $end: $start) {
+  inset-inline-start: $start;
+  inset-inline-end: $end;
+}
+
+@mixin inline-end-background(
+  $image,
+  $offset,
+  $block: center,
+  $size: null,
+  $origin: border-box
+) {
+  background-image: linear-gradient(var(--fluent-input-border-bottom-focus), var(--fluent-input-border-bottom-focus)), $image;
+  background-position:
+    center bottom,
+    string.unquote("right #{$offset} #{$block}");
+  background-repeat: no-repeat;
+  background-origin: $origin;
+
+  @if $size {
+    background-size:
+      0 2px,
+      $size;
+  } @else {
+    background-size: 0 2px;
+  }
+
+  @include rtl {
+    background-position:
+      center bottom,
+      string.unquote("left #{$offset} #{$block}");
+  }
+}
+
+@mixin logical-radius($start-start, $start-end, $end-end, $end-start) {
+  border-start-start-radius: $start-start;
+  border-start-end-radius: $start-end;
+  border-end-end-radius: $end-end;
+  border-end-start-radius: $end-start;
+}
+
+@mixin rtl-flip-icon {
+  @include rtl {
+    transform: scaleX(-1);
+  }
+}
+
+@mixin reverse-inline-motion($motion-value) {
+  transform: $motion-value;
+
+  @include rtl {
+    transform: scaleX(-1) $motion-value;
+  }
+}
