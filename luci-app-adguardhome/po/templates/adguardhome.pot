@@ -1,0 +1,393 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:555
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:568
+msgid "(ipset only)"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:543
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:570
+msgid "Add"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:542
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:568
+msgid "Add gfwlist"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:530
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:542
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:555
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:569
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:582
+msgid "Added"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:358
+#: luci-app-adguardhome/root/usr/share/luci/menu.d/luci-app-adguardhome.json:3
+msgid "AdGuard Home"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:444
+msgid "AdGuardHome Bin path if no bin will auto download"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:461
+msgid "AdGuardHome config path"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:424
+msgid "AdGuardHome redirect mode"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:475
+msgid ""
+"AdGuardHome runtime Log file if 'syslog': write to system log;if empty "
+"no log"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:468
+msgid "AdGuardHome work dir include rules,audit log and database"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:526
+msgid "Auto update gfwlist and restart AdGuardHome"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:527
+msgid "Auto update ipset list and restart AdGuardHome"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:525
+msgid "Auto update ipv6 hosts and restart AdGuardHome"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:496
+msgid "Backup workdir files when shutdown"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:502
+msgid "Backup workdir path"
+msgstr ""
+
+#: luci-app-adguardhome/root/usr/share/luci/menu.d/luci-app-adguardhome.json:15
+msgid "Base Setting"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:415
+msgid "Beta Version"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:443
+msgid "Bin Path"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:451
+msgid "bin use less space,but may have compatibility issues"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:407
+msgid "Browser management port"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:432
+msgid "Change management password"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:204
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:219
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:251
+msgid "Check..."
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:363
+msgid "Collecting data..."
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:455
+msgid "compress best(can be slow for big files)"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:454
+msgid "compress better"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:453
+msgid "compress faster"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:487
+msgid "config file"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:461
+msgid "Config Path"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:486
+msgid "core bin"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:399
+msgid "Core Config"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:413
+msgid "Core Version"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:523
+msgid "Crontab task"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:288
+msgid "Culculate"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:420
+msgid "Current core version:"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:531
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:556
+msgid "Del"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:530
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:555
+msgid "Del gfwlist"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/log.js:186
+msgid "dellog"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/log.js:192
+msgid "download log"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:403
+msgid "Enable"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:239
+msgid "Fast config"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:492
+msgid "filters"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:141
+msgid "Force update"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:359
+msgid ""
+"Free and open source, powerful network-wide ads & trackers blocking DNS "
+"server."
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:582
+msgid "Gfwlist domain upstream dns service"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:581
+msgid "Gfwlist upstream dns server"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:308
+msgid "is empty"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:485
+msgid "Keep files when system upgrade"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:414
+msgid "Latest Version"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:279
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:291
+msgid "Load culculate model"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:284
+msgid "loading..."
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/log.js:180
+msgid "localtime"
+msgstr ""
+
+#: luci-app-adguardhome/root/usr/share/luci/menu.d/luci-app-adguardhome.json:23
+msgid "Log"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:488
+msgid "log file"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:398
+msgid "Main Config"
+msgstr ""
+
+#: luci-app-adguardhome/root/usr/share/luci/menu.d/luci-app-adguardhome.json:31
+msgid "Manual Config"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:46
+msgid "no config"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:52
+msgid "no core"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:425
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:452
+msgid "none"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:530
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:542
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:555
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:569
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:582
+msgid "Not added"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:383
+msgid "Not redirect"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:382
+msgid "NOT RUNNING"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:375
+msgid "Open Web Interface"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:400
+msgid "Other Config"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/log.js:200
+msgid "Please add log path in config to enable log"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:524
+msgid "Please change time and args in crontab"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:304
+msgid "Please save/apply"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:433
+msgid "Press load culculate model and culculate finally save/apply"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:491
+msgid "querylog.json"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:424
+msgid "Redirect"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:427
+msgid "Redirect 53 port to AdGuardHome"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:371
+msgid "Redirected"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/manual.js:203
+msgid "Reload Config"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:160
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/log.js:169
+msgid "reverse"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:426
+msgid "Run as dnsmasq upstream server"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:370
+msgid "RUNNING"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:474
+msgid "Runtime log file"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:489
+msgid "sessions.db"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:438
+msgid "Start up only when the network is normal"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:490
+msgid "stats.db"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:456
+msgid "try all available compression methods & filters [slow]"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:457
+msgid "try even more compression variants [very slow]"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:135
+msgid "Update core version"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:183
+msgid "Updated"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:418
+msgid "Upgrade Core"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:428
+msgid "Use port 53 replace dnsmasq"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/manual.js:209
+msgid "Use template"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:450
+msgid "use upx to compress bin after download"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:480
+msgid "Verbose log"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/manual.js:235
+msgid "WARNING!!! no bin found apply config will not be test"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:496
+msgid "Will be restore when workdir/data is empty"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:569
+msgid "will set to name gfwlist"
+msgstr ""
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:467
+msgid "Work dir"
+msgstr ""

@@ -1,0 +1,399 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: luci-app-adguardhome\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-20 21:00+0800\n"
+"PO-Revision-Date: 2026-08-20 21:00+0800\n"
+"Last-Translator: MinimaxFlora <265198154+MinimaxFlora@users.noreply.github.com>\n"
+"Language-Team: Chinese\n"
+"Language: zh_Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:555
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:568
+msgid "(ipset only)"
+msgstr "(仅 ipset)"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:543
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:570
+msgid "Add"
+msgstr "添加"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:542
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:568
+msgid "Add gfwlist"
+msgstr "添加 GFW 列表"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:530
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:542
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:555
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:569
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:582
+msgid "Added"
+msgstr "已添加"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:358
+#: luci-app-adguardhome/root/usr/share/luci/menu.d/luci-app-adguardhome.json:3
+msgid "AdGuard Home"
+msgstr "AdGuard Home"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:444
+msgid "AdGuardHome Bin path if no bin will auto download"
+msgstr "AdGuardHome 执行文件路径 如果没有执行文件将自动下载"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:461
+msgid "AdGuardHome config path"
+msgstr "AdGuardHome 配置文件路径"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:424
+msgid "AdGuardHome redirect mode"
+msgstr "AdGuardHome 重定向模式"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:475
+msgid "AdGuardHome runtime Log file if 'syslog': write to system log;if empty no log"
+msgstr "AdGuardHome 运行日志, 如果填 syslog 将写入系统日志; 如果该项为空则不记录运行日志"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:468
+msgid "AdGuardHome work dir include rules,audit log and database"
+msgstr "AdGuardHome 工作目录包含规则，审计日志和数据库"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:526
+msgid "Auto update gfwlist and restart AdGuardHome"
+msgstr "自动更新 GFW 列表并重启 AdGuardHome"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:527
+msgid "Auto update ipset list and restart AdGuardHome"
+msgstr "自动更新 ipset 列表并重启 AdGuardHome"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:525
+msgid "Auto update ipv6 hosts and restart AdGuardHome"
+msgstr "自动更新 ipv6 主机并重启 AdGuardHome"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:496
+msgid "Backup workdir files when shutdown"
+msgstr "在关机时备份工作目录文件"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:502
+msgid "Backup workdir path"
+msgstr "工作目录备份路径"
+
+#: luci-app-adguardhome/root/usr/share/luci/menu.d/luci-app-adguardhome.json:15
+msgid "Base Setting"
+msgstr "基础设置"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:415
+msgid "Beta Version"
+msgstr "测试版"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:443
+msgid "Bin Path"
+msgstr "执行文件路径"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:451
+msgid "bin use less space,but may have compatibility issues"
+msgstr "减小执行文件空间占用，但是可能压缩后有兼容性问题"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:407
+msgid "Browser management port"
+msgstr "网页管理端口"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:432
+msgid "Change management password"
+msgstr "更改登录密码"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:204
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:219
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:251
+msgid "Check..."
+msgstr "检查中..."
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:363
+msgid "Collecting data..."
+msgstr "获取数据中..."
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:455
+msgid "compress best(can be slow for big files)"
+msgstr "最好的压缩(大文件可能慢)"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:454
+msgid "compress better"
+msgstr "更好的压缩"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:453
+msgid "compress faster"
+msgstr "快速压缩"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:487
+msgid "config file"
+msgstr "配置文件"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:461
+msgid "Config Path"
+msgstr "配置文件路径"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:486
+msgid "core bin"
+msgstr "核心执行文件"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:399
+msgid "Core Config"
+msgstr "内核设置"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:413
+msgid "Core Version"
+msgstr "核心版本"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:523
+msgid "Crontab task"
+msgstr "计划任务"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:288
+msgid "Culculate"
+msgstr "计算"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:420
+msgid "Current core version:"
+msgstr "当前核心版本:"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:531
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:556
+msgid "Del"
+msgstr "删除"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:530
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:555
+msgid "Del gfwlist"
+msgstr "删除 GFW 列表"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/log.js:186
+msgid "dellog"
+msgstr "删除日志"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/log.js:192
+msgid "download log"
+msgstr "下载日志"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:403
+msgid "Enable"
+msgstr "启用"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:239
+msgid "Fast config"
+msgstr "快速配置"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:492
+msgid "filters"
+msgstr "过滤器"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:141
+msgid "Force update"
+msgstr "强制更新核心"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:359
+msgid "Free and open source, powerful network-wide ads & trackers blocking DNS server."
+msgstr "全网络广告和跟踪程序拦截 DNS 服务器，默认账号和密码均为：admin"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:582
+msgid "Gfwlist domain upstream dns service"
+msgstr "GFW 列表域名上游服务器"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:581
+msgid "Gfwlist upstream dns server"
+msgstr "GFW 列表上游服务器"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:308
+msgid "is empty"
+msgstr "为空"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:485
+msgid "Keep files when system upgrade"
+msgstr "系统升级时保留文件"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:414
+msgid "Latest Version"
+msgstr "最新版"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:279
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:291
+msgid "Load culculate model"
+msgstr "载入计算模块"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:284
+msgid "loading..."
+msgstr "载入中"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/log.js:180
+msgid "localtime"
+msgstr "本地时间"
+
+#: luci-app-adguardhome/root/usr/share/luci/menu.d/luci-app-adguardhome.json:23
+msgid "Log"
+msgstr "日志"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:488
+msgid "log file"
+msgstr "日志文件"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:398
+msgid "Main Config"
+msgstr "主要设置"
+
+#: luci-app-adguardhome/root/usr/share/luci/menu.d/luci-app-adguardhome.json:31
+msgid "Manual Config"
+msgstr "手动设置"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:46
+msgid "no config"
+msgstr "没有配置文件"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:52
+msgid "no core"
+msgstr "没有核心"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:425
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:452
+msgid "none"
+msgstr "无"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:530
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:542
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:555
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:569
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:582
+msgid "Not added"
+msgstr "未添加"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:383
+msgid "Not redirect"
+msgstr "未重定向"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:382
+msgid "NOT RUNNING"
+msgstr "未运行"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:375
+msgid "Open Web Interface"
+msgstr "打开网页界面"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:400
+msgid "Other Config"
+msgstr "其它设置"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/log.js:200
+msgid "Please add log path in config to enable log"
+msgstr "请在设置里填写日志路径以启用日志"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:524
+msgid "Please change time and args in crontab"
+msgstr "请在计划任务中修改时间和参数"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:304
+msgid "Please save/apply"
+msgstr "请点击[保存/应用]"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:433
+msgid "Press load culculate model and culculate finally save/apply"
+msgstr "先输入你想要的密码，点击[载入计算模块]，然后点击[计算]，最后点击下方[保存&应用]"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:491
+msgid "querylog.json"
+msgstr "审计日志.json"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:424
+msgid "Redirect"
+msgstr "重定向"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:427
+msgid "Redirect 53 port to AdGuardHome"
+msgstr "重定向 53 端口到 AdGuardHome"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:371
+msgid "Redirected"
+msgstr "已重定向"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/manual.js:203
+msgid "Reload Config"
+msgstr "重新载入配置"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:160
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/log.js:169
+msgid "reverse"
+msgstr "逆序"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:426
+msgid "Run as dnsmasq upstream server"
+msgstr "作为 dnsmasq 的上游服务器"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:370
+msgid "RUNNING"
+msgstr "运行中"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:474
+msgid "Runtime log file"
+msgstr "运行日志路径"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:489
+msgid "sessions.db"
+msgstr "sessions.db"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:438
+msgid "Start up only when the network is normal"
+msgstr "开机网络正常才启动"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:490
+msgid "stats.db"
+msgstr "stats.db"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:456
+msgid "try all available compression methods & filters [slow]"
+msgstr "尝试所有可能的压缩方法和过滤器[慢]"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:457
+msgid "try even more compression variants [very slow]"
+msgstr "尝试更多变体压缩手段[很慢]"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:135
+msgid "Update core version"
+msgstr "更新核心版本"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:183
+msgid "Updated"
+msgstr "已更新"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:418
+msgid "Upgrade Core"
+msgstr "更新核心"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:428
+msgid "Use port 53 replace dnsmasq"
+msgstr "使用 53 端口替换 dnsmasq"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/manual.js:209
+msgid "Use template"
+msgstr "使用模板"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:450
+msgid "use upx to compress bin after download"
+msgstr "下载后使用 upx 压缩执行文件"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:480
+msgid "Verbose log"
+msgstr "输出详细日志"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/manual.js:235
+msgid "WARNING!!! no bin found apply config will not be test"
+msgstr "警告！！！未找到执行文件，提交配置将不会进行校验"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:496
+msgid "Will be restore when workdir/data is empty"
+msgstr "在工作目录/data 为空的时候恢复"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:569
+msgid "will set to name gfwlist"
+msgstr "将设置为 gfwlist 名称"
+
+#: luci-app-adguardhome/htdocs/luci-static/resources/view/AdGuardHome/base.js:467
+msgid "Work dir"
+msgstr "工作目录"
