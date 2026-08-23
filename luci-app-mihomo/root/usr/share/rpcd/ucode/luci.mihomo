@@ -1,0 +1,302 @@
+#!/usr/bin/ucode
+
+'use strict';
+
+import { access, popen, writefile } from 'fs';
+import { get_users, get_groups, get_cgroups, load_profile } from '/etc/mihomo/ucode/include.uc';
+
+function normalize_version(v) {
+	v = trim(v ?? '');
+	v = replace(v, /^v/, '');
+	if (length(v) == 0)
+		return [];
+	return map(split(v, '.'), (x) => int(x));
+};
+
+function version_newer(cur, latest) {
+	const a = normalize_version(cur);
+	const b = normalize_version(latest);
+	if (length(a) == 0 || length(b) == 0)
+		return false;
+	const n = length(a) > length(b) ? length(a) : length(b);
+	for (let i = 0; i < n; i++) {
+		const x = i < length(a) ? a[i] : 0;
+		const y = i < length(b) ? b[i] : 0;
+		if (x < y)
+			return true;
+		if (x > y)
+			return false;
+	}
+	return false;
+};
+
+function get_current_app_version() {
+	let app = '';
+	if (system('command -v opkg') == 0) {
+		const process = popen('opkg list-installed luci-app-mihomo | cut -d " " -f 3');
+		if (process) {
+			app = trim(process.read('all'));
+			process.close();
+		}
+	} else if (system('command -v apk') == 0) {
+		const process = popen('apk list -I luci-app-mihomo | cut -d " " -f 1 | cut -d "-" -f 4');
+		if (process) {
+			app = trim(process.read('all'));
+			process.close();
+		}
+	}
+	return app;
+};
+
+function get_current_core_version() {
+	let core = '';
+	const process = popen('mihomo -v | grep Mihomo | cut -d " " -f 3');
+	if (process) {
+		core = trim(process.read('all'));
+		process.close();
+	}
+	return core;
+};
+
+function github_latest_release(repo) {
+	const process = popen(`curl -s -m 20 "https://api.github.com/repos/${repo}/releases/latest"`);
+	let release = null;
+	if (process) {
+		release = json(process);
+		process.close();
+	}
+	return type(release) == 'object' ? release : null;
+};
+
+function core_arch_name() {
+	const process = popen('uname -m');
+	let m = '';
+	if (process) {
+		m = trim(process.read('all'));
+		process.close();
+	}
+	switch (m) {
+	case 'x86_64':
+		return 'amd64-compatible';
+	case 'aarch64':
+		return 'arm64';
+	case 'armv7l':
+	case 'armv7':
+		return 'armv7';
+	case 'armv6l':
+	case 'armv6':
+		return 'armv6';
+	case 'armv5tel':
+	case 'armv5tejl':
+	case 'armv5':
+		return 'armv5';
+	case 'i686':
+	case 'i586':
+	case 'i486':
+	case 'i386':
+		return '386';
+	case 'mips':
+		return 'mips-softfloat';
+	case 'mipsel':
+		return 'mipsle-softfloat';
+	case 'riscv64':
+		return 'riscv64';
+	case 'loongarch64':
+		return 'loong64-abi1';
+	}
+	return null;
+};
+
+const methods = {
+	version: {
+		call: function() {
+			let process;
+			let app = '';
+			if (system('command -v opkg') == 0) {
+				process = popen('opkg list-installed luci-app-mihomo | cut -d " " -f 3');
+				if (process) {
+					app = trim(process.read('all'));
+					process.close();
+				}
+			} else if (system('command -v apk') == 0) {
+				process = popen('apk list -I luci-app-mihomo | cut -d " " -f 1 | cut -d "-" -f 4');
+				if (process) {
+					app = trim(process.read('all'));
+					process.close();
+				}
+			}
+			let core = '';
+			process = popen('mihomo -v | grep Mihomo | cut -d " " -f 3');
+			if (process) {
+				core = trim(process.read('all'));
+				process.close();
+			}
+			return { app: app, core: core };
+		}
+	},
+	profile: {
+		args: { defaults: {} },
+		call: function(req) {
+			let profile = {};
+			const defaults = req.args?.defaults ?? {};
+			const filepath = '/etc/mihomo/run/config.yaml';
+			const tmpFilepath = '/var/run/mihomo/profile.json';
+			if (access(filepath, 'r')) {
+				writefile(tmpFilepath, defaults);
+				const command = `yq -M -p yaml -o json eval-all 'select(fi == 0) *? select(fi == 1)' ${tmpFilepath} ${filepath}`;
+				const process = popen(command);
+				if (process) {
+					profile = json(process);
+					process.close();
+				}
+			}
+			return profile;
+		}
+	},
+	update_subscription: {
+		args: { section_id: 'section_id' },
+		call: function(req) {
+			let success = false;
+			const section_id = req.args?.section_id;
+			if (section_id) {
+				success = system(['service', 'mihomo', 'update_subscription', section_id]) == 0;
+			}
+			return { success: success };
+		}
+	},
+	api: {
+		args: { method: 'method', path: 'path', query: 'query', body: 'body' },
+		call: function(req) {
+			let result = {};
+
+			const method = req.args?.method;
+			const path = req.args?.path;
+			const query = req.args?.query;
+			const body = req.args?.body;
+
+			const profile = load_profile();
+			const api_listen = profile['external-controller'];
+			const api_tls_listen = profile['external-controller-tls'];
+			const api_secret = profile['secret'];
+			if (!api_listen && !api_tls_listen) {
+				return result;
+			}
+
+			const protocol = api_tls_listen ? 'https' : 'http';
+
+			const url = (api_tls_listen ?? api_listen) + path;
+
+			const process = popen(`curl --proto-default '${protocol}' --insecure --request '${method}' --oauth2-bearer '${api_secret}' --url-query '${query}' --data '${body}' '${url}'`);
+			if (process) {
+				result = json(process);
+				process.close();
+			}
+
+			return result;
+		}
+	},
+	get_identifiers: {
+		call: function() {
+			const users = filter(get_users(), (x) => x != '');
+			const groups = filter(get_groups(), (x) => x != '');
+			const cgroups = filter(get_cgroups(), (x) => x != '' && index(x, 'services/mihomo') < 0);
+			return { users: users, groups: groups, cgroups: cgroups };
+		}
+	},
+	debug: {
+		call: function() {
+			const success = system('/etc/mihomo/scripts/debug.sh > /var/log/mihomo/debug.log') == 0;
+			return { success: success };
+		}
+	},
+	check_updates: {
+		call: function() {
+			const app_current = get_current_app_version();
+			const core_current = get_current_core_version();
+			const app_release = github_latest_release('MinimaxFlora/luci-app-mihomo');
+			const core_release = github_latest_release('MetaCubeX/mihomo');
+			return {
+				app: {
+					current: app_current,
+					latest: app_release ? app_release.tag_name : '',
+					update_available: app_release ? version_newer(app_current, app_release.tag_name) : false
+				},
+				core: {
+					current: core_current,
+					latest: core_release ? core_release.tag_name : '',
+					update_available: core_release ? version_newer(core_current, core_release.tag_name) : false
+				}
+			};
+		}
+	},
+	update_app: {
+		call: function() {
+			const is_apk = system('command -v apk') == 0;
+			const release = github_latest_release('MinimaxFlora/luci-app-mihomo');
+			if (!release || !release.assets)
+				return { success: false, error: 'release not found' };
+			let asset = null;
+			for (let a in release.assets) {
+				if (is_apk ? match(a.name, /^luci-app-mihomo-.*\.apk$/) : match(a.name, /^luci-app-mihomo_.*\.ipk$/)) {
+					asset = a;
+					break;
+				}
+			}
+			if (!asset)
+				return { success: false, error: 'asset not found' };
+			const tmp = '/tmp/' + asset.name;
+			if (system(['curl', '-sL', '-m', '300', '-o', tmp, asset.browser_download_url]) != 0)
+				return { success: false, error: 'download failed' };
+			const ok = is_apk
+				? system(['apk', 'add', '--allow-untrusted', tmp]) == 0
+				: system(['opkg', 'install', '--force-reinstall', tmp]) == 0;
+			system(['rm', '-f', tmp]);
+			return { success: ok, error: ok ? '' : 'install failed' };
+		}
+	},
+	update_core: {
+		call: function() {
+			const release = github_latest_release('MetaCubeX/mihomo');
+			if (!release || !release.tag_name || !release.assets)
+				return { success: false, error: 'release not found' };
+			const ver = release.tag_name;
+			const arch = core_arch_name();
+			if (!arch)
+				return { success: false, error: 'unsupported architecture' };
+			const asset_name = `mihomo-linux-${arch}-${ver}.gz`;
+			let asset = null;
+			for (let a in release.assets) {
+				if (a.name == asset_name) {
+					asset = a;
+					break;
+				}
+			}
+			if (!asset)
+				return { success: false, error: 'asset not found' };
+			const tmp = `/tmp/${asset.name}`;
+			const bin = `/tmp/mihomo-${ver}`;
+			if (system(['curl', '-sL', '-m', '300', '-o', tmp, asset.browser_download_url]) != 0)
+				return { success: false, error: 'download failed' };
+			if (system(`gzip -d -f -c '${tmp}' > '${bin}'`) != 0) {
+				system(['rm', '-f', tmp]);
+				return { success: false, error: 'decompress failed' };
+			}
+			system(['cp', '-f', '/usr/bin/mihomo', '/tmp/mihomo.bak']);
+			if (system(['mv', '-f', bin, '/usr/bin/mihomo']) != 0 || system(['chmod', '755', '/usr/bin/mihomo']) != 0) {
+				system(['mv', '-f', '/tmp/mihomo.bak', '/usr/bin/mihomo']);
+				system(['rm', '-f', tmp]);
+				return { success: false, error: 'install failed' };
+			}
+			if (system('/usr/bin/mihomo -v > /dev/null 2>&1') != 0) {
+				system(['mv', '-f', '/tmp/mihomo.bak', '/usr/bin/mihomo']);
+				system(['rm', '-f', tmp]);
+				return { success: false, error: 'binary verification failed' };
+			}
+			system(['rm', '-f', '/tmp/mihomo.bak', tmp]);
+			system(['/etc/init.d/mihomo', 'restart']);
+			return { success: true, error: '' };
+		}
+	}
+};
+
+return { 'luci.mihomo': methods };
