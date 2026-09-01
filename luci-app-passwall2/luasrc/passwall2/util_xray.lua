@@ -318,7 +318,8 @@ function gen_outbound(flag, node, tag, proxy_table)
 								type = "realm",
 								settings = {
 									url = url,
-									stunServers = stun
+									stunServers = stun,
+									portMapping = (node.hysteria2_realm_upnp == "1") and { enabled = true } or nil
 								}
 							}
 							udp[#udp+1] = r
@@ -788,7 +789,8 @@ function gen_config_server(node)
 									type = "realm",
 									settings = {
 										url = url,
-										stunServers = stun
+										stunServers = stun,
+										portMapping = (node.hysteria2_realm_upnp == "1") and { enabled = true } or nil
 									}
 								}
 								udp[#udp+1] = r
@@ -887,6 +889,8 @@ function gen_config(var)
 	local dns_listen_port = var["dns_listen_port"]
 	local direct_dns_udp_server = var["direct_dns_udp_server"]
 	local direct_dns_udp_port = var["direct_dns_udp_port"]
+	local direct_dns_tcp_server = var["direct_dns_tcp_server"]
+	local direct_dns_tcp_port = var["direct_dns_tcp_port"]
 	local direct_dns_query_strategy = var["direct_dns_query_strategy"]
 	local direct_ipset = var["direct_ipset"]
 	local direct_nftset = var["direct_nftset"]
@@ -1010,11 +1014,18 @@ function gen_config(var)
 	end
 
 	function get_node_by_id(node_id)
-		if not node_id or node_id == "" or node_id == "nil" then return nil end
-		local section = api.uci_get_c(node_id) or {}
+		local section
+		if type(node_id) == "table" then
+			section = node_id
+		elseif type(node_id) == "string" then
+			if node_id == "" or node_id == "nil" then return nil end
+			section = api.uci_get_c(node_id) or {}
+		else
+			return nil
+		end
 		if section[".type"] == "socks" then
-			local result = {
-				[".name"] = node_id,
+			return {
+				[".name"] = section[".name"],
 				remarks = "socks[%s]" % section.port,
 				type = "Xray",
 				protocol = "socks",
@@ -1023,7 +1034,6 @@ function gen_config(var)
 				transport = "tcp",
 				stream_security = "none"
 			}
-			return result
 		end
 		if section[".type"] == "nodes" then
 			return section
@@ -1269,12 +1279,7 @@ function gen_config(var)
 
 	function gen_outbound_get_tag(flag, node_id, tag, proxy_table)
 		if not node_id or node_id == "" or node_id == "nil" then return nil end
-		local node
-		if type(node_id) == "string" then
-			node = get_node_by_id(node_id)
-		elseif type(node_id) == "table" then
-			node = node_id
-		end
+		local node = get_node_by_id(node_id)
 		if not tag then tag = node[".name"] end
 		if node then
 			if proxy_table.chain_proxy == "1" or proxy_table.chain_proxy == "2" then
@@ -1559,13 +1564,24 @@ function gen_config(var)
 			port = tonumber(direct_dns_udp_port) or 53,
 			queryStrategy = (direct_dns_query_strategy and direct_dns_query_strategy ~= "") and direct_dns_query_strategy or "UseIP"
 		}
-
-		if _direct_dns.address then
-			table.insert(dns_servers, {
-				outboundTag = "direct",
-				server = _direct_dns
-			})
+		table.insert(dns_servers, {
+			outboundTag = "direct",
+			server = _direct_dns
+		})
+	elseif direct_dns_tcp_server then
+		if api.is_ipv6(direct_dns_tcp_server) then
+			direct_dns_tcp_server = api.get_ipv6_full(direct_dns_tcp_server)
 		end
+		_direct_dns = {
+			tag = direct_dns_tag,
+			address = "tcp://" .. direct_dns_tcp_server .. ":" .. tonumber(direct_dns_tcp_port) or 53,
+			port = tonumber(direct_dns_tcp_port) or 53,
+			queryStrategy = (direct_dns_query_strategy and direct_dns_query_strategy ~= "") and direct_dns_query_strategy or "UseIP"
+		}
+		table.insert(dns_servers, {
+			outboundTag = "direct",
+			server = _direct_dns
+		})
 	end
 
 	if next(GLOBAL.DNS_HOSTNAME) then
@@ -1622,8 +1638,6 @@ function gen_config(var)
 				end
 			end)
 		end
-
-		local _remote_dns_ip = nil
 	
 		local _remote_dns = {
 			tag = remote_dns_tag,
@@ -1634,14 +1648,15 @@ function gen_config(var)
 			_remote_dns.address = remote_dns_udp_server
 			_remote_dns.port = tonumber(remote_dns_udp_port) or 53
 			_remote_dns_proto = "udp"
-			_remote_dns_ip = remote_dns_udp_server
 		end
 
 		if remote_dns_tcp_server then
+			if api.is_ipv6(remote_dns_tcp_server) then
+				remote_dns_tcp_server = api.get_ipv6_full(remote_dns_tcp_server)
+			end
 			_remote_dns.address = "tcp://" .. remote_dns_tcp_server .. ":" .. tonumber(remote_dns_tcp_port) or 53
 			_remote_dns.port = tonumber(remote_dns_tcp_port) or 53
 			_remote_dns_proto = "tcp"
-			_remote_dns_ip = remote_dns_tcp_server
 		end
 
 		if remote_dns_doh_url and remote_dns_doh_host then
@@ -1650,7 +1665,6 @@ function gen_config(var)
 			end
 			_remote_dns.address = remote_dns_doh_url
 			_remote_dns.port = tonumber(remote_dns_doh_port) or 443
-			_remote_dns_ip = remote_dns_doh_ip
 		end
 
 		if _remote_dns.address then
@@ -1688,7 +1702,7 @@ function gen_config(var)
 			})
 		end
 
-		if direct_dns_udp_server then
+		if direct_dns_udp_server or direct_dns_tcp_server then
 			local domain = {}
 			local nodes_domain_text = sys.exec('uci show passwall2 | grep ".address=" | cut -d "\'" -f 2 | grep "[a-zA-Z]$" | sort -u')
 			string.gsub(nodes_domain_text, '[^' .. "\r\n" .. ']+', function(w)
