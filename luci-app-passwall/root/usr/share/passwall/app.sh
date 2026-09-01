@@ -1064,7 +1064,6 @@ start_dns() {
 	esac
 
 	# 追加直连DNS到iptables/nftables
-	[ "$(config_n_get @global_haproxy[0] balancing_enable 0)" != "1" ] && IPT_APPEND_DNS=
 	add_default_port() {
 		[ -z "$1" ] && echo "" || echo "$1" | awk -F',' '{for(i=1;i<=NF;i++){if($i !~ /#/) $i=$i"#53";} print $0;}' OFS=','
 	}
@@ -1298,6 +1297,7 @@ start_dns() {
 			-USE_DIRECT_LIST "${USE_DIRECT_LIST}" -USE_PROXY_LIST "${USE_PROXY_LIST}" -USE_BLOCK_LIST "${USE_BLOCK_LIST}" -USE_GFW_LIST "${USE_GFW_LIST}" -CHN_LIST "${CHN_LIST}" \
 			-NODE ${NODE} -DEFAULT_PROXY_MODE ${TCP_PROXY_MODE} -NO_PROXY_IPV6 ${DNSMASQ_FILTER_PROXY_IPV6:-0} -NFTFLAG ${nftflag:-0} \
 			-NO_LOGIC_LOG ${NO_LOGIC_LOG:-0}
+		uci -q delete dhcp.@dnsmasq[0].min_cache_ttl
 		uci -q add_list dhcp.@dnsmasq[0].addnmount=${GLOBAL_DNSMASQ_CONF_PATH}
 		uci -q commit dhcp
 		lua $APP_PATH/helper_dnsmasq.lua logic_restart -LOG 1
@@ -1329,7 +1329,7 @@ start_haproxy() {
 	fi
 	local haproxy_path=$TMP_PATH/haproxy
 	local haproxy_conf="config.cfg"
-	lua $APP_PATH/haproxy.lua -path ${haproxy_path} -conf ${haproxy_conf} -dns ${LOCAL_DNS}
+	lua $APP_PATH/haproxy.lua -path ${haproxy_path} -conf ${haproxy_conf}
 	ln_run "$(first_type haproxy)" haproxy "/dev/null" -f "${haproxy_path}/${haproxy_conf}"
 }
 

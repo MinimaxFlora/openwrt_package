@@ -15,7 +15,7 @@ local xray_version = api.get_app_version("xray")
 local xray_min_version = "26.3.27"
 
 local function get_domain_excluded()
-	local path = "/usr/share/passwall/domains_excluded"
+	local path = string.format("/usr/share/%s/rules/domains_excluded", api.c_config)
 	local content = fs.readfile(path)
 	if not content then return nil end
 	local hosts = {}
@@ -308,7 +308,8 @@ function gen_outbound(flag, node, tag, proxy_table)
 								type = "realm",
 								settings = {
 									url = url,
-									stunServers = stun
+									stunServers = stun,
+									portMapping = (node.hysteria2_realm_upnp == "1") and { enabled = true } or nil
 								}
 							}
 							udp[#udp+1] = r
@@ -782,7 +783,8 @@ function gen_config_server(node)
 									type = "realm",
 									settings = {
 										url = url,
-										stunServers = stun
+										stunServers = stun,
+										portMapping = (node.hysteria2_realm_upnp == "1") and { enabled = true } or nil
 									}
 								}
 								udp[#udp+1] = r
@@ -1010,11 +1012,18 @@ function gen_config(var)
 
 
 		function get_node_by_id(node_id)
-			if not node_id or node_id == "" or node_id == "nil" then return nil end
-			local section = api.uci_get_c(node_id) or {}
+			local section
+			if type(node_id) == "table" then
+				section = node_id
+			elseif type(node_id) == "string" then
+				if node_id == "" or node_id == "nil" then return nil end
+				section = api.uci_get_c(node_id) or {}
+			else
+				return nil
+			end
 			if section[".type"] == "socks" then
-				local result = {
-					[".name"] = node_id,
+				return {
+					[".name"] = section[".name"],
 					remarks = "socks[%s]" % section.port,
 					type = "Xray",
 					protocol = "socks",
@@ -1023,7 +1032,6 @@ function gen_config(var)
 					transport = "tcp",
 					stream_security = "none"
 				}
-				return result
 			end
 			if section[".type"] == "nodes" then
 				return section
@@ -1272,12 +1280,7 @@ function gen_config(var)
 
 		function gen_outbound_get_tag(flag, node_id, tag, proxy_table)
 			if not node_id or node_id == "" or node_id == "nil" then return nil end
-			local node
-			if type(node_id) == "string" then
-				node = get_node_by_id(node_id)
-			elseif type(node_id) == "table" then
-				node = node_id
-			end
+			local node = get_node_by_id(node_id)
 			if not tag then tag = node[".name"] end
 			if node then
 				if proxy_table.chain_proxy == "1" or proxy_table.chain_proxy == "2" then
@@ -1537,11 +1540,6 @@ function gen_config(var)
 				})
 			end
 
-			table.insert(rules, {
-				outboundTag = "direct",
-				ip = { "geoip:private" }
-			})
-
 			if default_outboundTag then
 				local rule = {
 					_flag = "default",
@@ -1663,8 +1661,12 @@ function gen_config(var)
 				_direct_dns.port = port
 				_direct_dns.address = direct_dns_udp_server
 			elseif direct_dns_tcp_server then
+				if api.is_ipv6(direct_dns_tcp_server) then
+					direct_dns_tcp_server = api.get_ipv6_full(direct_dns_tcp_server)
+				end
 				local port = tonumber(direct_dns_port) or 53
 				_direct_dns.address = "tcp://" .. direct_dns_tcp_server .. ":" .. port
+				_direct_dns.port = port
 			end
 
 			if COMMON.default_outbound_tag == "direct" then
@@ -1696,7 +1698,11 @@ function gen_config(var)
 			_remote_dns.port = tonumber(remote_dns_udp_port) or 53
 
 		elseif remote_dns_tcp_server then
+			if api.is_ipv6(remote_dns_tcp_server) then
+				remote_dns_tcp_server = api.get_ipv6_full(remote_dns_tcp_server)
+			end
 			_remote_dns.address = "tcp://" .. remote_dns_tcp_server .. ":" .. tonumber(remote_dns_tcp_port) or 53
+			_remote_dns.port = tonumber(remote_dns_tcp_port) or 53
 
 		elseif remote_dns_doh then
 			local _a = api.parseDoH(remote_dns_doh)

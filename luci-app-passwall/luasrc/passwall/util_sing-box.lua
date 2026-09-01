@@ -69,13 +69,6 @@ local function convert_geofile()
 	end
 	local function convert(file_path, prefix, tags)
 		if next(tags) and fs.access(file_path) then
-			local md5_file = GEO_VAR.TO_SRS_PATH .. prefix .. ".dat.md5"
-			local new_md5 = sys.exec("md5sum " .. file_path .. " 2>/dev/null | awk '{print $1}'"):gsub("\n", "")
-			local old_md5 = sys.exec("[ -f " .. md5_file .. " ] && head -n 1 " .. md5_file .. " | tr -d ' \t\n' || echo ''")
-			if new_md5 ~= "" and new_md5 ~= old_md5 then
-				sys.call("printf '%s' " .. new_md5 .. " > " .. md5_file)
-				sys.call("rm -rf " .. GEO_VAR.TO_SRS_PATH .. prefix .. "-*.srs" )
-			end
 			for k in pairs(tags) do
 				geo_convert_srs({["geo_path"] = file_path, ["prefix"] = prefix, ["rule_name"] = k})
 			end
@@ -603,6 +596,7 @@ function gen_outbound(flag, node, tag, proxy_table)
 						realm.scheme = nil
 						realm.address = nil
 						realm.port = nil
+						realm.port_mapping = (node.hysteria2_realm_upnp == "1") and { enabled = true } or nil
 						return realm
 					end
 					return nil
@@ -958,6 +952,7 @@ function gen_config_server(node)
 					realm.address = nil
 					realm.port = nil
 					realm.stun_domain_resolver = "direct"
+					realm.port_mapping = (node.hysteria2_realm_upnp == "1") and { enabled = true } or nil
 					return realm
 				end
 				return nil
@@ -1268,11 +1263,18 @@ function gen_config(var)
 		end
 
 		function get_node_by_id(node_id)
-			if not node_id or node_id == "" or node_id == "nil" then return nil end
-			local section = api.uci_get_c(node_id) or {}
+			local section
+			if type(node_id) == "table" then
+				section = node_id
+			elseif type(node_id) == "string" then
+				if node_id == "" or node_id == "nil" then return nil end
+				section = api.uci_get_c(node_id) or {}
+			else
+				return nil
+			end
 			if section[".type"] == "socks" then
-				local result = {
-					[".name"] = node_id,
+				return {
+					[".name"] = section[".name"],
 					remarks = "socks[%s]" % section.port,
 					type = "sing-box",
 					protocol = "socks",
@@ -1280,7 +1282,6 @@ function gen_config(var)
 					port = section.port,
 					uot = "1"
 				}
-				return result
 			end
 			if section[".type"] == "nodes" then
 				return section
@@ -1447,12 +1448,7 @@ function gen_config(var)
 
 		function gen_outbound_get_tag(flag, node_id, tag, proxy_table)
 			if not node_id or node_id == "nil" then return nil end
-			local node
-			if type(node_id) == "string" then
-				node = get_node_by_id(node_id)
-			elseif type(node_id) == "table" then
-				node = node_id
-			end
+			local node = get_node_by_id(node_id)
 			if not tag then tag = node[".name"] end
 			if node then
 				if proxy_table.chain_proxy == "1" or proxy_table.chain_proxy == "2" then
@@ -1814,18 +1810,7 @@ function gen_config(var)
 		end
 	end
 
-	table.insert(route.rules, {
-		action = "route",
-		ip_is_private = true,
-		outbound = "direct"
-	})
-
 	if COMMON.default_outbound_tag then
-		table.insert(route.rules, {
-			action = "route",
-			port_range = { "0:65535" },
-			outbound = COMMON.default_outbound_tag
-		})
 		route.final = COMMON.default_outbound_tag
 	end
 
@@ -2067,7 +2052,9 @@ function gen_config(var)
 								fakedns_dns_rule.query_type = { "A", "AAAA" }
 							end
 							fakedns_dns_rule.server = fakedns_tag
+							fakedns_dns_rule.rewrite_ttl = 1
 							fakedns_dns_rule.disable_cache = true
+							fakedns_dns_rule.client_subnet = nil
 							table.insert(dns.rules, fakedns_dns_rule)
 						end
 					end
@@ -2102,7 +2089,7 @@ function gen_config(var)
 					query_type = dns_rule_query_type,
 					server = fakedns_tag,
 					disable_cache = true,
-					rewrite_ttl = tonumber(remote_rewrite_ttl)
+					rewrite_ttl = 1
 				}
 				table.insert(dns.rules, fakedns_dns_rule)
 			end
