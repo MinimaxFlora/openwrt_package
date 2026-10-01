@@ -22,16 +22,16 @@
     }
 
     & .mobile-nav-list {
-      @apply max-md:m-0 max-md:flex max-md:min-h-0 max-md:flex-1 max-md:-translate-y-2 max-md:list-none max-md:flex-col max-md:overflow-y-auto max-md:overscroll-contain max-md:p-0 max-md:pb-5 max-md:opacity-0;
+      @apply max-md:m-0 max-md:flex max-md:min-h-0 max-md:flex-1 max-md:-translate-y-2 max-md:list-none max-md:flex-col max-md:gap-y-4 max-md:overflow-y-auto max-md:overscroll-contain max-md:p-0 max-md:pb-5 max-md:opacity-0;
 
       & .mobile-nav-item {
         @apply max-md:shrink-0;
 
-        & .mobile-nav-link {
+        & .nav-row {
           /* gap-3 (not 4): tight enough that the leading .nav-icon reads
              attached to its label; justify-between still pins the group
              arrow to the right edge. */
-          @apply max-md:flex max-md:min-h-13 max-md:w-full max-md:items-center max-md:justify-between max-md:gap-3 max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:px-0 max-md:py-2.5 max-md:text-left max-md:text-2xl max-md:leading-tight max-md:font-medium max-md:tracking-tight max-md:no-underline max-md:shadow-none;
+          @apply max-md:min-h-13 max-md:justify-between max-md:gap-3 max-md:rounded-none max-md:bg-transparent max-md:px-0 max-md:py-2.5 max-md:text-2xl max-md:leading-tight max-md:font-medium max-md:tracking-tight;
 
           & .nav-icon {
             /* Row icons at drawer scale, against the text-2xl labels. */
@@ -43,7 +43,7 @@
           & .mobile-nav-submenu-list {
             /* pl: rows are px-0, so icon (1.5) + gap (0.75) put the label
                at 2.25rem; sublinks bring px-3, the list supplies the rest. */
-            @apply max-md:mx-0 max-md:mt-0 max-md:mb-2 max-md:py-1 max-md:pr-0 max-md:pl-6;
+            @apply max-md:m-0 max-md:p-0 max-md:pl-6;
           }
 
           & .mobile-nav-subitem {
@@ -84,29 +84,13 @@ body.mobile-navigation-open > header {
 }
 
 [data-nav-type="mega-menu"] {
-  /* Apple's curtain: the frost is DECLARED here permanently and never
-     toggled — it fades in and out WITH the dim, so the page blurs
-     progressively as the sheet descends (apple.com's globalnav curtain runs
-     its blur exactly like this while the flyout animates). Gating the blur
-     on a post-transition "settled" state was tried and rejected: the frost
-     popped in only after the menu landed, visibly off-design.
-
-     The cost is per-frame blur re-compositing for the 300ms of fade — but it
-     is now the ONLY per-frame work: the reveal itself runs entirely on the
-     compositor (see _layout.css). What janked low-end devices was the old
-     overlap of main-thread height layout + live blur, not the blur alone.
-     If the fade still janks a device, reduce the radius or rely on
-     _reduced-transparency.css, which strips the filter outright.
-
-     Closing starts immediately and uses the same 220ms exit as the menu
-     surface. Delaying the opacity transition left the page frosted after the
-     sheet had already collapsed into the header, which read as a flash. Once
-     hidden, visibility:hidden makes the invisible filter cost nothing. */
+  /* Dim only: a blurred full-screen fade drops frames on weak GPUs. Visibility
+     flips on a delay instead of tweening, so the opacity fade stays composited. */
   & .desktop-menu-overlay {
-    @apply bg-mega-menu-scrim pointer-events-none invisible fixed inset-0 z-60 opacity-0 backdrop-blur-lg backdrop-saturate-150 transition-[opacity,visibility] duration-[220ms] ease-[cubic-bezier(0.4,0,0.6,1)] max-md:hidden;
+    @apply bg-mega-menu-scrim pointer-events-none invisible fixed inset-0 z-60 opacity-0 [transition:opacity_220ms_cubic-bezier(0.4,0,0.6,1),visibility_0s_220ms] max-md:hidden;
 
     &.active {
-      @apply pointer-events-auto visible opacity-100;
+      @apply pointer-events-auto visible opacity-100 [transition-delay:0s];
     }
   }
 }
