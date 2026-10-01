@@ -238,7 +238,7 @@ end
 
 function get_now_use_node()
 	local e = {}
-	local node = api.get_cache_var("ACL_GLOBAL_node")
+	local node = api.get_cache_var(("ACL_${flag}_node"):gsub("${flag}", "acl_default"))
 	if node then
 		e["global"] = node
 	end
@@ -280,7 +280,7 @@ end
 
 function index_status()
 	local e = {}
-	e["global_status"] = luci.sys.call("/bin/busybox top -bn1 | grep -v 'grep' | grep '%s/bin/' | grep '/acl/default' >/dev/null" % api.TMP_PATH) == 0
+	e["global_status"] = luci.sys.call("/bin/busybox top -bn1 | grep -v 'grep' | grep '%s/bin/' | grep '/acl_default\\.json' >/dev/null" % api.TMP_PATH) == 0
 	http_write_json(e)
 end
 
@@ -387,7 +387,15 @@ function add_node()
 		uci_set(uid, "group", group)
 	end
 
-	uci_set(uid, "type", "Xray")
+	if api.finded_com("sing-box") then
+		uci_set(uid, "type", "sing-box")
+	elseif api.finded_com("xray") then
+		uci_set(uid, "type", "Xray")
+	elseif api.is_finded("sslocal") then
+		uci_set(uid, "type", "SS-Rust")
+	elseif api.is_finded("ssr-local") then
+		uci_set(uid, "type", "SSR")
+	end
 
 	if redirect == "1" then
 		uci_save()
@@ -797,7 +805,7 @@ function geo_view()
 		return
 	end
 	local function get_rules(str, type)
-		local rules_id = {}
+		local rules = {}
 		uci_foreach("shunt_rules", function(s)
 			local list
 			if type == "geoip" then list = s.ip_list else list = s.domain_list end
@@ -806,14 +814,18 @@ function geo_view()
 					local prefix, main = line:match("^(.-):(.*)")
 					if not main then main = line end
 					if type == "geoip" and (api.datatypes.ipaddr(str) or api.datatypes.ip6addr(str)) then
-						if main:find(str, 1, true) then rules_id[#rules_id + 1] = s[".name"] end
+						if main:find(str, 1, true) then
+							table.insert(rules, {id = s[".name"], group = s.group or i18n.translate("default")})
+						end
 					else
-						if main == str then rules_id[#rules_id + 1] = s[".name"] end
+						if main == str then
+							table.insert(rules, {id = s[".name"], group = s.group or i18n.translate("default")})
+						end
 					end
 				end
 			end
 		end)
-		return rules_id
+		return rules
 	end
 	local geo_dir = (uci_get("@global_rules[0]", "v2ray_location_asset") or "/usr/share/v2ray/"):match("^(.*)/")
 	local geosite_path = geo_dir .. "/geosite.dat"
@@ -834,11 +846,17 @@ function geo_view()
 			for line in geo_string:gmatch("([^\n]+)") do
 				lines[#lines + 1] = geo_type .. ":" .. line
 				for _, r in ipairs(get_rules(line, geo_type) or {}) do
-					if not seen[r] then seen[r] = true; rules[#rules + 1] = r end
+					if not seen[r.id] then
+						seen[r.id] = true
+						rules[#rules + 1] = string.format("[%s]%s", r.group, r.id)
+					end
 				end
 			end
 			for _, r in ipairs(get_rules(value, geo_type) or {}) do
-				if not seen[r] then seen[r] = true; rules[#rules + 1] = r end
+				if not seen[r.id] then
+					seen[r.id] = true
+					rules[#rules + 1] = string.format("[%s]%s", r.group, r.id)
+				end
 			end
 			geo_string = table.concat(lines, "\n")
 			if #rules > 0 then

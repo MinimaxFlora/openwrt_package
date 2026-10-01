@@ -85,8 +85,22 @@ o.template = m:template_path("/cbi/nodes_listvalue")
 o:value("", translate("Close"))
 o.group = {""}
 
+o = s:taboption("Main", HideValue, "_node")
+o:depends({ node = "",  ['!reverse'] = true })
+
+o = s:taboption("Main", HideValue, "_is_singbox")
+o:depends("_hide", "1")
+
 current_node_id = m:get(s.section, "node")
+local node_value = s.fields["node"]:formvalue(s.section)
+if node_value then
+	current_node_id = node_value
+end
 current_node = current_node_id and m:get(current_node_id) or {}
+
+o = s:taboption("Main", HideValue, "node_save_before")
+o.value = current_node[".name"]
+o.cbid = function(self, section) return "node_save_before" end
 
 -- Shunt Start
 if (has_singbox or has_xray) and #nodes_table > 0 then
@@ -94,17 +108,10 @@ if (has_singbox or has_xray) and #nodes_table > 0 then
 		if current_node.protocol == "_shunt" then
 			local shunt_lua = loadfile("/usr/lib/lua/luci/model/cbi/passwall2/client/include/shunt_options.lua")
 			setfenv(shunt_lua, getfenv(1))(m, s, {
-				s_cfgid = s.section,
-				node_id = current_node_id,
 				node = current_node,
-				socks_list = socks_list,
-				urltest_list = urltest_list,
-				balancing_list = balancing_list,
-				iface_list = iface_list,
-				normal_list = normal_list,
 				verify_option = s.fields["node"],
 				tab = "Shunt",
-				tab_desc = translate("Shunt Rule")
+				tab_desc = translate("Shunt Rule"),
 			})
 		end
 	else
@@ -113,7 +120,7 @@ if (has_singbox or has_xray) and #nodes_table > 0 then
 		tips.cfgvalue = function(t, n)
 			return string.format('<a style="color: red">%s</a>', translate("There are no available nodes, please add or subscribe nodes first."))
 		end
-		tips:depends({ node = "", ["!reverse"] = true })
+		tips:depends("_node", "1")
 		for k, v in pairs(shunt_list) do
 			tips:depends("node", v.id)
 		end
@@ -157,10 +164,11 @@ end
 node_socks_port = s:taboption("Main", Value, "node_socks_port", translate("Node") .. " Socks " .. translate("Listen Port"))
 node_socks_port.default = 1070
 node_socks_port.datatype = "port"
+node_socks_port:depends("_node", "1")
 
 node_socks_bind_local = s:taboption("Main", Flag, "node_socks_bind_local", translate("Node") .. " Socks " .. translate("Bind Local"), translate("When selected, it can only be accessed localhost."))
 node_socks_bind_local.default = "1"
-node_socks_bind_local:depends({ node = "", ["!reverse"] = true })
+node_socks_bind_local:depends("_node", "1")
 
 s:tab("DNS", translate("DNS"))
 
@@ -190,10 +198,16 @@ o = s:taboption("DNS", ListValue, "remote_dns_protocol", translate("Remote DNS P
 o:value("tcp", "TCP")
 o:value("doh", "DoH")
 o:value("udp", "UDP")
-if current_node.type == "sing-box" then
-	o:value("tls", "TLS(DoT)")
-	o:value("quic", "QUIC(DoQ)")
-	o:value("http3", "HTTP3(DoH3)")
+if m.is_js_luci then
+	if current_node.type == "sing-box" then
+		o:value("tls", "TLS(DoT)")
+		o:value("quic", "QUIC(DoQ)")
+		o:value("http3", "HTTP3(DoH3)")
+	end
+else
+	o:value("tls", "TLS(DoT)", { _is_singbox = "1" })
+	o:value("quic", "QUIC(DoQ)", { _is_singbox = "1" })
+	o:value("http3", "HTTP3(DoH3)", { _is_singbox = "1" })
 end
 
 ---- DNS over TCP or UDP or TLS (DoT) or QUIC (DoQ)
@@ -250,11 +264,10 @@ o:value("UseIP")
 o:value("UseIPv4")
 o:value("UseIPv6")
 
-if current_node.type == "sing-box" then
-	o = s:taboption("DNS", Value, "remote_rewrite_ttl", translate("Remote DNS") .. " TTL")
-	o.datatype = "min(1)"
-	o.default = "30"
-end
+o = s:taboption("DNS", Value, "remote_rewrite_ttl", translate("Remote DNS") .. " TTL")
+o.datatype = "min(1)"
+o.default = "30"
+o:depends("_is_singbox", "1")
 
 o = s:taboption("DNS", TextValue, "dns_hosts", translate("Domain Override"))
 o.rows = 5
@@ -298,8 +311,8 @@ loglevel:value("error")
 o = s:taboption("log", DummyValue, "_log", translate("Log File"))
 o.rawhtml = true
 o.cfgvalue = function(t, n)
-	local log_path = api.TMP_PATH .. "/acl/default.log"
-	local log_url = api.url("get_redir_log") .. "?id=default"
+	local log_path = api.TMP_PATH .. "/acl/acl_default.log"
+	local log_url = api.url("get_redir_log") .. "?id=acl_default"
 	return string.format(
 		'<code>%s</code>&nbsp;&nbsp;<input class="btn cbi-button cbi-button-apply" type="button" value="%s" onclick="window.open(\'%s\', \'_blank\')" />',
 		log_path,
@@ -317,6 +330,8 @@ o.template = m:template_path("/global/faq")
 s:tab("maintain", translate("Maintain"))
 o = s:taboption("maintain", DummyValue, "")
 o.template = m:template_path("/global/backup")
+
+m:appendTemplate("/include/node_change", { verify_option = s.fields["node"], shunt_list = api.jsonc.stringify(shunt_list) })
 
 -- [[ Socks Server ]]--
 o = s:taboption("Main", Flag, "socks_enabled", "Socks " .. translate("Main switch"))
@@ -388,6 +403,9 @@ for k, v in pairs(nodes_table) do
 	if #normal_list == 0 and #iface_list == 0 then
 		break
 	end
+	if v.type == "sing-box" then
+		s.fields["_is_singbox"]:depends({ node = v.id })
+	end
 	o_node:value(v.id, v["remark"])
 	o_node.group[#o_node.group+1] = (v.group and v.group ~= "") and v.group or translate("default")
 	o_socks:value(v.id, v["remark"])
@@ -398,7 +416,7 @@ for k, v in pairs(nodes_table) do
 	end
 end
 
-m:appendTemplate("/global/footer", {shunt_list = api.jsonc.stringify(shunt_list)})
+m:appendTemplate("/global/footer")
 
 m:appendTemplate("/cbi/sortable", {sectiontype = s2.sectiontype})
 

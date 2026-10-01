@@ -120,26 +120,44 @@ function copy_instance(var)
 	local TMP_DNSMASQ_PATH = var["TMP_DNSMASQ_PATH"]
 	local conf_lines = {}
 	local DEFAULT_DNSMASQ_CFGID = sys.exec("echo -n $(uci -q show dhcp.@dnsmasq[0] | awk 'NR==1 {split($0, conf, /[.=]/); print conf[2]}')")
-	for line in io.lines("/tmp/etc/dnsmasq.conf." .. DEFAULT_DNSMASQ_CFGID) do
-		local filter
-		if line:find("passwall2") then filter = true end
-		if line:find("ubus") then filter = true end
-		if line:find("dhcp") then filter = true end
-		if line:find("server=") == 1 then filter = true end
-		if line:find("port=") == 1 then filter = true end
-		if line:find("conf%-dir=") == 1 then
-			filter = true
-			if TMP_DNSMASQ_PATH then
-				local tmp_path = line:sub(1 + #"conf-dir=")
-				sys.call(string.format("cp -r %s/* %s/ 2>/dev/null", tmp_path, TMP_DNSMASQ_PATH))
+	
+	local conf_file = "/var/etc/dnsmasq.conf." .. DEFAULT_DNSMASQ_CFGID
+	
+	local retry = 5
+	while not fs.access(conf_file) and retry > 0 do
+		api.nixio.nanosleep(1, 0)
+		retry = retry - 1
+	end
+
+	if fs.access(conf_file) then
+		for line in io.lines(conf_file) do
+			local filter
+			if line:find("passwall2") then filter = true end
+			if line:find("ubus") then filter = true end
+			if line:find("dhcp") then filter = true end
+			if line:find("server=") == 1 then filter = true end
+			if line:find("port=") == 1 then filter = true end
+			if line:find("conf%-dir=") == 1 then
+				filter = true
+				if TMP_DNSMASQ_PATH then
+					local tmp_path = line:sub(1 + #"conf-dir=")
+					sys.call(string.format("cp -r %s/* %s/ 2>/dev/null", tmp_path, TMP_DNSMASQ_PATH))
+				end
+			end
+			if line:find("address=") == 1 or (line:find("server=") == 1 and line:find("/")) then filter = nil end
+			if not filter then
+				tinsert(conf_lines, line)
 			end
 		end
-		if line:find("address=") == 1 or (line:find("server=") == 1 and line:find("/")) then filter = nil end
-		if not filter then
-			tinsert(conf_lines, line)
-		end
+	else
+		sys.call("logger -t passwall2 'ERROR: dnsmasq config " .. conf_file .. " not found after 5s wait! DNS hijacking will fail.'")
 	end
+
 	tinsert(conf_lines, "port=" .. LISTEN_PORT)
+	--dhcp.leases to hostsMore actions
+	local hosts = api.CACHE_PATH .. "/dhcp-hosts"
+	sys.call("touch " .. hosts)
+	tinsert(conf_lines, "addn-hosts=" .. hosts)
 	if TMP_DNSMASQ_PATH then
 		sys.call("rm -rf " .. TMP_DNSMASQ_PATH .. "/*passwall2*")
 	end
@@ -159,7 +177,6 @@ function add_rule(var)
 	local FLAG = var["FLAG"]
 	local TMP_DNSMASQ_PATH = var["TMP_DNSMASQ_PATH"]
 	local DNSMASQ_CONF_FILE = var["DNSMASQ_CONF_FILE"]
-	local LISTEN_PORT = var["LISTEN_PORT"]
 	local DEFAULT_DNS = var["DEFAULT_DNS"]
 	local LOCAL_DNS = var["LOCAL_DNS"]
 	local TUN_DNS = var["TUN_DNS"]
@@ -317,20 +334,6 @@ function add_rule(var)
 
 	if DNSMASQ_CONF_FILE ~= "nil" then
 		local conf_lines = {}
-		if LISTEN_PORT then
-			--Copy dnsmasq instance
-			conf_lines = copy_instance({
-				["LISTEN_PORT"] = LISTEN_PORT,
-				["TMP_DNSMASQ_PATH"] = TMP_DNSMASQ_PATH,
-				["return"] = "1"
-			})
-			--dhcp.leases to hostsMore actions
-			local hosts = api.CACHE_PATH .. "/dhcp-hosts"
-			sys.call("touch " .. hosts)
-			tinsert(conf_lines, "addn-hosts=" .. hosts)
-		else
-			--Modify the default dnsmasq service
-		end
 		tinsert(conf_lines, string.format("conf-dir=%s", TMP_DNSMASQ_PATH))
 		if dnsmasq_default_dns then
 			for s in string.gmatch(dnsmasq_default_dns, '[^' .. "," .. ']+') do
@@ -340,7 +343,7 @@ function add_rule(var)
 			tinsert(conf_lines, "no-poll")
 			tinsert(conf_lines, "no-resolv")
 
-			if FLAG == "default" then
+			if FLAG == "acl_default" then
 				api.set_cache_var("DEFAULT_DNS", DEFAULT_DNS)
 			end
 		end
