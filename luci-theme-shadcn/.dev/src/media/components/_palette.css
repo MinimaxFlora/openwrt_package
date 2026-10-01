@@ -46,7 +46,7 @@ button.cmdk-trigger {
      separates title from label — 460 read cramped once rows became
      two-anchored. */
   @apply border-panel-border bg-panel-bg mt-[15vh] flex w-[min(560px,calc(100vw-32px))] flex-col overflow-hidden rounded-xl border shadow-2xl;
-  @apply transition-[opacity,translate] duration-150 ease-out starting:-translate-y-1.5 starting:opacity-0;
+  @apply [transition:opacity_.15s_var(--ease-out),translate_.15s_var(--ease-out)] starting:-translate-y-1.5 starting:opacity-0;
   @apply max-md:mt-0 max-md:h-dvh max-md:w-full max-md:rounded-none max-md:border-0 max-md:pt-[env(safe-area-inset-top)] max-md:shadow-none max-md:transition-none;
 }
 
@@ -147,6 +147,27 @@ button.cmdk-cancel {
 
   &.is-selected {
     @apply bg-muted;
+  }
+}
+
+/* A tab row reads "Parent › Title": the parent gives way first (truncate's
+   overflow already lets it shrink below its content), and keeps at least
+   an ellipsis so the "›" never leads the row. Unnested: the classes exist
+   only inside palette rows, and the short selectors keep main.css inside
+   its budget. */
+.cmdk-title:has(> .cmdk-parent) {
+  @apply flex items-baseline;
+}
+
+.cmdk-parent {
+  @apply text-muted-foreground truncate font-normal;
+}
+
+.cmdk-label {
+  @apply max-w-[calc(100%-1.5rem)] shrink-0 truncate;
+
+  &::before {
+    @apply text-muted-foreground px-1.5 font-normal content-['›'];
   }
 }
 
