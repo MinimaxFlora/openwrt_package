@@ -133,10 +133,10 @@ sources.validate = function(self, value, t)
 				flag = true
 			end
 		end
-		if flag == false and datatypes.macaddr(v) then
+		if flag == false and api.datatypes.macaddr(v) then
 			flag = true
 		end
-		if flag == false and datatypes.ip4addr(v) then
+		if flag == false and api.datatypes.ip4addr(v) then
 			flag = true
 		end
 		if flag == false and api.iprange(v) then
@@ -172,7 +172,7 @@ o.validate = port_validate
 ---- UDP No Redir Ports
 local UDP_NO_REDIR_PORTS = m:get("@global_forwarding[0]", "udp_no_redir_ports")
 o = s:taboption("Proxy", Value, "udp_no_redir_ports", translate("UDP No Redir Ports"),
-	"<font color='red'>" .. 
+	"<font color='red'>" ..
 		translate("Fill in the ports you don't want to be forwarded by the agent, with the highest priority.") ..
 	"</font>")
 o:value("", translate("Use global config") .. "(" .. UDP_NO_REDIR_PORTS .. ")")
@@ -315,9 +315,6 @@ o:depends({ _acl_node_bool = "1", _diff_global_node = "1" })
 o = s:taboption("Main", HideValue, "_node_sel_shunt", "")
 o:depends({ node = "__always__" })
 
-o = s:taboption("Main", HideValue, "_node_sel_other", "")
-o:depends({ _node_sel_shunt = "1", ['!reverse'] = true })
-
 ---- DNS
 o = s:taboption("DNS", ListValue, "dns_shunt", "DNS " .. translate("Shunt"))
 o.default = "chinadns-ng"
@@ -347,7 +344,7 @@ end
 if has_xray then
 	o:value("xray", "Xray")
 end
-o:depends({ _acl_node_bool = "1", _node_sel_other = "1", _diff_global_node = "1" })
+o:depends({ _acl_node_bool = "1", _node_sel_shunt = "", _diff_global_node = "1" })
 o.write = function(self, section, value)
 	if value == "dns2socks" then
 		m:del(section, "v2ray_dns_mode")

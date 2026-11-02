@@ -135,6 +135,11 @@ function gen_outbound(flag, node, tag, proxy_table)
 			node.transport = "hysteria"
 			node.stream_security = "tls"
 		end
+		if node.protocol == "masque" then
+			node.transport = "masque"
+			node.stream_security = "tls"
+			node.utls = nil
+		end
 
 		if node.protocol == "http" and node.stream_security == "tls" then
 			node.transport = "raw"
@@ -152,13 +157,13 @@ function gen_outbound(flag, node, tag, proxy_table)
 			_flag_proxy_tag = proxy_tag,
 			tag = tag,
 			protocol = node.protocol,
-			mux = {
+			mux = (node.protocol ~= "masque") and {
 				enabled = (node.mux == "1") and true or false,
 				concurrency = (node.mux == "1" and ((node.mux_concurrency) and tonumber(node.mux_concurrency) or -1)) or nil,
 				xudpConcurrency = (node.mux == "1" and ((node.xudp_concurrency) and tonumber(node.xudp_concurrency) or 8)) or nil
 			} or nil,
 			-- 底层传输配置
-			streamSettings = (node.streamSettings or dialer_proxy_tag or node.protocol == "vmess" or node.protocol == "vless" or node.protocol == "socks" or node.protocol == "shadowsocks" or node.protocol == "trojan" or node.protocol == "hysteria" or node.protocol == "http") and {
+			streamSettings = (node.streamSettings or dialer_proxy_tag or node.protocol == "vmess" or node.protocol == "vless" or node.protocol == "socks" or node.protocol == "shadowsocks" or node.protocol == "trojan" or node.protocol == "hysteria" or node.protocol == "http" or node.protocol == "masque") and {
 				sockopt = {
 					mark = 255,
 					domainStrategy = node.domain_strategy or "UseIP",
@@ -268,6 +273,28 @@ function gen_outbound(flag, node, tag, proxy_table)
 						return api.cleanEmptyTables(extra)
 					end)()
 				} or nil,
+				masqueSettings = (node.protocol == "masque") and {
+					path = (node.masque_path and node.masque_path ~= "") and node.masque_path or nil,
+					warp = (node.masque_warp == "1") and {
+						privateKey = (node.masque_warp_private_key or ""):gsub("\\n", "\n"),
+						publicKey = (node.masque_warp_public_key or ""):gsub("\\n", "\n"),
+						address = node.masque_warp_address
+					} or nil,
+					headers = (function()
+						local headers = {}
+						if node.masque_warp ~= "1" and ((node.username and node.username ~= "") or (node.password and node.password ~= "")) then
+							headers["authorization"] = "Basic " .. api.base64Encode((node.username or "") .. ":" .. (node.password or ""))
+						end
+						if node.user_agent and node.user_agent ~= "" then
+							headers["user-agent"] = node.user_agent
+						end
+						for line in (node.masque_headers or ""):gsub("\\n", "\n"):gmatch("[^\r\n]+") do
+							local key, value = line:match("^%s*([^:]+):%s*(.-)%s*$")
+							if key then headers[api.trim(key):lower()] = value end
+						end
+						return next(headers) and headers or nil
+					end)()
+				} or nil,
 				hysteriaSettings = (node.transport == "hysteria") and {
 					version = 2,
 					auth = node.hysteria2_auth_password
@@ -276,9 +303,13 @@ function gen_outbound(flag, node, tag, proxy_table)
 					local finalmask = {}
 					local TP = node.transport
 					if TP == "mkcp" then
+						local s = { type = "mkcp-legacy" }
+						if node.mkcp_seed and node.mkcp_seed ~= "" then
+							s.settings = { value = node.mkcp_seed }
+						end
+						local udp = { s }
 						local map = {none = "none", srtp = "srtp", utp = "utp", ["wechat-video"] = "wechat",
 							dtls = "dtls", wireguard = "wireguard", dns = "dns"}
-						local udp = {}
 						if node.mkcp_guise and node.mkcp_guise ~= "none" then
 							local g = { type = "mkcp-legacy" }
 							g.settings = { header = map[node.mkcp_guise] }
@@ -287,11 +318,6 @@ function gen_outbound(flag, node, tag, proxy_table)
 							end
 							udp[#udp+1] = g
 						end
-						local s = { type = "mkcp-legacy" }
-						if node.mkcp_seed and node.mkcp_seed ~= "" then
-							s.settings = { value = node.mkcp_seed }
-						end
-						udp[#udp+1] = s
 						finalmask.udp = udp
 					elseif TP == "hysteria" then
 						local udp = {}
@@ -364,7 +390,11 @@ function gen_outbound(flag, node, tag, proxy_table)
 								t = tonumber(tostring(t or "0"):match("^%d+"))
 								return (t and t >= 2 and t <= 60) and t or nil
 							end)(node.hysteria2_keep_alive_period),
-							disablePathMTUDiscovery = tonumber(node.hysteria2_disable_mtu_discovery) == 1
+							disablePathMTUDiscovery = node.hysteria2_disable_mtu_discovery == "1",
+							initStreamReceiveWindow = tonumber(node.hysteria2_stream_recv_win) and tonumber(node.hysteria2_stream_recv_win)*1048576 or nil,
+							maxStreamReceiveWindow = tonumber(node.hysteria2_stream_recv_win) and tonumber(node.hysteria2_stream_recv_win)*1048576 or nil,
+							initConnectionReceiveWindow = tonumber(node.hysteria2_conn_recv_win) and tonumber(node.hysteria2_conn_recv_win)*1048576 or nil,
+							maxConnectionReceiveWindow = tonumber(node.hysteria2_conn_recv_win) and tonumber(node.hysteria2_conn_recv_win)*1048576 or nil,
 						}
 					end
 					if fragment and fragment_table and ({raw=1, ws=1, httpupgrade=1, grpc=1, xhttp=1})[TP] then
@@ -514,6 +544,10 @@ function gen_config_server(node)
 					u.user = user.username
 					u.pass = user.password
 				end
+				if node.protocol == "masque" then
+					u.email = user.username
+					u.pass = user.password
+				end
 				if node.protocol == "shadowsocks" or node.protocol == "trojan" then
 					u.email = user.username
 					u.password = user.password
@@ -546,11 +580,15 @@ function gen_config_server(node)
 		end
 	end
 
-	if node.protocol == "vmess" or node.protocol == "vless" then
+	if node.protocol == "vless" then
+		settings = {
+			users = users,
+			decryption = (node.decryption and node.decryption ~= "") and node.decryption or "none"
+		}
+	elseif node.protocol == "vmess" then
 		if users then
 			settings = {
-				users = users,
-				decryption = (node.protocol == "vless") and ((node.decryption and node.decryption ~= "") and node.decryption or "none") or nil
+				users = users
 			}
 		end
 	elseif node.protocol == "socks" then
@@ -583,6 +621,18 @@ function gen_config_server(node)
 		settings = {
 			version = 2,
 			users = users
+		}
+	elseif node.protocol == "masque" then
+		node.transport = "masque"
+		node.tls = "1"
+		node.reality = nil
+		node.alpn = nil
+		node.fallback = nil
+		node.finalmask = nil
+		settings = {
+			users = users,
+			address = node.masque_address,
+			mtu = tonumber(node.masque_mtu or 1280)
 		}
 	elseif node.protocol == "tunnel" then
 		settings = {
@@ -693,6 +743,9 @@ function gen_config_server(node)
 				streamSettings = {
 					method = node.transport,
 					security = "none",
+					masqueSettings = (node.protocol == "masque") and {
+						path = (node.masque_path and node.masque_path ~= "") and node.masque_path or nil
+					} or nil,
 					tlsSettings = ("1" == node.tls) and {
 						disableSystemRoot = false,
 						certificates = {
@@ -753,9 +806,13 @@ function gen_config_server(node)
 					finalmask = (function()
 						local finalmask = {}
 						if node.transport == "mkcp" then
+							local s = { type = "mkcp-legacy" }
+							if node.mkcp_seed and node.mkcp_seed ~= "" then
+								s.settings = { value = node.mkcp_seed }
+							end
+							local udp = { s }
 							local map = {none = "none", srtp = "srtp", utp = "utp", ["wechat-video"] = "wechat",
 								dtls = "dtls", wireguard = "wireguard", dns = "dns"}
-							local udp = {}
 							if node.mkcp_guise and node.mkcp_guise ~= "none" then
 								local g = { type = "mkcp-legacy" }
 								g.settings = { header = map[node.mkcp_guise] }
@@ -764,11 +821,6 @@ function gen_config_server(node)
 								end
 								udp[#udp+1] = g
 							end
-							local s = { type = "mkcp-legacy" }
-							if node.mkcp_seed and node.mkcp_seed ~= "" then
-								s.settings = { value = node.mkcp_seed }
-							end
-							udp[#udp+1] = s
 							finalmask.udp = udp
 						elseif node.transport == "hysteria" then
 							local udp = {}
@@ -1431,8 +1483,21 @@ function gen_config(var)
 				local bin = api.finded_com("geoview")
 				if bin then
 					local geo_file = (api.uci_get_c("@global_rules[0]", "v2ray_location_asset") or "/usr/share/v2ray/"):match("^(.*)/") .. "/geosite.dat"
-					if luci.sys.call('"' .. bin .. '" -type geosite -input "' .. geo_file .. '" | grep -q "^GFW$"') == 0 then
-						domain_list = (domain_list == "") and "geosite:gfw" or domain_list .. "\ngeosite:gfw"
+					local gfw_rule
+					if sys.call('"' .. bin .. '" -type geosite -input "' .. geo_file .. '" 2>/dev/null | grep -q "^GFW$"') == 0 then
+						gfw_rule = "geosite:gfw"
+					elseif api.compare_versions(api.get_app_version("geoview"), ">=", "0.2.8") then
+						local output = api.CACHE_PATH .. "/geodata/gfwlist.dat"
+						if not fs.access(output) then
+							fs.mkdirr(api.CACHE_PATH .. "/geodata")
+							local cmd = string.format("%s -type geosite -action convert -input /usr/share/passwall/rules/gfwlist -list '*' -output %s -format geosite",
+								api.util.shellquote(bin), api.util.shellquote(output))
+							if api.exec_call(cmd) ~= 0 then fs.unlink(output) end
+						end
+						gfw_rule = fs.access(output) and "ext:gfwlist.dat:all" or nil
+					end
+					if gfw_rule then
+						domain_list = (domain_list == "") and gfw_rule or domain_list .. "\n" .. gfw_rule
 					end
 				end
 
@@ -1491,7 +1556,7 @@ function gen_config(var)
 							w = api.trim(w)
 							if w == "" or w:find("#") == 1 then return end
 							if w:find("rule-set:", 1, true) == 1 or w:find("rs:") == 1 then return end
-							if w:find("ext:", 1, true) == 1 then return end  -- Rule currently not support ext:
+							if w:find("ext:", 1, true) == 1 and not (e[".name"] == "GFW_Mode_List" and w == "ext:gfwlist.dat:all") then return end
 							table.insert(domains, w)
 							table.insert(domain_table.domain, w)
 						end)
@@ -1752,7 +1817,7 @@ function gen_config(var)
 		if remote_dns_fake or inner_fakedns == "1" then
 			fakedns = {}
 			local fakedns4 = {
-				ipPool = "198.18.0.0/15",
+				ipPool = "198.18.0.0/16",
 				poolSize = 65535
 			}
 			local fakedns6 = {
@@ -2003,10 +2068,7 @@ function gen_config(var)
 
 	if inbounds or outbounds then
 		local config = {
-			env = (function()
-				local asset_location = api.uci_get_c("@global_rules[0]", "v2ray_location_asset") or "/usr/share/v2ray/"
-				return { XRAY_LOCATION_ASSET = asset_location }
-			end)(),
+			env = { XRAY_LOCATION_ASSET = api.CACHE_PATH .. "/geodata" },
 			log = {
 				-- error = string.format("/tmp/etc/passwall/%s.log", node[".name"]),
 				loglevel = get_log_level(loglevel)

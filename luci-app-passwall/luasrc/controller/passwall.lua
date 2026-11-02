@@ -73,6 +73,7 @@ function index()
 	entry({"admin", "services", appname, "get_redir_log"}, call("get_redir_log")).leaf = true
 	entry({"admin", "services", appname, "get_socks_log"}, call("get_socks_log")).leaf = true
 	entry({"admin", "services", appname, "get_chinadns_log"}, call("get_chinadns_log")).leaf = true
+	entry({"admin", "services", appname, "get_smartdns_log"}, call("get_smartdns_log")).leaf = true
 	entry({"admin", "services", appname, "get_log"}, call("get_log")).leaf = true
 	entry({"admin", "services", appname, "clear_log"}, call("clear_log")).leaf = true
 	entry({"admin", "services", appname, "index_status"}, call("index_status")).leaf = true
@@ -105,7 +106,8 @@ function index()
 	entry({"admin", "services", appname, "read_rulelist"}, call("read_rulelist")).leaf = true
 
 	--[[Components update]]
-	entry({"admin", "services", appname, "check_passwall"}, call("app_check")).leaf = true
+	entry({"admin", "services", appname, "check_" .. appname}, call("app_check")).leaf = true
+	entry({"admin", "services", appname, "update_" .. appname}, call("app_update")).leaf = true
 	local coms = require "luci.passwall.com"
 	local com
 	for _, com in ipairs(coms.order) do
@@ -188,12 +190,12 @@ function socks_autoswitch_add_node()
 		uci_set(id, "enable_autoswitch", "1")
 		local new_list = uci_get(id, "autoswitch_backup_node") or {}
 		for i = #new_list, 1, -1 do
-			if (uci_get(new_list[i], "remarks") or ""):find(key) then
+			if (uci_get(new_list[i], "remarks") or ""):find(key, 1, true) then
 				table.remove(new_list, i)
 			end
 		end
 		for k, e in ipairs(api.get_valid_nodes()) do
-			if e.node_type == "normal" and e["remark"]:find(key) then
+			if e.node_type == "normal" and e["remark"]:find(key, 1, true) then
 				table.insert(new_list, e.id)
 			end
 		end
@@ -210,7 +212,7 @@ function socks_autoswitch_remove_node()
 		uci_set(id, "enable_autoswitch", "1")
 		local new_list = uci_get(id, "autoswitch_backup_node") or {}
 		for i = #new_list, 1, -1 do
-			if (uci_get(new_list[i], "remarks") or ""):find(key) then
+			if (uci_get(new_list[i], "remarks") or ""):find(key, 1, true) then
 				table.remove(new_list, i)
 			end
 		end
@@ -249,6 +251,7 @@ function get_redir_log()
 	local path = api.TMP_PATH .. "/acl/" .. id
 
 	local function alert(msg)
+		http.prepare_content("text/html; charset=utf-8")
 		http.write(string.format("<script>alert('%s');window.close();</script>", i18n.translate(msg)))
 	end
 
@@ -256,8 +259,9 @@ function get_redir_log()
 	if id and id ~= "default" then
 		local global_node = uci_get("@global[0]", "node") or "nil"
 		local acl_node = uci_get(id, "node") or "nil"
+		local use_global_config = uci_get(id, "use_global_config") == "1"
 		local global_enabled = uci_get("@global[0]", "enabled") == "1"
-		if acl_node == global_node and global_enabled then
+		if (use_global_config or acl_node == global_node) and global_enabled then
 			path = api.TMP_PATH .. "/acl/default"
 			if uci_get("@global[0]", "log_node") ~= "1" then
 				alert("The access control node is the same as the global node. Please enable global logging.")
@@ -268,10 +272,10 @@ function get_redir_log()
 		end
 	end
 
-	if fs.access(path .. "/" .. name .. ".log") then
-		local content = luci.sys.exec("tail -n 5000 ".. path .. "/" .. name .. ".log")
-		content = content:gsub("\n", "<br />")
-		http.write(content)
+	path = path .. "/" .. name .. ".log"
+	if fs.access(path) then
+		http.prepare_content("text/plain; charset=utf-8")
+		http.write(luci.sys.exec("tail -n 5000 " .. util.shellquote(path)))
 	else
 		alert("Not enabled log")
 	end
@@ -281,10 +285,10 @@ function get_socks_log()
 	local name = http.formvalue("name")
 	local path = api.TMP_PATH .. "/" .. name .. ".log"
 	if fs.access(path) then
-		local content = luci.sys.exec("tail -n 5000 ".. path)
-		content = content:gsub("\n", "<br />")
-		http.write(content)
+		http.prepare_content("text/plain; charset=utf-8")
+		http.write(luci.sys.exec("tail -n 5000 " .. util.shellquote(path)))
 	else
+		http.prepare_content("text/html; charset=utf-8")
 		http.write(string.format("<script>alert('%s');window.close();</script>", i18n.translate("Not enabled log")))
 	end
 end
@@ -295,19 +299,32 @@ function get_chinadns_log()
 	if flag ~= "default" then
 		local global_node = uci_get("@global[0]", "node") or "nil"
 		local acl_node = uci_get(flag, "node") or "nil"
-		if acl_node == global_node and uci_get("@global[0]", "enabled") == "1" then
+		local use_global_config = uci_get(flag, "use_global_config") == "1"
+		if (use_global_config or acl_node == global_node) and uci_get("@global[0]", "enabled") == "1" then
 			path = api.TMP_PATH .. "/acl/default/chinadns_ng.log"
 			if uci_get("@global[0]", "log_chinadns_ng") ~= "1" then
+				http.prepare_content("text/html; charset=utf-8")
 				http.write(string.format("<script>alert('%s');window.close();</script>", i18n.translate("The access control node is the same as the global node. Please enable global logging.")))
 				return
 			end
 		end
 	end
 	if fs.access(path) then
-		local content = luci.sys.exec("tail -n 5000 ".. path)
-		content = content:gsub("\n", "<br />")
-		http.write(content)
+		http.prepare_content("text/plain; charset=utf-8")
+		http.write(luci.sys.exec("tail -n 5000 " .. util.shellquote(path)))
 	else
+		http.prepare_content("text/html; charset=utf-8")
+		http.write(string.format("<script>alert('%s');window.close();</script>", i18n.translate("Not enabled log")))
+	end
+end
+
+function get_smartdns_log()
+	local path = api.TMP_PATH .. "/acl/default/smartdns.log"
+	if fs.access(path) then
+		http.prepare_content("text/plain; charset=utf-8")
+		http.write(luci.sys.exec("tail -n 5000 " .. util.shellquote(path)))
+	else
+		http.prepare_content("text/html; charset=utf-8")
 		http.write(string.format("<script>alert('%s');window.close();</script>", i18n.translate("Not enabled log")))
 	end
 end
@@ -325,8 +342,8 @@ function index_status()
 	local e = {}
 	local dns_shunt = uci_get("@global[0]", "dns_shunt") or "dnsmasq"
 	if dns_shunt == "smartdns" then
-		local port = api.get_cache_var("SMARTDNS_LOCAL_PORT") or 0
-		e.dns_mode_status = (port ~= 0) and luci.sys.call("netstat -apn | grep ':%s ' >/dev/null" % port) == 0 or false
+		local config_file = api.TMP_PATH .. "/acl/default/smartdns.conf"
+		e.dns_mode_status = luci.sys.call("/bin/busybox top -bn1 | grep -v 'grep' | grep -F %s | grep 'smartdns' >/dev/null" % util.shellquote(config_file)) == 0
 	elseif dns_shunt == "chinadns-ng" then
 		e.dns_mode_status = luci.sys.call("/bin/busybox top -bn1 | grep -v 'grep' | grep '%s/bin/' | grep 'default' | grep 'chinadns_ng' >/dev/null" % api.TMP_PATH) == 0
 	else
@@ -380,35 +397,36 @@ function connect_status()
 	local e = {}
 	e.use_time = ""
 	local url = http.formvalue("url")
+	if not url or url == "" then
+		http_write_json(e)
+		return
+	end
 	local aliyun = string.find(url, "aliyun")
 	local chn_list = uci_get("@global[0]", "chn_list") or "direct"
 	local gfw_list = uci_get("@global[0]", "use_gfw_list") or "1"
 	local proxy_mode = uci_get("@global[0]", "tcp_proxy_mode") or "proxy"
 	local localhost_proxy = uci_get("@global[0]", "localhost_proxy") or "1"
 	local socks_server = (localhost_proxy == "0") and api.get_cache_var("GLOBAL_SOCKS_server") or ""
-	url = "-w %{http_code}:%{time_pretransfer} " .. url
+	local curl_args = "-w '%{http_code}:%{time_pretransfer}:%{time_starttransfer}' " .. util.shellquote(url)
 	if socks_server and socks_server ~= "" then
 		if (chn_list == "proxy" and gfw_list == "0" and proxy_mode ~= "proxy" and aliyun ~= nil) or (chn_list == "0" and gfw_list == "0" and proxy_mode == "proxy") then
 		-- 中国列表+阿里 or 全局
-			url = "-x socks5h://" .. socks_server .. " " .. url
+			curl_args = "-x " .. util.shellquote("socks5h://" .. socks_server) .. " " .. curl_args
 		elseif aliyun == nil then
 		-- 其他代理模式+阿里以外网站
-			url = "-x socks5h://" .. socks_server .. " " .. url
+			curl_args = "-x " .. util.shellquote("socks5h://" .. socks_server) .. " " .. curl_args
 		end
 	end
-	local result = luci.sys.exec('/usr/bin/curl --connect-timeout 3 --max-time 5 -o /dev/null -I -sk ' .. url)
-	local code = tonumber(luci.sys.exec("echo -n '" .. result .. "' | awk -F ':' '{print $1}'") or "0")
-	if code ~= 0 then
-		local use_time_str = luci.sys.exec("echo -n '" .. result .. "' | awk -F ':' '{print $2}'")
-		local use_time = tonumber(use_time_str)
-		if use_time then
-			if use_time_str:find("%.") then
-				e.use_time = string.format("%.2f", use_time * 1000)
-			else
-				e.use_time = string.format("%.2f", use_time / 1000)
-			end
-			e.ping_type = "curl"
-		end
+	local result = luci.sys.exec('curl_result=$(/usr/bin/curl --connect-timeout 3 --max-time 5 -o /dev/null -I -sk ' .. curl_args .. '); [ $? -eq 0 ] && printf "%s" "$curl_result"')
+	local code, pretransfer, starttransfer = result:match("^%s*(%d+):([%d%.]+):([%d%.]+)%s*$")
+	code, pretransfer, starttransfer = tonumber(code), tonumber(pretransfer), tonumber(starttransfer)
+	if code and code > 0 then e.http_code = code end
+	-- A completed HTTP response, including 4xx/5xx, confirms homepage connectivity.
+	if code and code >= 200 and code < 600 and pretransfer and pretransfer >= 0 and starttransfer and starttransfer > 0 and starttransfer >= pretransfer then
+		-- HTTP request latency excludes connection and TLS handshakes.
+		e.use_time = string.format("%.2f", (starttransfer - pretransfer) * 1000)
+		e.handshake_time = string.format("%.2f", pretransfer * 1000)
+		e.ping_type = "curl"
 	end
 	http_write_json(e)
 end
@@ -436,18 +454,14 @@ function urltest_node()
 	local id = http.formvalue("id")
 	local e = {}
 	e.index = index
-	local result = luci.sys.exec(string.format("/usr/share/passwall/test.sh url_test_node %s %s", id, "urltest_node"))
-	local code = tonumber(luci.sys.exec("echo -n '" .. result .. "' | awk -F ':' '{print $1}'") or "0")
-	if code ~= 0 then
-		local use_time_str = luci.sys.exec("echo -n '" .. result .. "' | awk -F ':' '{print $2}'")
-		local use_time = tonumber(use_time_str)
-		if use_time then
-			if use_time_str:find("%.") then
-				e.use_time = string.format("%.2f", use_time * 1000)
-			else
-				e.use_time = string.format("%.2f", use_time / 1000)
-			end
-		end
+	local result = luci.sys.exec("/usr/share/passwall/test.sh url_test_node " .. util.shellquote(id or ""))
+	local code, pretransfer, starttransfer = result:match("^%s*(%d+):([%d%.]+):([%d%.]+)%s*$")
+	code, pretransfer, starttransfer = tonumber(code), tonumber(pretransfer), tonumber(starttransfer)
+	if code and code > 0 then e.http_code = code end
+	if code and code >= 200 and code < 600 and pretransfer and pretransfer >= 0 and starttransfer and starttransfer > 0 and starttransfer >= pretransfer then
+		-- Keep node test parsing independent from the homepage test.
+		e.use_time = string.format("%.2f", (starttransfer - pretransfer) * 1000)
+		e.handshake_time = string.format("%.2f", pretransfer * 1000)
 	end
 	http_write_json(e)
 end
@@ -809,6 +823,23 @@ function app_check()
 	http_write_json(json)
 end
 
+function app_update()
+	local id = http.formvalue("id")
+	if not id or not id:match("^[%w_-]+$") then http_write_json({code = 1}); return end
+	local task = http.formvalue("task")
+	local result
+	if task == "progress" then
+		result = api.to_download_progress(appname, id, http.formvalue("total_size"))
+	elseif task == "install" then
+		if not luci.dispatcher.test_post_security() then return end
+		result = api.to_install_self(id, http.formvalue("force"))
+	else
+		local part = http.formvalue("part") == "2" and "2" or "1"
+		result = api.to_download(appname, http.formvalue("url"), http.formvalue("size"), id .. part, part == "2")
+	end
+	http_write_json(result)
+end
+
 function com_check(comname)
 	local json = api.to_check("",comname)
 	http_write_json(json)
@@ -817,12 +848,14 @@ end
 function com_update(comname)
 	local json = nil
 	local task = http.formvalue("task")
-	if task == "extract" then
+	if task == "progress" then
+		json = api.to_download_progress(comname, http.formvalue("id"), http.formvalue("total_size"))
+	elseif task == "extract" then
 		json = api.to_extract(comname, http.formvalue("file"), http.formvalue("subfix"))
 	elseif task == "move" then
 		json = api.to_move(comname, http.formvalue("file"))
 	else
-		json = api.to_download(comname, http.formvalue("url"), http.formvalue("size"))
+		json = api.to_download(comname, http.formvalue("url"), http.formvalue("size"), http.formvalue("id"))
 	end
 
 	http_write_json(json)
@@ -853,24 +886,24 @@ function read_rulelist()
 end
 
 local backup_files = {
-    "/etc/config/passwall",
-    "/etc/config/passwall_server",
-    "/etc/passwall/rules/block_host",
-    "/etc/passwall/rules/block_ip",
-    "/etc/passwall/rules/direct_host",
-    "/etc/passwall/rules/direct_ip",
-    "/etc/passwall/rules/proxy_host",
-    "/etc/passwall/rules/proxy_ip",
-    "/etc/passwall/rules/lanlist_ipv4",
-    "/etc/passwall/rules/lanlist_ipv6",
-    "/etc/passwall/rules/domains_excluded"
+	"/etc/config/passwall",
+	"/etc/config/passwall_server",
+	"/etc/passwall/rules/block_host",
+	"/etc/passwall/rules/block_ip",
+	"/etc/passwall/rules/direct_host",
+	"/etc/passwall/rules/direct_ip",
+	"/etc/passwall/rules/proxy_host",
+	"/etc/passwall/rules/proxy_ip",
+	"/etc/passwall/rules/lanlist_ipv4",
+	"/etc/passwall/rules/lanlist_ipv6",
+	"/etc/passwall/rules/domains_excluded"
 }
 
 function create_backup()
 	local date = os.date("%y%m%d%H%M")
 	local tar_file = "/tmp/passwall-" .. date .. "-backup.tar.gz"
 	local version_file = "/tmp/passwall-version"
-	local version = api.get_version()
+	local version = api.get_version():match("^([^-]+)")
 	api.remove(tar_file)
 	fs.writefile(version_file, version .. "\n")
 	local cmd = "tar -czf " .. tar_file .. " " .. table.concat(backup_files, " ") .. " " .. "-C /tmp passwall-version"
