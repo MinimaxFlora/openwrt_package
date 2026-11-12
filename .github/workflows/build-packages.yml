@@ -89,15 +89,11 @@ jobs:
         run: |
           case "${{ inputs.packages }}" in
             "🌈 全部（一次编译所有插件，推荐）")
-              # 直接从仓库真实 Makefile 生成，不再手写列表（手写列表曾包含
-              # 已删除的 luci-theme-kucat 和从未存在的 luci-app-nikki / mihomo-meta）
-              PKGS="$(python3 tools/list-packages.py | tr ' ' '\n' \
-                       | grep -v '^autocore-' | paste -sd' ' -)"
-              # autocore 是 non-shared 包，按架构二选一
-              case "${{ matrix.arch }}" in
-                x86_64) PKGS="$PKGS autocore-x86" ;;
-                *)      PKGS="$PKGS autocore-arm" ;;
-              esac
+              # 直接从仓库真实 Makefile 生成（输出的是包目录名，SDK 按目录编译）。
+              # 以前手写的列表里有已删除的 luci-theme-kucat、从未存在的
+              # luci-app-nikki / mihomo-meta，还把 autocore-x86 这种包名当目录名用，
+              # 结果整轮 No rule to make target。
+              PKGS="$(python3 tools/list-packages.py)"
               ;;
             "🎨 Argon 主题")
               PKGS="luci-theme-argon luci-app-argon-config"
@@ -157,10 +153,8 @@ jobs:
               PKGS="luci-app-airconnect airconnect"
               ;;
             "🌡️ Autocore 硬件信息")
-              case "${{ matrix.arch }}" in
-                x86_64) PKGS="autocore-x86" ;;
-                *)      PKGS="autocore-arm" ;;
-              esac
+              # autocore 目录会按目标架构自动只编出 autocore-x86 或 autocore-arm
+              PKGS="autocore"
               ;;
             *)
               echo "::error::未识别的选项：${{ inputs.packages }}"

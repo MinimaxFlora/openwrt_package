@@ -119,9 +119,10 @@ git clone https://github.com/sbwml/packages_lang_golang -b 26.x feeds/packages/l
 | `luci-theme-shadcn` | 0.6.3 | Shadcn 主题 |
 | `luci-theme-fluent` / `-lite` + `luci-mod-fluentdashboard` | 1.0.9 | Fluent 主题 |
 
-> 这份清单和仓库实际内容一致（当前 54 个包）：`python3 tools/list-packages.py` 从各 Makefile
-> 的 `define Package/<name>` 里直接读出来，CI 的「全部」构建也用它生成，不会再出现
-> 列表里写着但仓库里没有的包。
+> 这份清单和仓库实际内容一致（当前 50 个构建目标、共 54 个包）：`python3 tools/list-packages.py`
+> 从各 Makefile 直接读出来，CI 的「全部」构建也用它生成，不会再出现列表里写着但仓库里
+> 没有的包。注意一个目录可能编出多个包：`autocore` → autocore-x86/arm、
+> `simple-obfs` → client/server、`v2ray-geodata` → geoip/geosite。
 
 ---
 
