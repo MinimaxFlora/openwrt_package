@@ -5,7 +5,7 @@
 ### 科学上网插件与 LuCI 主题备份仓库 · 防上游炸源 · 开箱即用
 
 ![License](https://img.shields.io/badge/License-MIT-0d1117?style=for-the-badge&labelColor=161b22&color=30363d)
-![Packages](https://img.shields.io/badge/包数量-54-56d4dd?style=for-the-badge&labelColor=161b22&color=30363d)
+![Packages](https://img.shields.io/badge/包数量-57-56d4dd?style=for-the-badge&labelColor=161b22&color=30363d)
 ![OpenWrt](https://img.shields.io/badge/OpenWrt-24.10%20%7C%2025.12-00A98F?style=for-the-badge&logo=openwrt&logoColor=white&labelColor=161b22&color=30363d)
 ![Platform](https://img.shields.io/badge/架构-全平台-ff7b72?style=for-the-badge&labelColor=161b22&color=30363d)
 
@@ -19,7 +19,7 @@
 
 | | | |
 | :--- | :--- | :--- |
-| 🛡️ **防炸备份** | 📦 **54 个包** | 🎨 **6 套 LuCI 主题** |
+| 🛡️ **防炸备份** | 📦 **57 个包** | 🎨 **6 套 LuCI 主题** |
 | 锁定稳定版本，上游改动不影响编译 | 科学上网全家桶 + 实用工具 | Argon / Vantage / Aurora / Design / Shadcn / Fluent |
 | 🔄 **按需同步** | 🖥️ **全架构支持** | ⚡ **即克隆即用** |
 | 需要时手动更新，版本可控 | x86 / ARM / 全平台通用 | 直接加入 feeds 即可编译 |
@@ -57,6 +57,7 @@ git clone https://github.com/sbwml/packages_lang_golang -b 26.x feeds/packages/l
 
 | 包 | 版本 | 说明 |
 | :--- | :---: | :--- |
+| `mihomo-meta` | 1.19.34 | Mihomo (Clash Meta) 内核，供 nikki / OpenClash 使用 |
 | `sing-box` | 1.14.3 | 通用代理内核（V2Ray / Hysteria2 / TUIC 等） |
 | `sing-box-tiny` | 1.14.3 | sing-box 精简版（体积小、功能裁剪） |
 | `xray-core` | 26.11.9 | Xray 内核 |
@@ -78,6 +79,7 @@ git clone https://github.com/sbwml/packages_lang_golang -b 26.x feeds/packages/l
 | `luci-app-passwall` | 26.11.11 | PassWall 科学上网 |
 | `luci-app-passwall2` | 26.11.11 | PassWall 2 |
 | `luci-app-homeproxy` | - | HomeProxy |
+| `luci-app-nikki` | 1.26.2 | Nikki（Mihomo TUN 模式） |
 | `luci-app-mosdns` | 1.7.15 | MosDNS 图形化 |
 | `luci-app-adguardhome` | 1.1.1 | AdGuard Home 图形化 |
 | `luci-app-openlist2` | 1.0.3 | OpenList2 网盘聚合 |
@@ -93,6 +95,7 @@ git clone https://github.com/sbwml/packages_lang_golang -b 26.x feeds/packages/l
 
 | 包 | 版本 | 说明 |
 | :--- | :---: | :--- |
+| `nikki` | 2026.10.10 | Nikki 内核（mihomo TUN/透明代理） |
 | `mosdns` | 5.3.4 | DNS 转发/分流 |
 | `chinadns-ng` | 2025.08.09 | 中国 DNS 分流 |
 | `dns2socks` | 2.1 | DNS 转 SOCKS |
@@ -119,7 +122,7 @@ git clone https://github.com/sbwml/packages_lang_golang -b 26.x feeds/packages/l
 | `luci-theme-shadcn` | 0.6.3 | Shadcn 主题 |
 | `luci-theme-fluent` / `-lite` + `luci-mod-fluentdashboard` | 1.0.9 | Fluent 主题 |
 
-> 这份清单和仓库实际内容一致（当前 50 个构建目标、共 54 个包）：`python3 tools/list-packages.py`
+> 这份清单和仓库实际内容一致（当前 53 个构建目标、共 57 个包）：`python3 tools/list-packages.py`
 > 从各 Makefile 直接读出来，CI 的「全部」构建也用它生成，不会再出现列表里写着但仓库里
 > 没有的包。注意一个目录可能编出多个包：`autocore` → autocore-x86/arm、
 > `simple-obfs` → client/server、`v2ray-geodata` → geoip/geosite。

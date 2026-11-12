@@ -19,6 +19,7 @@ on:
           - "🚀 HomeProxy 代理插件"
           - "🚀 PassWall 代理插件"
           - "🚀 PassWall2 代理插件"
+          - "🚀 Nikki 代理插件（nikki + mihomo 内核）"
           - "🧩 HelloWorld 代理内核组件"
           - "🔧 DiskMan 磁盘管理工具"
           - "🔧 MentoHUST 认证"
@@ -79,6 +80,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      # ---- tools/ 是 CI 依赖（列表/来源快照都靠它），被误删时给一句人话 ----
+      - name: Check tools
+        run: |
+          for f in tools/pkgscan.py tools/list-packages.py tools/gen-lock.py; do
+            [ -f "$f" ] || { echo "::error::缺少 $f —— tools/ 是 CI 依赖，同步脚本不要删除它"; exit 1; }
+          done
+
       # ---- 包来源快照必须和 Makefile 同步（改了版本忘了更新 lock 就在这里红）----
       - name: Verify packages.lock.json
         run: python3 tools/gen-lock.py --check
@@ -127,6 +135,10 @@ jobs:
               ;;
             "🚀 PassWall2 代理插件")
               PKGS="luci-app-passwall2"
+              ;;
+            "🚀 Nikki 代理插件（nikki + mihomo 内核）")
+              # nikki 的 DEPENDS 里有 +mihomo，由 mihomo-meta 提供
+              PKGS="nikki mihomo-meta luci-app-nikki"
               ;;
             "🧩 HelloWorld 代理内核组件")
               PKGS="chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs-client simple-obfs-server v2ray-geoip v2ray-geosite v2ray-plugin"
@@ -183,10 +195,10 @@ jobs:
           fi
           echo "选中 $(wc -w <<<"$PACKAGES") 个包，全部存在于仓库"
 
-      # ---- 用 SDK 镜像编译（MinimaxFlora/gh-action-sdk@go1.26）----
+      # ---- 用 SDK 镜像编译（MinimaxFlora/gh-action-sdk@go1.27；xray-core 需要 go 1.27）----
       - name: Build Packages
         if: ${{ env.SKIP_BUILD == '0' }}
-        uses: MinimaxFlora/gh-action-sdk@go1.26
+        uses: MinimaxFlora/gh-action-sdk@go1.27
         env:
           ARCH: ${{ env.ARCH }}-${{ matrix.version }}
           FEEDNAME: packages_ci
