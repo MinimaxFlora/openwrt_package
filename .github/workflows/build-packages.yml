@@ -9,7 +9,7 @@ on:
         options:
           - "🌈 全部（一次编译所有插件，推荐）"
           - "🎨 Argon 主题"
-          - "🎨 Kucat 主题"
+          - "🎨 Vantage 主题"
           - "🎨 Aurora 主题"
           - "🎨 Design 主题"
           - "🎨 Shadcn 主题"
@@ -19,7 +19,6 @@ on:
           - "🚀 HomeProxy 代理插件"
           - "🚀 PassWall 代理插件"
           - "🚀 PassWall2 代理插件"
-          - "🚀 Nikki 代理插件"
           - "🧩 HelloWorld 代理内核组件"
           - "🔧 DiskMan 磁盘管理工具"
           - "🔧 MentoHUST 认证"
@@ -90,14 +89,21 @@ jobs:
         run: |
           case "${{ inputs.packages }}" in
             "🌈 全部（一次编译所有插件，推荐）")
-              # 与下面各组保持一致，一次编完（6 个 job：3 架构 × 2 版本）
-              PKGS="luci-theme-argon luci-app-argon-config luci-theme-kucat luci-app-kucat-config luci-theme-aurora luci-app-aurora-config luci-theme-design luci-theme-shadcn luci-theme-fluent mosdns luci-app-mosdns v2dat luci-app-openclash luci-app-homeproxy luci-app-passwall luci-app-passwall2 luci-app-nikki mihomo-meta chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin luci-app-diskman luci-app-mentohust mentohust luci-app-quickfile quickfile luci-app-ramfree luci-app-bandix-plus bandix-plus luci-app-openlist2 openlist2 luci-app-airconnect airconnect autocore"
+              # 直接从仓库真实 Makefile 生成，不再手写列表（手写列表曾包含
+              # 已删除的 luci-theme-kucat 和从未存在的 luci-app-nikki / mihomo-meta）
+              PKGS="$(python3 tools/list-packages.py | tr ' ' '\n' \
+                       | grep -v '^autocore-' | paste -sd' ' -)"
+              # autocore 是 non-shared 包，按架构二选一
+              case "${{ matrix.arch }}" in
+                x86_64) PKGS="$PKGS autocore-x86" ;;
+                *)      PKGS="$PKGS autocore-arm" ;;
+              esac
               ;;
             "🎨 Argon 主题")
               PKGS="luci-theme-argon luci-app-argon-config"
               ;;
-            "🎨 Kucat 主题")
-              PKGS="luci-theme-kucat luci-app-kucat-config"
+            "🎨 Vantage 主题")
+              PKGS="luci-theme-vantage luci-app-vantage"
               ;;
             "🎨 Aurora 主题")
               PKGS="luci-theme-aurora luci-app-aurora-config"
@@ -112,7 +118,7 @@ jobs:
               PKGS="luci-theme-fluent"
               ;;
             "🔀 Mosdns DNS 转换器")
-              PKGS="mosdns luci-app-mosdns v2dat"
+              PKGS="mosdns luci-app-mosdns"
               ;;
             "🚀 OpenClash 代理插件")
               PKGS="luci-app-openclash"
@@ -126,11 +132,8 @@ jobs:
             "🚀 PassWall2 代理插件")
               PKGS="luci-app-passwall2"
               ;;
-            "🚀 Nikki 代理插件")
-              PKGS="luci-app-nikki mihomo-meta"
-              ;;
             "🧩 HelloWorld 代理内核组件")
-              PKGS="chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin"
+              PKGS="chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs-client simple-obfs-server v2ray-geoip v2ray-geosite v2ray-plugin"
               ;;
             "🔧 DiskMan 磁盘管理工具")
               PKGS="luci-app-diskman"
@@ -154,7 +157,10 @@ jobs:
               PKGS="luci-app-airconnect airconnect"
               ;;
             "🌡️ Autocore 硬件信息")
-              PKGS="autocore"
+              case "${{ matrix.arch }}" in
+                x86_64) PKGS="autocore-x86" ;;
+                *)      PKGS="autocore-arm" ;;
+              esac
               ;;
             *)
               echo "::error::未识别的选项：${{ inputs.packages }}"
@@ -167,6 +173,21 @@ jobs:
           echo "PACKAGES=$PKGS" >> "$GITHUB_ENV"
           echo "SELECTED=${{ inputs.packages }}" >> "$GITHUB_ENV"
           echo "Selected packages: $PKGS"
+
+      # ---- 断言：选中的包名必须真实存在（防止列表和仓库再次脱节）----
+      - name: Validate selected packages
+        run: |
+          set -uo pipefail
+          python3 tools/list-packages.py | tr ' ' '\n' | grep -v '^$' | sort -u > /tmp/known.txt
+          bad=0
+          for p in $PACKAGES; do
+            grep -qxF "$p" /tmp/known.txt || { echo "::error::仓库里没有包: $p"; bad=1; }
+          done
+          if [ "$bad" -ne 0 ]; then
+            echo "仓库现有包："; sed 's/^/  /' /tmp/known.txt
+            exit 1
+          fi
+          echo "选中 $(wc -w <<<"$PACKAGES") 个包，全部存在于仓库"
 
       # ---- 用 SDK 镜像编译（MinimaxFlora/gh-action-sdk@go1.26）----
       - name: Build Packages
