@@ -7,6 +7,7 @@ on:
         description: "选择要编译的插件"
         type: choice
         options:
+          - "🌈 全部（一次编译所有插件，推荐）"
           - "🎨 Argon 主题"
           - "🎨 Kucat 主题"
           - "🎨 Aurora 主题"
@@ -28,7 +29,7 @@ on:
           - "🔧 OpenList 网盘聚合工具"
           - "🔧 AirConnect 音频服务"
           - "🌡️ Autocore 硬件信息"
-        default: "🎨 Argon 主题"
+        default: "🌈 全部（一次编译所有插件，推荐）"
 
 permissions:
   contents: write
@@ -38,7 +39,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # ---- 自动检测最新 24.x 和 25.x 版本 ----
+  # ---- 自动检测最新 24.x 和 25.x 版本（官方 .versions.json，一次请求）----
   detect:
     runs-on: ubuntu-24.04
     outputs:
@@ -46,17 +47,15 @@ jobs:
     steps:
       - name: Detect OpenWrt versions
         id: detect
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          # 用 gh api（GITHUB_TOKEN）避免匿名 API 限流
-          TAGS=$(gh api "repos/openwrt/openwrt/tags?per_page=100" --jq '.[].name')
-          V24=$(echo "$TAGS" | grep -oE 'v24\.10\.[0-9]+' | sed 's/^v//' | sort -V | tail -1)
-          V25=$(echo "$TAGS" | grep -oE 'v25\.12\.[0-9]+' | sed 's/^v//' | sort -V | tail -1)
-          # API 失败时兜底
-          [ -z "$V24" ] && V24="24.10.8"
-          [ -z "$V25" ] && V25="25.12.5"
-          echo "Latest: 24.x=$V24 25.x=$V25"
+          set -euo pipefail
+          V=$(curl -fsS --retry 3 --retry-delay 3 https://downloads.openwrt.org/.versions.json)
+          V25=$(python3 -c 'import json,sys;print(json.load(sys.stdin)["stable_version"])' <<<"$V")
+          V24=$(python3 -c 'import json,sys;print(json.load(sys.stdin)["oldstable_version"])' <<<"$V")
+          # 格式兜底 + 只接受 x.y.z
+          [[ "$V24" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || V24="24.10.8"
+          [[ "$V25" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || V25="25.12.6"
+          echo "Latest: 24.x=$V24  25.x=$V25"
           echo "versions=[\"$V24\",\"$V25\"]" >> "$GITHUB_OUTPUT"
 
   # ---- 编译：三架构 x 版本矩阵，只产出 ipk/apk 并上传 artifact ----
@@ -81,11 +80,19 @@ jobs:
         with:
           fetch-depth: 0
 
+      # ---- 包来源快照必须和 Makefile 同步（改了版本忘了更新 lock 就在这里红）----
+      - name: Verify packages.lock.json
+        run: python3 tools/gen-lock.py --check
+
       # ---- 根据下拉选择映射包列表，并定义 SKIP_BUILD ----
       - name: Build package selection
         id: select
         run: |
           case "${{ inputs.packages }}" in
+            "🌈 全部（一次编译所有插件，推荐）")
+              # 与下面各组保持一致，一次编完（6 个 job：3 架构 × 2 版本）
+              PKGS="luci-theme-argon luci-app-argon-config luci-theme-kucat luci-app-kucat-config luci-theme-aurora luci-app-aurora-config luci-theme-design luci-theme-shadcn luci-theme-fluent mosdns luci-app-mosdns v2dat luci-app-openclash luci-app-homeproxy luci-app-passwall luci-app-passwall2 luci-app-nikki mihomo-meta chinadns-ng dns2socks microsocks tcping xray-core xray-plugin sing-box hysteria naiveproxy shadowsocks-rust shadow-tls simple-obfs v2ray-geodata v2ray-plugin luci-app-diskman luci-app-mentohust mentohust luci-app-quickfile quickfile luci-app-ramfree luci-app-bandix-plus bandix-plus luci-app-openlist2 openlist2 luci-app-airconnect airconnect autocore"
+              ;;
             "🎨 Argon 主题")
               PKGS="luci-theme-argon luci-app-argon-config"
               ;;
@@ -184,6 +191,28 @@ jobs:
             echo "构建无产物" > release/EMPTY.txt
           fi
           ls -lh release/
+
+      # ---- 断言：选定的每个包都必须真的有产物 ----
+      # IGNORE_ERRORS=true 会让编译失败的包"消失"，不给断言的话 Release 会静默变少，
+      # 下游 sync 又只按名字去重（旧包不删），表面上永远正常。
+      - name: Assert every selected package produced
+        run: |
+          set -uo pipefail
+          missing=0
+          for p in $PACKAGES; do
+            if compgen -G "release/${p}-*" >/dev/null || compgen -G "release/${p}_*" >/dev/null; then
+              :
+            else
+              echo "::warning::未产出 $p"
+              missing=$((missing+1))
+            fi
+          done
+          echo "选定 $PACKAGES 个包，缺 $missing 个"
+          if [ "$missing" -gt 0 ]; then
+            echo "::error::$missing 个包没有产物（IGNORE_ERRORS 吞掉了编译错误），请翻上面的 Build Packages 日志"
+            ls -lh release/ || true
+            exit 1
+          fi
 
       # ---- 上传 artifact 供 release job 汇总 ----
       - name: Upload artifacts

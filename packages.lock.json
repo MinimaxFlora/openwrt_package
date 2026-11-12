@@ -1,0 +1,269 @@
+{
+  "version": 1,
+  "note": "由 tools/gen-lock.py 生成，勿手改。改包版本后跑一次 python3 tools/gen-lock.py",
+  "count": 44,
+  "packages": {
+    "airconnect": {
+      "PKG_NAME": "airconnect",
+      "PKG_VERSION": "1.12.4",
+      "PKG_SOURCE": "AirConnect-$(PKG_VERSION).zip",
+      "PKG_SOURCE_URL": "https://github.com/philippe44/AirConnect/releases/download/$(PKG_VERSION)/",
+      "PKG_HASH": "ae59d595be80db7f4e93c94c9029baff59dc7515ec03e44505ab2792bbcd1903",
+      "PKG_LICENSE": "MIT"
+    },
+    "autocore": {
+      "PKG_NAME": "autocore",
+      "PKG_VERSION": "1.0.1"
+    },
+    "bandix-plus": {
+      "PKG_NAME": "bandix-plus",
+      "PKG_VERSION": "0.1.3",
+      "PKG_SOURCE": "$(RUST_BINARY_FILENAME)",
+      "PKG_SOURCE_URL": "https://github.com/timsaya/bandix-plus/releases/download/v$(RUST_BANDIX_PLUS_VERSION)",
+      "PKG_HASH": "46de71c39939b86989d8088818e51c89358c9cf77fbdad40b94ed0b4f5fd96ea",
+      "PKG_LICENSE": "Apache-2.0"
+    },
+    "chinadns-ng": {
+      "PKG_NAME": "chinadns-ng",
+      "PKG_VERSION": "2025.08.09",
+      "PKG_SOURCE": "$(PKG_NAME)-$(PKG_VERSION)-$(ARCH_PACKAGES)",
+      "PKG_SOURCE_URL": "https://github.com/zfl9/chinadns-ng/releases/download/$(PKG_VERSION)/$(PKG_ARCH)?",
+      "PKG_HASH": "3fe0217615dd7060b7287d2b6b31d2a0b364137398bfb335a03bead322eac716",
+      "PKG_LICENSE": "AGPL-3.0-only"
+    },
+    "dns2socks": {
+      "PKG_NAME": "dns2socks",
+      "PKG_VERSION": "2.1",
+      "PKG_LICENSE": "BSD-3-Clause"
+    },
+    "geo2txt": {
+      "PKG_NAME": "geo2txt",
+      "PKG_VERSION": "1.0.0",
+      "PKG_SOURCE": "$(PKG_NAME)-$(PKG_VERSION).tar.gz",
+      "PKG_SOURCE_URL": "https://codeload.github.com/sbwml/geo2txt/tar.gz/$(PKG_VERSION)?",
+      "PKG_HASH": "b777d9c67b36cd8ce68a0555200fae85751435c888364c921a361062ffee4409",
+      "PKG_LICENSE": "GPL-3.0"
+    },
+    "geoview": {
+      "PKG_NAME": "geoview",
+      "PKG_VERSION": "0.2.9",
+      "PKG_SOURCE": "$(PKG_NAME)-$(PKG_VERSION).tar.gz",
+      "PKG_SOURCE_URL": "https://codeload.github.com/snowie2000/geoview/tar.gz/$(PKG_VERSION)?",
+      "PKG_HASH": "b080a141505a3180c3b81468304864e4373c4868680ff39fb82ee6973e3b5e94",
+      "PKG_LICENSE": "Apache-2.0"
+    },
+    "hysteria": {
+      "PKG_NAME": "hysteria",
+      "PKG_VERSION": "2.13.0",
+      "PKG_SOURCE": "$(PKG_NAME)-$(PKG_VERSION).tar.gz",
+      "PKG_SOURCE_URL": "https://codeload.github.com/apernet/hysteria/tar.gz/app/v$(PKG_VERSION)?",
+      "PKG_HASH": "dfde427a93a0dc5ff65ddc1e239df3b1def54bf33f8b137c571daa7b27ecddd0",
+      "PKG_LICENSE": "MIT"
+    },
+    "ipt2socks": {
+      "PKG_NAME": "ipt2socks",
+      "PKG_VERSION": "1.1.4",
+      "PKG_SOURCE": "$(PKG_NAME)-$(PKG_VERSION).tar.gz",
+      "PKG_SOURCE_URL": "https://codeload.github.com/zfl9/ipt2socks/tar.gz/v$(PKG_VERSION)?",
+      "PKG_HASH": "68dc76e63951d655c2fd9b420e175b5a75a50014d6db6e729398b41f2c988356",
+      "PKG_LICENSE": "AGPL-3.0"
+    },
+    "luci-app-adguardhome": {
+      "PKG_NAME": "luci-app-adguardhome",
+      "PKG_VERSION": "1.1.1"
+    },
+    "luci-app-airconnect": {
+      "PKG_NAME": "luci-app-airconnect",
+      "PKG_VERSION": "1.0.3"
+    },
+    "luci-app-aurora-config": {
+      "PKG_NAME": "luci-app-aurora-config",
+      "PKG_VERSION": "1.2.5",
+      "PKG_LICENSE": "Apache-2.0"
+    },
+    "luci-app-bandix-plus": {
+      "PKG_NAME": "luci-app-bandix-plus",
+      "PKG_VERSION": "0.1.3",
+      "PKG_LICENSE": "Apache-2.0"
+    },
+    "luci-app-diskman": {
+      "PKG_NAME": "luci-app-diskman",
+      "PKG_VERSION": "1.0.0",
+      "PKG_LICENSE": "GPL-3.0-or-later"
+    },
+    "luci-app-homeproxy": {
+      "PKG_NAME": "luci-app-homeproxy"
+    },
+    "luci-app-mentohust": {
+      "PKG_NAME": "luci-app-mentohust",
+      "PKG_VERSION": "1.0.2"
+    },
+    "luci-app-mosdns": {
+      "PKG_NAME": "luci-app-mosdns",
+      "PKG_VERSION": "1.7.15"
+    },
+    "luci-app-openclash": {
+      "PKG_NAME": "luci-app-openclash",
+      "PKG_VERSION": "0.48.002"
+    },
+    "luci-app-openlist2": {
+      "PKG_NAME": "luci-app-openlist2",
+      "PKG_VERSION": "1.0.3"
+    },
+    "luci-app-passwall": {
+      "PKG_NAME": "luci-app-passwall",
+      "PKG_VERSION": "26.11.11"
+    },
+    "luci-app-passwall2": {
+      "PKG_NAME": "luci-app-passwall2",
+      "PKG_VERSION": "26.11.11"
+    },
+    "luci-app-quickfile": {
+      "PKG_NAME": "luci-app-quickfile",
+      "PKG_VERSION": "1.0.0",
+      "PKG_LICENSE": "Apache-2.0"
+    },
+    "luci-app-ramfree": {
+      "PKG_NAME": "luci-app-ramfree",
+      "PKG_VERSION": "1.0"
+    },
+    "luci-app-socat": {
+      "PKG_NAME": "luci-app-socat",
+      "PKG_VERSION": "1.1"
+    },
+    "luci-theme-argon": {
+      "PKG_NAME": "luci-theme-argon",
+      "PKG_VERSION": "3.1.3",
+      "PKG_LICENSE": "Apache-2.0 MIT"
+    },
+    "luci-theme-aurora": {
+      "PKG_NAME": "luci-theme-aurora",
+      "PKG_VERSION": "1.4.3",
+      "PKG_LICENSE": "Apache-2.0"
+    },
+    "luci-theme-design": {
+      "PKG_NAME": "luci-theme-design",
+      "PKG_VERSION": "7.1",
+      "PKG_LICENSE": "Apache-2.0"
+    },
+    "luci-theme-shadcn": {
+      "PKG_NAME": "luci-theme-shadcn",
+      "PKG_VERSION": "0.6.3",
+      "PKG_LICENSE": "Apache-2.0"
+    },
+    "mentohust": {
+      "PKG_NAME": "mentohust",
+      "PKG_VERSION": "0.3.1"
+    },
+    "microsocks": {
+      "PKG_NAME": "microsocks",
+      "PKG_VERSION": "1.0.5",
+      "PKG_SOURCE": "$(PKG_NAME)-$(PKG_VERSION).tar.gz",
+      "PKG_SOURCE_URL": "https://codeload.github.com/rofl0r/microsocks/tar.gz/v$(PKG_VERSION)?",
+      "PKG_HASH": "939d1851a18a4c03f3cc5c92ff7a50eaf045da7814764b4cb9e26921db15abc8",
+      "PKG_LICENSE": "MIT"
+    },
+    "mosdns": {
+      "PKG_NAME": "mosdns",
+      "PKG_VERSION": "5.3.4",
+      "PKG_SOURCE": "$(PKG_NAME)-$(PKG_VERSION).tar.gz",
+      "PKG_SOURCE_URL": "https://codeload.github.com/IrineSistiana/mosdns/tar.gz/v$(PKG_VERSION)?",
+      "PKG_HASH": "0302a685db2a6c3c09af7bf4ff0dffd24f1e583383a47f064564f5270033671b",
+      "PKG_LICENSE": "GPL-3.0"
+    },
+    "naiveproxy": {
+      "PKG_NAME": "naiveproxy",
+      "PKG_VERSION": "154.0.8037.49",
+      "PKG_SOURCE": "naiveproxy-v$(PKG_VERSION)-$(PKG_RELEASE)-openwrt-$(ARCH_PREBUILT).tar.xz",
+      "PKG_SOURCE_URL": "https://github.com/klzgrad/naiveproxy/releases/download/v$(PKG_VERSION)-$(PKG_RELEASE)/",
+      "PKG_HASH": "8a60b3a5f46e005ebce4785c367a35b4938d127e001f6f365aa7f099fb4a9a64",
+      "PKG_LICENSE": "BSD 3-Clause"
+    },
+    "openlist2": {
+      "PKG_NAME": "openlist2",
+      "PKG_VERSION": "4.2.9",
+      "PKG_SOURCE": "openlist-$(PKG_VERSION).tar.gz",
+      "PKG_SOURCE_URL": "https://codeload.github.com/OpenListTeam/OpenList/tar.gz/v$(PKG_VERSION)?",
+      "PKG_HASH": "a762ff50b71b384f03af2996cac2aba471b0d5ec44aad0255e646a41c8af7f49",
+      "PKG_LICENSE": "GPL-3.0"
+    },
+    "quickfile": {
+      "PKG_NAME": "quickfile",
+      "PKG_VERSION": "2.0.9",
+      "PKG_SOURCE": "quickfile-src-$(PKG_VERSION).tar.xz",
+      "PKG_SOURCE_URL": "https://r2.cooluc.com/source",
+      "PKG_HASH": "f73204997e3a572f05e303be1cfb7bb82a03bd3a2a5052a9b9d3217a00233f3b",
+      "PKG_LICENSE": "Apache-2.0"
+    },
+    "shadow-tls": {
+      "PKG_NAME": "shadow-tls",
+      "PKG_VERSION": "0.2.25",
+      "PKG_SOURCE": "$(PKG_NAME)-$(PKG_VERSION).tar.gz",
+      "PKG_SOURCE_URL": "https://codeload.github.com/ihciah/shadow-tls/tar.gz/v$(PKG_VERSION)?",
+      "PKG_HASH": "1d1d436734823ba0302de6e91883ed892ea710769c722a139990194ff5837224",
+      "PKG_LICENSE": "MIT"
+    },
+    "shadowsocks-rust": {
+      "PKG_NAME": "shadowsocks-rust",
+      "PKG_VERSION": "1.25.0",
+      "PKG_SOURCE": "$(PKG_NAME)-$(PKG_VERSION).tar.gz",
+      "PKG_SOURCE_URL": "https://codeload.github.com/shadowsocks/shadowsocks-rust/tar.gz/v$(PKG_VERSION)?",
+      "PKG_HASH": "477a525e9b11d4c90ded6629552548d00a32675ec6f6f18ee45c98447e54b5f3",
+      "PKG_LICENSE": "MIT"
+    },
+    "shadowsocksr-libev": {
+      "PKG_NAME": "shadowsocksr-libev",
+      "PKG_VERSION": "2.5.6",
+      "PKG_LICENSE": "GPL-3.0"
+    },
+    "simple-obfs": {
+      "PKG_NAME": "simple-obfs",
+      "PKG_VERSION": "0.0.5",
+      "PKG_SOURCE_URL": "https://github.com/shadowsocks/simple-obfs.git",
+      "PKG_SOURCE_VERSION": "486bebd9208539058e57e23a12f23103016e09b4",
+      "PKG_LICENSE": "GPL-3.0-or-later"
+    },
+    "sing-box": {
+      "PKG_NAME": "sing-box",
+      "PKG_VERSION": "1.14.3",
+      "PKG_SOURCE": "$(PKG_NAME)-$(PKG_VERSION).tar.gz",
+      "PKG_SOURCE_URL": "https://codeload.github.com/SagerNet/sing-box/tar.gz/v$(PKG_VERSION)?",
+      "PKG_HASH": "9a8e3712a5f611ad95f1d16874bbdcdffbd3b8eed16dae2d71ce7042a33c3386",
+      "PKG_LICENSE": "GPL-3.0-or-later"
+    },
+    "tcping": {
+      "PKG_NAME": "tcping",
+      "PKG_VERSION": "0.3",
+      "PKG_SOURCE_URL": "https://github.com/Lienol/tcping.git",
+      "PKG_SOURCE_VERSION": "db9101834732dac9aaa59dbb7fb9c74612dbf723",
+      "PKG_LICENSE": "GPL-2.0-only"
+    },
+    "v2ray-geodata": {
+      "PKG_NAME": "v2ray-geodata"
+    },
+    "v2ray-plugin": {
+      "PKG_NAME": "v2ray-plugin",
+      "PKG_VERSION": "5.49.0",
+      "PKG_SOURCE": "$(PKG_NAME)-$(PKG_VERSION).tar.gz",
+      "PKG_SOURCE_URL": "https://codeload.github.com/teddysun/v2ray-plugin/tar.gz/v$(PKG_VERSION)?",
+      "PKG_HASH": "7a634a79d9715a899d52366949e09443376715ec86f76cbcfc8b6fb3af0cef53",
+      "PKG_LICENSE": "MIT"
+    },
+    "xray-core": {
+      "PKG_NAME": "Xray-core",
+      "PKG_VERSION": "26.11.9",
+      "PKG_SOURCE": "$(PKG_NAME)-$(PKG_VERSION).tar.gz",
+      "PKG_SOURCE_URL": "https://codeload.github.com/XTLS/Xray-core/tar.gz/v$(PKG_VERSION)?",
+      "PKG_HASH": "d5a47bed1b85e1cdfe3cb2f88a02e2db7144f0f8bee541d20b84fafa8fdf6c8d",
+      "PKG_LICENSE": "MPL-2.0"
+    },
+    "xray-plugin": {
+      "PKG_NAME": "xray-plugin",
+      "PKG_VERSION": "1.8.24",
+      "PKG_SOURCE": "$(PKG_NAME)-$(PKG_VERSION).tar.gz",
+      "PKG_SOURCE_URL": "https://codeload.github.com/teddysun/xray-plugin/tar.gz/v$(PKG_VERSION)?",
+      "PKG_HASH": "1150968f8791df884ce0ab5b2dbc870496088c90b5ffcc7f21497075aab7b1b5",
+      "PKG_LICENSE": "MIT"
+    }
+  }
+}

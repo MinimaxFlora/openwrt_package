@@ -49,27 +49,31 @@ git clone https://github.com/sbwml/packages_lang_golang -b 26.x feeds/packages/l
 
 ## 📦 包列表
 
+> 下表的版本号由 [`packages.lock.json`](packages.lock.json) 对齐（该文件由 `tools/gen-lock.py`
+> 从每个包的 Makefile 生成，CI 里 `python3 tools/gen-lock.py --check` 会校验它没过期）。
+> 想知道某个包来自哪个上游，直接看 lock 文件里的 `PKG_SOURCE_URL` / `PKG_SOURCE_VERSION`。
+
 ### 🌐 代理核心
 
 | 包 | 版本 | 说明 |
 | :--- | :---: | :--- |
 | `mihomo-meta` | 1.19.29 | Mihomo (Clash Meta) 内核 |
-| `sing-box` | 1.12.25 | 通用代理内核（V2Ray / Hysteria2 / TUIC 等） |
-| `xray-core` | 26.7.28 | Xray 内核 |
-| `naiveproxy` | 150.0.7871.63 | NaiveProxy 客户端 |
-| `hysteria` | 2.12.1 | Hysteria 2 协议客户端 |
+| `sing-box` | 1.14.3 | 通用代理内核（V2Ray / Hysteria2 / TUIC 等） |
+| `xray-core` | 26.11.9 | Xray 内核 |
+| `naiveproxy` | 154.0.8037.49 | NaiveProxy 客户端 |
+| `hysteria` | 2.13.0 | Hysteria 2 协议客户端 |
 | `v2ray-geodata` | - | V2Ray GeoIP / GeoSite 数据 |
 
 ### 🧩 代理插件（LuCI 应用）
 
 | 包 | 版本 | 说明 |
 | :--- | :---: | :--- |
-| `luci-app-openclash` | 0.47.133 | OpenClash（Mihomo 图形化） |
-| `luci-app-passwall` | 26.8.1 | PassWall 科学上网 |
-| `luci-app-passwall2` | 26.8.7 | PassWall 2 |
+| `luci-app-openclash` | 0.48.002 | OpenClash（Mihomo 图形化） |
+| `luci-app-passwall` | 26.11.11 | PassWall 科学上网 |
+| `luci-app-passwall2` | 26.11.11 | PassWall 2 |
 | `luci-app-homeproxy` | - | HomeProxy |
 | `luci-app-nikki` | 1.26.1 | Nikki（Mihomo TUN 模式） |
-| `luci-app-mosdns` | 1.7.4 | MosDNS 图形化 |
+| `luci-app-mosdns` | 1.7.15 | MosDNS 图形化 |
 | `luci-app-openlist2` | 1.0.3 | OpenList2 |
 | `luci-app-mentohust` | 1.0.2 | 校园网锐捷认证 |
 
@@ -80,7 +84,7 @@ git clone https://github.com/sbwml/packages_lang_golang -b 26.x feeds/packages/l
 | `mosdns` | 5.3.4 | DNS 转发/分流 |
 | `chinadns-ng` | 2025.08.09 | 中国 DNS 分流 |
 | `dns2socks` | 2.1 | DNS 转 SOCKS |
-| `shadowsocks-rust` | 1.24.0 | Shadowsocks Rust 实现 |
+| `shadowsocks-rust` | 1.25.0 | Shadowsocks Rust 实现 |
 | `shadowsocksr-libev` | 2.5.6 | ShadowsocksR 客户端 |
 | `v2ray-plugin` | 5.49.0 | V2Ray 传输插件 |
 | `xray-plugin` | 1.8.24 | Xray 传输插件 |
@@ -90,16 +94,16 @@ git clone https://github.com/sbwml/packages_lang_golang -b 26.x feeds/packages/l
 | `tcping` | 0.3 | TCP Ping 工具 |
 | `microsocks` | 1.0.5 | 轻量 SOCKS5 服务器 |
 | `nikki` | 2026.04.08 | Nikki 核心 |
-| `openlist2` | 4.2.5 | OpenList2 核心 |
+| `openlist2` | 4.2.9 | OpenList2 核心 |
 | `mentohust` | 0.3.1 | 锐捷认证核心 |
 | `v2dat` | - | V2Ray dat 解析工具 |
-| `geoview` | 0.2.6 | Geo 数据查看 |
+| `geoview` | 0.2.9 | Geo 数据查看 |
 
 ### 🎵 多媒体
 
 | 包 | 版本 | 说明 |
 | :--- | :---: | :--- |
-| `airconnect` | 1.11.2 | AirPlay 接收（DLNA 投屏） |
+| `airconnect` | 1.12.4 | AirPlay 接收（DLNA 投屏） |
 | `luci-app-airconnect` | 1.0.3 | AirConnect 图形化 |
 
 ### 🛠 系统工具
@@ -109,20 +113,20 @@ git clone https://github.com/sbwml/packages_lang_golang -b 26.x feeds/packages/l
 | `luci-app-diskman` | 1.0.0 | 磁盘管理 |
 | `luci-app-quickfile` | 1.0.0 | 文件快速管理 |
 | `luci-app-ramfree` | 1.0 | 内存清理 |
-| `quickfile` | 1.0.25 | QuickFile 核心 |
+| `quickfile` | 2.0.9 | QuickFile 核心 |
 
 ### 🎨 LuCI 主题
 
 | 包 | 版本 | 说明 |
 | :--- | :---: | :--- |
-| `luci-theme-argon` | 2.4.6 | Argon 主题（最流行） |
+| `luci-theme-argon` | 3.1.3 | Argon 主题（最流行） |
 | `luci-theme-kucat` | 3.3.2 | Kucat 主题 |
-| `luci-theme-aurora` | 1.2.0 | Aurora 主题 |
+| `luci-theme-aurora` | 1.4.3 | Aurora 主题 |
 | `luci-theme-design` | 7.1 | Design 主题 |
-| `luci-theme-shadcn` | 0.4.0 | Shadcn 主题 |
+| `luci-theme-shadcn` | 0.6.3 | Shadcn 主题 |
 | `luci-theme-fluent` | 1.0.9 | Fluent 主题 |
 | `luci-app-argon-config` | 1.0 | Argon 主题配置 |
-| `luci-app-aurora-config` | 1.2.0 | Aurora 主题配置 |
+| `luci-app-aurora-config` | 1.2.5 | Aurora 主题配置 |
 | `luci-app-kucat-config` | 2.2.1 | Kucat 主题配置 |
 
 ---
