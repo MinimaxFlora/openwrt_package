@@ -19,11 +19,15 @@
 用法:
     python3 tools/check-artifacts.py <release_dir> "<target1 target2 …>" [--apk <apk 可执行>]
 """
+import glob
+import io
 import os
-import re
+import shutil
 import subprocess
 import sys
 import tarfile
+
+APK_ERR = ""
 
 
 def ipk_source(path):
@@ -37,32 +41,67 @@ def ipk_source(path):
                     break
             if ctl_tar is None:
                 return None
-            import io
-            with tarfile.open(fileobj=io.BytesIO(ctl_tar.read()), mode="r:gz") as inner:
+            with tarfile.open(fileobj=io.BytesIO(ctl_tar.read()), mode="r:*") as inner:
                 for m in inner.getmembers():
-                    if m.name in ("./control", "control"):
-                        text = inner.extractfile(m).read().decode("utf-8", "replace")
-                        for line in text.splitlines():
-                            if line.startswith("Source:"):
-                                return line.split(":", 1)[1].strip()
-            return None
+                    if os.path.basename(m.name) != "control":
+                        continue
+                    text = inner.extractfile(m).read().decode("utf-8", "replace")
+                    for line in text.splitlines():
+                        if line.startswith("Source:"):
+                            return line.split(":", 1)[1].strip()
     except Exception:
         return None
+    return None
+
+
+def find_apk():
+    """找 apk 可执行：CI 里 SDK 不一定在 cwd，靠 STAGING_DIR 等线索兜住"""
+    cands = []
+    for env in ("STAGING_DIR_HOST", "STAGING_DIR"):
+        d = os.environ.get(env)
+        if not d:
+            continue
+        cands.append(os.path.join(d, "bin", "apk"))
+        # STAGING_DIR=<sdk>/staging_dir/<target> → <sdk>/staging_dir/host/bin/apk
+        sdk = os.path.dirname(os.path.dirname(d.rstrip("/")))
+        cands.append(os.path.join(sdk, "staging_dir", "host", "bin", "apk"))
+    cands += [
+        "staging_dir/host/bin/apk",
+        "staging_dir/host/bin/apk.static",
+        os.path.join(os.getcwd(), "staging_dir", "host", "bin", "apk"),
+    ]
+    w = shutil.which("apk")
+    if w:
+        cands.append(w)
+    for pat in ("*/staging_dir/host/bin/apk", "*/*/staging_dir/host/bin/apk",
+                "*/staging_dir/host/bin/apk.static", "*/*/staging_dir/host/bin/apk.static"):
+        cands += sorted(glob.glob(pat))
+    for c in cands:
+        if c and os.path.isfile(c) and os.access(c, os.X_OK):
+            return c
+    return None
 
 
 def apk_origin(path, apk_bin):
-    """从 .apk 的 adbdump 里取 origin:"""
-    if not apk_bin or not os.access(apk_bin, os.X_OK):
+    """从 .apk 的 adbdump 里取 origin:（apk-tools 3.x 输出在 stdout）"""
+    global APK_ERR
+    if not apk_bin:
         return None
-    try:
-        out = subprocess.run([apk_bin, "--allow-untrusted", "adbdump", path],
-                             capture_output=True, text=True, timeout=60).stdout
-    except Exception:
-        return None
-    for line in out.splitlines():
-        s = line.strip()
-        if s.startswith("origin:"):
-            return s.split(":", 1)[1].strip()
+    for argv in ([apk_bin, "--allow-untrusted", "adbdump", path],
+                 [apk_bin, "adbdump", "--allow-untrusted", path],
+                 [apk_bin, "adbdump", path]):
+        try:
+            r = subprocess.run(argv, capture_output=True, text=True, timeout=180)
+        except Exception as e:
+            APK_ERR = f"执行失败: {e}"
+            continue
+        out = (r.stdout or "") + "\n" + (r.stderr or "")
+        for line in out.splitlines():
+            s = line.strip()
+            if s.startswith("origin:"):
+                return s.split(":", 1)[1].strip()
+        first = next((l for l in out.splitlines() if l.strip()), "")
+        APK_ERR = (f"rc={r.returncode} {first[:160]}").strip()
     return None
 
 
@@ -87,25 +126,37 @@ def main():
         return 2
     release_dir, targets = args[0], args[1].split()
 
-    produced, unknown = {}, 0
-    for name in sorted(os.listdir(release_dir)):
+    files = [n for n in sorted(os.listdir(release_dir))
+             if os.path.isfile(os.path.join(release_dir, n))
+             and (n.endswith(".ipk") or n.endswith(".apk"))]
+    n_apk = sum(1 for n in files if n.endswith(".apk"))
+    n_ipk = len(files) - n_apk
+
+    if n_apk and not apk_bin:
+        apk_bin = find_apk()
+    if n_apk and not apk_bin:
+        print(f"::error::release/ 里有 {n_apk} 个 .apk，但找不到 apk 可执行文件，无法判定它们的来源"
+              f"（继续跑只会误报「没有产出」）。请确认 SDK 的 staging_dir/host/bin/apk 存在，"
+              f"或用 --apk 指定，或导出 STAGING_DIR / STAGING_DIR_HOST。")
+        return 3
+    print(f"release/ 里 {len(files)} 个包（ipk {n_ipk} / apk {n_apk}），apk 工具: {apk_bin or '不需要'}")
+
+    produced, unknown = {}, []
+    for name in files:
         path = os.path.join(release_dir, name)
-        if not os.path.isfile(path):
-            continue
-        if name.endswith(".ipk"):
-            d = dir_of(ipk_source(path))
-        elif name.endswith(".apk"):
-            d = dir_of(apk_origin(path, apk_bin))
-        else:
-            continue
+        d = dir_of(ipk_source(path)) if name.endswith(".ipk") else dir_of(apk_origin(path, apk_bin))
         if d:
             produced.setdefault(d, []).append(name)
         else:
-            unknown += 1
+            unknown.append(name)
 
     missing = [t for t in targets if t not in produced]
     print(f"产物 {sum(len(v) for v in produced.values())} 个，覆盖 {len(produced)} 个构建目标"
-          f"（无法判定来源的 {unknown} 个），选定 {len(targets)} 个目标")
+          f"（无法判定来源的 {len(unknown)} 个），选定 {len(targets)} 个目标")
+    if unknown:
+        print("::warning::读不出来源的包：" + ", ".join(unknown[:10]) + (" …" if len(unknown) > 10 else ""))
+        if any(n.endswith(".apk") for n in unknown) and APK_ERR:
+            print(f"::warning::apk adbdump 的诊断信息：{APK_ERR}")
     for t in missing:
         print(f"::error::构建目标 {t} 没有产出任何包")
     extra = sorted(set(produced) - set(targets))

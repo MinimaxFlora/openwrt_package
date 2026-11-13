@@ -255,7 +255,29 @@ jobs:
             if [ -x "$c" ]; then APK_BIN="$c"; break; fi
           done
           [ -n "$APK_BIN" ] || APK_BIN="$(command -v apk 2>/dev/null || true)"
-          if ! python3 tools/check-artifacts.py release "$PACKAGES" ${APK_BIN:+--apk "$APK_BIN"}; then
+          # 找 SDK 里的 apk（CI 里 SDK 可能不在 cwd，靠这些线索兜住）
+          if [ -z "$APK_BIN" ]; then
+            for c in ${STAGING_DIR_HOST:+$STAGING_DIR_HOST/bin/apk} \
+                     ${STAGING_DIR:+$(dirname "$(dirname "$STAGING_DIR")")/host/bin/apk} \
+                     $GITHUB_WORKSPACE/staging_dir/host/bin/apk \
+                     $(ls -d */staging_dir/host/bin/apk */*/staging_dir/host/bin/apk 2>/dev/null); do
+              [ -x "$c" ] && { APK_BIN="$c"; break; }
+            done
+          fi
+          echo "apk 工具: ${APK_BIN:-未找到}"
+          set +e
+          python3 tools/check-artifacts.py release "$PACKAGES" ${APK_BIN:+--apk "$APK_BIN"}
+          rc=$?
+          set -e
+          if [ $rc -ne 0 ]; then
+            if [ $rc -eq 3 ]; then
+              echo "::group::apk 工具定位诊断"
+              echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+              echo "STAGING_DIR=${STAGING_DIR:-未设置} STAGING_DIR_HOST=${STAGING_DIR_HOST:-未设置}"
+              ls -d ./*/staging_dir/host/bin/apk ./*/staging_dir/host/bin/apk.static 2>/dev/null
+              ls -d "$GITHUB_WORKSPACE"/staging_dir/host/bin/apk* 2>/dev/null
+              echo "::endgroup::"
+            fi
             echo "::group::编译日志里报错的部分（logs/）"
             if [ -d logs ]; then
               find logs -name '*.txt' -print0 | while IFS= read -r -d '' f; do
@@ -270,6 +292,7 @@ jobs:
             echo "::error::有构建目标没产出包，原因见上面的编译日志"
             exit 1
           fi
+          exit 0
 
   # ---- 发布：按架构汇总 24.x + 25.x 产物，删除旧 release/tag 后重建 ----
   release:
