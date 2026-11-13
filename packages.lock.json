@@ -1,7 +1,7 @@
 {
   "version": 2,
   "note": "由 tools/gen-lock.py 生成，勿手改。改包版本后跑一次 python3 tools/gen-lock.py",
-  "count": 55,
+  "count": 53,
   "packages": {
     "airconnect": {
       "dir": "airconnect",
@@ -70,15 +70,6 @@
       "PKG_HASH": "b080a141505a3180c3b81468304864e4373c4868680ff39fb82ee6973e3b5e94",
       "PKG_LICENSE": "Apache-2.0"
     },
-    "gn": {
-      "dir": "gn",
-      "packages": [
-        "gn"
-      ],
-      "PKG_SOURCE_URL": "https://gn.googlesource.com/gn.git",
-      "PKG_SOURCE_VERSION": "8d1b023dec36ab50138d427e807175fd99b5bb57",
-      "PKG_LICENSE": "BSD 3-Clause"
-    },
     "hysteria": {
       "dir": "hysteria",
       "packages": [
@@ -100,16 +91,6 @@
       "PKG_SOURCE_URL": "https://codeload.github.com/zfl9/ipt2socks/tar.gz/v$(PKG_VERSION)?",
       "PKG_HASH": "68dc76e63951d655c2fd9b420e175b5a75a50014d6db6e729398b41f2c988356",
       "PKG_LICENSE": "AGPL-3.0"
-    },
-    "libcronet": {
-      "dir": "libcronet",
-      "packages": [
-        "libcronet"
-      ],
-      "PKG_VERSION": "150.0.7871.63~$(call version_abbrev,$(PKG_SOURCE_VERSION))",
-      "PKG_SOURCE_URL": "https://github.com/SagerNet/naiveproxy.git",
-      "PKG_SOURCE_VERSION": "72a06c9fca0e2d228588c7f3074bf7efff3ff686",
-      "PKG_LICENSE": "BSD 3-Clause"
     },
     "luci-app-adguardhome": {
       "dir": "luci-app-adguardhome",
