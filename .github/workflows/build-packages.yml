@@ -277,9 +277,30 @@ jobs:
             rc=$?
           elif docker image inspect sdk >/dev/null 2>&1; then
             echo "改用 sdk 镜像里的 apk 读 .apk 元数据"
+            # 注意：不要覆盖容器的工作目录。ghcr.io/openwrt/sdk 镜像的 cwd 就是 SDK 根目录，
+            # apk 在 ./staging_dir/host/bin/apk；工作区挂在 /w，用绝对路径访问。
             docker run --rm --entrypoint bash \
-              -v "$PWD:/w" -w /w -e PACKAGES="$PACKAGES" sdk \
-              -lc 'python3 tools/check-artifacts.py release "$PACKAGES" || /usr/bin/python3 tools/check-artifacts.py release "$PACKAGES"'
+              -v "$PWD:/w" -e PACKAGES="$PACKAGES" sdk -lc '
+                set -u
+                echo "容器内 cwd=$(pwd)"
+                APK=""
+                if [ -x ./staging_dir/host/bin/apk ]; then
+                  APK="$PWD/staging_dir/host/bin/apk"
+                elif APK=$(command -v apk 2>/dev/null); then
+                  :
+                else
+                  APK=$(find / -maxdepth 6 -type f -name apk -perm -u+x 2>/dev/null | head -1)
+                fi
+                echo "容器内 apk: ${APK:-没找到}"
+                if [ -z "$APK" ]; then
+                  echo "--- 容器内找 staging_dir ---"
+                  find / -maxdepth 5 -type d -name staging_dir 2>/dev/null | head -5
+                  echo "--- cwd 内容 ---"; ls | head -20
+                fi
+                PY=$(command -v python3 2>/dev/null || true)
+                [ -n "$PY" ] || { echo "::error::sdk 镜像里没有 python3"; exit 3; }
+                "$PY" /w/tools/check-artifacts.py /w/release "$PACKAGES" ${APK:+--apk "$APK"}
+              '
             rc=$?
           else
             echo "::error::本机没有 apk，也没有可用的 sdk 镜像，无法判定 .apk 的来源（会误报缺包）"
