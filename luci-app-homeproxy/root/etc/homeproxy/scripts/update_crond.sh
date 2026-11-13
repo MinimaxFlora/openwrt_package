@@ -4,9 +4,43 @@
 # Copyright (C) 2023 ImmortalWrt.org
 
 SCRIPTS_DIR="/etc/homeproxy/scripts"
+RUN_DIR="/var/run/homeproxy"
+LOG_PATH="$RUN_DIR/homeproxy.log"
 
-for i in "china_ip4" "china_ip6" "gfw_list" "china_list"; do
-	"$SCRIPTS_DIR"/update_resources.sh "$i"
-done
+UPDATE_PROXY=""
+if [ "$(uci -q get homeproxy.subscription.update_via_proxy)" = "1" ]; then
+	MIXED_PORT="$(uci -q get homeproxy.infra.mixed_port)"
+	case "$MIXED_PORT" in
+	''|*[!0-9]*) MIXED_PORT="5330" ;;
+	esac
+	UPDATE_PROXY="http://127.0.0.1:$MIXED_PORT"
+fi
 
-"$SCRIPTS_DIR"/update_subscriptions.uc
+HOMEPROXY_UPDATE_PROXY="$UPDATE_PROXY" "$SCRIPTS_DIR"/update_resources.sh
+RESOURCE_STATUS="$?"
+DASHBOARD_UPDATED=0
+if [ "$RESOURCE_STATUS" -ne 2 ]; then
+	DASHBOARD_UPDATED="$(sed -n 's/^dashboard_updated=//p' "$RUN_DIR/update_resources.result" 2>"/dev/null")"
+	[ "$DASHBOARD_UPDATED" = "1" ] || DASHBOARD_UPDATED=0
+fi
+
+SUBSCRIPTION_URLS="$(uci -q get homeproxy.subscription.subscription_url)"
+SUBSCRIPTION_STATUS=0
+if [ -n "$SUBSCRIPTION_URLS" ]; then
+	HOMEPROXY_DASHBOARD_UPDATED="$DASHBOARD_UPDATED" \
+		"$SCRIPTS_DIR"/update_subscriptions.sh || SUBSCRIPTION_STATUS="$?"
+else
+	mkdir -p "$RUN_DIR"
+	printf '%s [SUBSCRIBE] No subscription URL configured; skipping update.\n' \
+		"$(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG_PATH"
+fi
+
+# Local rule-set files are watched by sing-box; only the dashboard needs a reload.
+if [ "$DASHBOARD_UPDATED" -eq 1 ] && \
+	{ [ -z "$SUBSCRIPTION_URLS" ] || [ "$SUBSCRIPTION_STATUS" -eq 2 ]; } && \
+	   /etc/init.d/homeproxy running >/dev/null 2>&1; then
+	if ! /etc/init.d/homeproxy reload >/dev/null 2>&1; then
+		printf '%s [RESOURCES] Failed to reload HomeProxy after updating resources.\n' \
+			"$(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG_PATH"
+	fi
+fi
