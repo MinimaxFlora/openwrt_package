@@ -65,7 +65,7 @@ endef
 define Package/sing-box
   $(call Package/sing-box/Default)
   TITLE+= (full version)
-  DEPENDS+= +kmod-netlink-diag +kmod-tun +SING_BOX_BUILD_NAIVE_OUTBOUND:libcronet
+  DEPENDS+= +kmod-netlink-diag +kmod-tun
   CONFLICTS:=sing-box-tiny
   VARIANT:=full
   DEFAULT_VARIANT:=1
