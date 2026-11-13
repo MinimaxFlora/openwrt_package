@@ -219,6 +219,24 @@ jobs:
           fi
           ls -lh release/
 
+      # ---- 先把日志和产物传走，再做断言 ----
+      # 断言放最后：这样即使断言红了，3 小时的编译结果也不会像上一轮那样全丢
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: build-logs-${{ matrix.arch }}-${{ matrix.version }}
+          path: logs
+          if-no-files-found: ignore
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: packages-${{ matrix.arch }}-${{ matrix.version }}
+          path: release
+          if-no-files-found: warn
+
       # ---- 断言：选定的每个构建目标都必须真的有产物 ----
       # 不按文件名猜包名：一个目录编出的包名经常和目录名无关
       #   shadowsocks-rust → sslocal/sserver/…、autocore → autocore-x86/arm、
@@ -229,7 +247,9 @@ jobs:
       - name: Assert every selected package produced
         run: |
           set -uo pipefail
-          ls -lh release/ | head -5
+          # 别写 `ls ... | head`：在 bash -e + pipefail 下，head 提前关闭管道会让 ls
+          # 报 "write error: Broken pipe" 并以 2 退出，整个步骤直接挂（上一轮就是这么挂的）
+          ls -lh release/ | head -5 || true
           APK_BIN=""
           for c in staging_dir/host/bin/apk staging_dir/host/bin/apk.static; do
             if [ -x "$c" ]; then APK_BIN="$c"; break; fi
@@ -250,22 +270,6 @@ jobs:
             echo "::error::有构建目标没产出包，原因见上面的编译日志"
             exit 1
           fi
-
-      - name: Upload build logs
-        if: always()
-        uses: actions/upload-artifact@v7.0.1
-        with:
-          name: build-logs-${{ matrix.arch }}-${{ matrix.version }}
-          path: logs
-          if-no-files-found: ignore
-
-      # ---- 上传 artifact 供 release job 汇总 ----
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v7.0.1
-        with:
-          name: packages-${{ matrix.arch }}-${{ matrix.version }}
-          path: release
-          if-no-files-found: warn
 
   # ---- 发布：按架构汇总 24.x + 25.x 产物，删除旧 release/tag 后重建 ----
   release:
