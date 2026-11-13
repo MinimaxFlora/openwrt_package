@@ -128,7 +128,8 @@
     },
     "luci-app-homeproxy": {
       "dir": "luci-app-homeproxy",
-      "packages": []
+      "packages": [],
+      "PKG_VERSION": "20261111"
     },
     "luci-app-mentohust": {
       "dir": "luci-app-mentohust",
@@ -359,10 +360,10 @@
         "sing-box",
         "sing-box-tiny"
       ],
-      "PKG_VERSION": "1.14.3",
-      "PKG_SOURCE": "$(PKG_NAME)-$(PKG_VERSION).tar.gz",
-      "PKG_SOURCE_URL": "https://codeload.github.com/SagerNet/sing-box/tar.gz/v$(PKG_VERSION)?",
-      "PKG_HASH": "9a8e3712a5f611ad95f1d16874bbdcdffbd3b8eed16dae2d71ce7042a33c3386",
+      "PKG_VERSION": "$(subst -alpha.,_alpha,$(PKG_UPSTREAM_VERSION))",
+      "PKG_SOURCE": "$(PKG_NAME)-$(PKG_UPSTREAM_VERSION).tar.gz",
+      "PKG_SOURCE_URL": "https://codeload.github.com/SagerNet/sing-box/tar.gz/v$(PKG_UPSTREAM_VERSION)?",
+      "PKG_HASH": "29047987ed69ba790f2ae4eec62abf41bd1619d093af071f505b4ba081e06b44",
       "PKG_LICENSE": "GPL-3.0-or-later"
     },
     "tcping": {
