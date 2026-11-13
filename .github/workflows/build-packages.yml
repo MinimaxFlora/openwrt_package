@@ -239,7 +239,7 @@ jobs:
             echo "::group::编译日志里报错的部分（logs/）"
             if [ -d logs ]; then
               find logs -name '*.txt' -print0 | while IFS= read -r -d '' f; do
-                if tail -25 "$f" | grep -qiE 'error|failed|\*\*\*'; then
+                if tail -30 "$f" | grep -qiE 'error|failed|does not exist|missing|\*\*\*'; then
                   echo "===== $f"; tail -40 "$f"
                 fi
               done
