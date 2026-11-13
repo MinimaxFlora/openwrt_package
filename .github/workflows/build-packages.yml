@@ -254,9 +254,10 @@ jobs:
       - name: Assert every selected package produced
         run: |
           set -uo pipefail
-          # 别写 `ls ... | head`：在 bash -e + pipefail 下 head 提前关管道会让 ls
-          # 报 "write error: Broken pipe" 并以 2 退出（上一轮就这么整步挂掉）
-          ls -lh release/ | head -5 || true
+          # 别用 head 收尾管道：在 bash -e + pipefail 下 head 提前关管道会让 ls
+          # 报 "write error: Broken pipe"（虽然加了 || true 不会挂，但日志里一直有噪音）。
+          # sed 会读完全部输入，不会给 ls 发 SIGPIPE。
+          ls -lh release/ | sed -n '1,6p' || true
 
           # .apk 的来源只能靠 `apk adbdump` 读，而宿主上没有 apk（SDK 在 sdk 镜像里）。
           # 所以：本地能找到 apk 就用本地的，否则借 Build Packages 刚构建出来的 sdk 镜像。
