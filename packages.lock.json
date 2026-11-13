@@ -1,7 +1,7 @@
 {
   "version": 2,
   "note": "由 tools/gen-lock.py 生成，勿手改。改包版本后跑一次 python3 tools/gen-lock.py",
-  "count": 54,
+  "count": 55,
   "packages": {
     "airconnect": {
       "dir": "airconnect",
@@ -69,6 +69,15 @@
       "PKG_SOURCE_URL": "https://codeload.github.com/snowie2000/geoview/tar.gz/$(PKG_VERSION)?",
       "PKG_HASH": "b080a141505a3180c3b81468304864e4373c4868680ff39fb82ee6973e3b5e94",
       "PKG_LICENSE": "Apache-2.0"
+    },
+    "gn": {
+      "dir": "gn",
+      "packages": [
+        "gn"
+      ],
+      "PKG_SOURCE_URL": "https://gn.googlesource.com/gn.git",
+      "PKG_SOURCE_VERSION": "8d1b023dec36ab50138d427e807175fd99b5bb57",
+      "PKG_LICENSE": "BSD 3-Clause"
     },
     "hysteria": {
       "dir": "hysteria",
