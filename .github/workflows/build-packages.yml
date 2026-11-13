@@ -244,38 +244,55 @@ jobs:
       # 而且 `sing-box-*` 这种 glob 会命中 sing-box-tiny，把 full 变体的失败掩盖掉。
       # tools/check-artifacts.py 读每个包自带的来源字段恢复映射：
       #   .ipk → control 的 `Source: /feed/<dir>`；.apk → adbdump 的 `origin:`
+      # ---- 断言：选定的每个构建目标都必须真的有产物 ----
+      # 不按文件名猜包名：一个目录编出的包名经常和目录名无关
+      #   shadowsocks-rust → sslocal/sserver/…、autocore → autocore-x86/arm、
+      #   v2ray-geodata → v2ray-geoip/geosite、simple-obfs → client/server，
+      # 而且 `sing-box-*` 这种 glob 会命中 sing-box-tiny，把 full 变体的失败掩盖掉。
+      # tools/check-artifacts.py 读每个包自带的来源字段恢复映射：
+      #   .ipk → control 的 `Source: /feed/<dir>`；.apk → adbdump 的 `origin:`
       - name: Assert every selected package produced
         run: |
           set -uo pipefail
-          # 别写 `ls ... | head`：在 bash -e + pipefail 下，head 提前关闭管道会让 ls
-          # 报 "write error: Broken pipe" 并以 2 退出，整个步骤直接挂（上一轮就是这么挂的）
+          # 别写 `ls ... | head`：在 bash -e + pipefail 下 head 提前关管道会让 ls
+          # 报 "write error: Broken pipe" 并以 2 退出（上一轮就这么整步挂掉）
           ls -lh release/ | head -5 || true
+
+          # .apk 的来源只能靠 `apk adbdump` 读，而宿主上没有 apk（SDK 在 sdk 镜像里）。
+          # 所以：本地能找到 apk 就用本地的，否则借 Build Packages 刚构建出来的 sdk 镜像。
           APK_BIN=""
-          for c in staging_dir/host/bin/apk staging_dir/host/bin/apk.static; do
-            if [ -x "$c" ]; then APK_BIN="$c"; break; fi
+          for c in ${STAGING_DIR_HOST:+$STAGING_DIR_HOST/bin/apk} \
+                   ${STAGING_DIR:+$(dirname "$(dirname "$STAGING_DIR")")/host/bin/apk} \
+                   $GITHUB_WORKSPACE/staging_dir/host/bin/apk \
+                   staging_dir/host/bin/apk \
+                   $(ls -d */staging_dir/host/bin/apk */*/staging_dir/host/bin/apk 2>/dev/null || true) \
+                   "$(command -v apk 2>/dev/null || true)"; do
+            [ -n "$c" ] && [ -x "$c" ] && { APK_BIN="$c"; break; }
           done
-          [ -n "$APK_BIN" ] || APK_BIN="$(command -v apk 2>/dev/null || true)"
-          # 找 SDK 里的 apk（CI 里 SDK 可能不在 cwd，靠这些线索兜住）
-          if [ -z "$APK_BIN" ]; then
-            for c in ${STAGING_DIR_HOST:+$STAGING_DIR_HOST/bin/apk} \
-                     ${STAGING_DIR:+$(dirname "$(dirname "$STAGING_DIR")")/host/bin/apk} \
-                     $GITHUB_WORKSPACE/staging_dir/host/bin/apk \
-                     $(ls -d */staging_dir/host/bin/apk */*/staging_dir/host/bin/apk 2>/dev/null); do
-              [ -x "$c" ] && { APK_BIN="$c"; break; }
-            done
-          fi
-          echo "apk 工具: ${APK_BIN:-未找到}"
+          echo "本地 apk 工具: ${APK_BIN:-没有}"
+
           set +e
-          python3 tools/check-artifacts.py release "$PACKAGES" ${APK_BIN:+--apk "$APK_BIN"}
-          rc=$?
+          if [ -n "$APK_BIN" ]; then
+            python3 tools/check-artifacts.py release "$PACKAGES" --apk "$APK_BIN"
+            rc=$?
+          elif docker image inspect sdk >/dev/null 2>&1; then
+            echo "改用 sdk 镜像里的 apk 读 .apk 元数据"
+            docker run --rm --entrypoint bash \
+              -v "$PWD:/w" -w /w -e PACKAGES="$PACKAGES" sdk \
+              -lc 'python3 tools/check-artifacts.py release "$PACKAGES" || /usr/bin/python3 tools/check-artifacts.py release "$PACKAGES"'
+            rc=$?
+          else
+            echo "::error::本机没有 apk，也没有可用的 sdk 镜像，无法判定 .apk 的来源（会误报缺包）"
+            rc=3
+          fi
           set -e
-          if [ $rc -ne 0 ]; then
-            if [ $rc -eq 3 ]; then
-              echo "::group::apk 工具定位诊断"
+
+          if [ "$rc" -ne 0 ]; then
+            if [ "$rc" -eq 3 ]; then
+              echo "::group::诊断"
               echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
               echo "STAGING_DIR=${STAGING_DIR:-未设置} STAGING_DIR_HOST=${STAGING_DIR_HOST:-未设置}"
-              ls -d ./*/staging_dir/host/bin/apk ./*/staging_dir/host/bin/apk.static 2>/dev/null
-              ls -d "$GITHUB_WORKSPACE"/staging_dir/host/bin/apk* 2>/dev/null
+              docker image ls | head -5 || true
               echo "::endgroup::"
             fi
             echo "::group::编译日志里报错的部分（logs/）"
@@ -292,7 +309,6 @@ jobs:
             echo "::error::有构建目标没产出包，原因见上面的编译日志"
             exit 1
           fi
-          exit 0
 
   # ---- 发布：按架构汇总 24.x + 25.x 产物，删除旧 release/tag 后重建 ----
   release:
