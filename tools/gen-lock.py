@@ -46,7 +46,8 @@ def main():
         if not os.path.exists(LOCK):
             print("::error::缺少 packages.lock.json，请运行 python3 tools/gen-lock.py")
             return 1
-        old = open(LOCK, encoding="utf-8").read()
+        # Windows 上 checkout 出来是 CRLF，比对前统一成 LF（否则本地永远"不一致"）
+        old = open(LOCK, encoding="utf-8").read().replace(chr(13) + chr(10), chr(10))
         if old != text:
             print("::error::packages.lock.json 与当前 Makefile 不一致，请重新生成：")
             old_doc = json.loads(old)

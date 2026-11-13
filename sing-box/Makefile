@@ -80,7 +80,11 @@ define Package/sing-box/config
   depends on $(subst @,,$(GO_ARCH_DEPENDS))
 
   config SING_BOX_BUILD_NAIVE_OUTBOUND
-  def_bool y
+  # 默认关闭：开启后 full 变体 DEPENDS +libcronet，而 libcronet 只在
+  # immortalwrt/packages 里，官方 openwrt feed 没有 —— 开启会让
+  # "make package/sing-box/compile" 直接 missing dependencies 失败。
+  # 需要 cronet（naive outbound）时自己加 feed 并打开这个开关。
+  bool "Build with naive outbound (requires libcronet from immortalwrt/packages)"
   depends on !(arc||armeb||loongarch64||mips||mips64||powerpc||TARGET_gemini)
 endef
 

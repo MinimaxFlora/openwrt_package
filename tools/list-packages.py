@@ -24,6 +24,10 @@ def main():
     data = pkgscan.scan()
     if "--count" in sys.argv:
         print(len(data))
+    elif "--map" in sys.argv:
+        # 机器可读：<构建目标>	<pkg1 pkg2 …>（无包名时输出 "-"）
+        for target, info in data.items():
+            print("%s	%s" % (target, " ".join(info["packages"]) or "-"))
     elif "--packages" in sys.argv:
         for target, info in data.items():
             print(f"{target:32s} -> {' '.join(info['packages']) or '-'}")
