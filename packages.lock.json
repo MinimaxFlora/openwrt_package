@@ -5,11 +5,13 @@
   "packages": {
     "airconnect": {
       "dir": "airconnect",
-      "packages": [],
+      "packages": [
+        "airconnect"
+      ],
       "PKG_VERSION": "1.12.4",
-      "PKG_SOURCE": "AirConnect-$(PKG_VERSION).zip",
-      "PKG_SOURCE_URL": "https://github.com/philippe44/AirConnect/releases/download/$(PKG_VERSION)/",
-      "PKG_HASH": "ae59d595be80db7f4e93c94c9029baff59dc7515ec03e44505ab2792bbcd1903",
+      "PKG_SOURCE": "AirConnect-$(PKG_VERSION)-src.tar.xz",
+      "PKG_SOURCE_URL": "https://github.com/sbwml/airconnect-src/releases/download/$(PKG_VERSION)/",
+      "PKG_HASH": "6822fe28b69cf215c86b1caf4a37e2400f390780bbfff9e1e86bae29b3875932",
       "PKG_LICENSE": "MIT"
     },
     "autocore": {
@@ -53,10 +55,10 @@
       "packages": [
         "geo2txt"
       ],
-      "PKG_VERSION": "1.0.0",
+      "PKG_VERSION": "1.0.1",
       "PKG_SOURCE": "$(PKG_NAME)-$(PKG_VERSION).tar.gz",
       "PKG_SOURCE_URL": "https://codeload.github.com/sbwml/geo2txt/tar.gz/$(PKG_VERSION)?",
-      "PKG_HASH": "b777d9c67b36cd8ce68a0555200fae85751435c888364c921a361062ffee4409",
+      "PKG_HASH": "610a43ffddd3a435e112ff6310af2f976fad1f03059b15aa43be52a7e4e49232",
       "PKG_LICENSE": "GPL-3.0"
     },
     "geoview": {
@@ -75,10 +77,10 @@
       "packages": [
         "hysteria"
       ],
-      "PKG_VERSION": "2.13.0",
+      "PKG_VERSION": "2.14.0",
       "PKG_SOURCE": "$(PKG_NAME)-$(PKG_VERSION).tar.gz",
       "PKG_SOURCE_URL": "https://codeload.github.com/apernet/hysteria/tar.gz/app/v$(PKG_VERSION)?",
-      "PKG_HASH": "dfde427a93a0dc5ff65ddc1e239df3b1def54bf33f8b137c571daa7b27ecddd0",
+      "PKG_HASH": "2808da83ef2f4f76be91f7ae0df7518f1cc185d5410cd6d174e738527cf5545e",
       "PKG_LICENSE": "MIT"
     },
     "ipt2socks": {
