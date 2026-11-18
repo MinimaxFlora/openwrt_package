@@ -131,7 +131,7 @@
     "luci-app-homeproxy": {
       "dir": "luci-app-homeproxy",
       "packages": [],
-      "PKG_VERSION": "20261111"
+      "PKG_VERSION": "20261117"
     },
     "luci-app-mentohust": {
       "dir": "luci-app-mentohust",
