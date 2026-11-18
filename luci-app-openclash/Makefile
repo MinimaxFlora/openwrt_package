@@ -7,7 +7,6 @@ PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
 include $(INCLUDE_DIR)/package.mk
-PKG_BUILD_DEPENDS:+=luci-base/host
 
 define Package/$(PKG_NAME)/config
 	config PACKAGE_kmod-inet-diag
@@ -43,7 +42,7 @@ define Package/$(PKG_NAME)
 	SUBMENU:=3. Applications
 	TITLE:=LuCI support for clash
 	PKGARCH:=all
-	DEPENDS:=+luci-base +dnsmasq-full +bash +curl +ca-bundle +ip-full \
+	DEPENDS:=+dnsmasq-full +bash +curl +ca-bundle +ip-full \
 	+ruby +ruby-yaml +kmod-tun +unzip
 	MAINTAINER:=vernesong
 endef
@@ -58,7 +57,7 @@ define Build/Prepare
 	# Replace the @OPENCLASH_VERSION@ token with the package version (browser asset cache keys).
 	sed -i 's|@OPENCLASH_VERSION@|$(PKG_VERSION)|g' $(PKG_BUILD_DIR)/luasrc/openclash.lua $(PKG_BUILD_DIR)/luasrc/view/openclash/*.htm
 	$(foreach po,$(wildcard ${CURDIR}/po/zh-cn/*.po), \
-		po2lmo $(po) $(PKG_BUILD_DIR)/$(patsubst %.po,%.lmo,$(notdir $(po)));)
+		$(CP) $(CURDIR)/lmo/$(patsubst %.po,%.lmo,$(notdir $(po))) $(PKG_BUILD_DIR)/;
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/init.d/openclash
 	chmod -R 0755 $(PKG_BUILD_DIR)/root/usr/share/openclash/
 	exit 0
