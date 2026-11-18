@@ -6,6 +6,11 @@ PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
+# Build/Prepare 里用裸 po2lmo 把 po/ 编成 lmo；po2lmo 由 luci-base 的主机构建产出。
+# include luci.mk 的包会自动带上 luci-base/host 依赖（luci.mk: PKG_BUILD_DEPENDS），
+# 本 package 没有 include luci.mk，单独编译时会缺 po2lmo（bash: po2lmo: command not found / Error 127）。
+PKG_BUILD_DEPENDS:+=luci-base/host
+
 include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)/config
