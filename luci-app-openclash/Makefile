@@ -6,9 +6,9 @@ PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
-# Build/Prepare 里用裸 po2lmo 把 po/ 编成 lmo；po2lmo 由 luci-base 的主机构建产出。
-# include luci.mk 的包会自动带上 luci-base/host 依赖（luci.mk: PKG_BUILD_DEPENDS），
-# 本 package 没有 include luci.mk，单独编译时会缺 po2lmo（bash: po2lmo: command not found / Error 127）。
+# Build/Prepare éç¨è£¸ po2lmo æ po/ ç¼æ lmoï¼po2lmo ç± luci-base çä¸»æºæå»ºäº§åºã
+# include luci.mk çåä¼èªå¨å¸¦ä¸ luci-base/host ä¾èµï¼luci.mk: PKG_BUILD_DEPENDSï¼ï¼
+# æ¬ package æ²¡æ include luci.mkï¼åç¬ç¼è¯æ¶ä¼ç¼º po2lmoï¼bash: po2lmo: command not found / Error 127ï¼ã
 PKG_BUILD_DEPENDS:+=luci-base/host
 
 include $(INCLUDE_DIR)/package.mk
@@ -47,7 +47,7 @@ define Package/$(PKG_NAME)
 	SUBMENU:=3. Applications
 	TITLE:=LuCI support for clash
 	PKGARCH:=all
-	DEPENDS:=+dnsmasq-full +bash +curl +ca-bundle +ip-full \
+	DEPENDS:=+luci-base +dnsmasq-full +bash +curl +ca-bundle +ip-full \
 	+ruby +ruby-yaml +kmod-tun +unzip
 	MAINTAINER:=vernesong
 endef
