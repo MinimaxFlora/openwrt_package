@@ -6,9 +6,6 @@ PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
-# 优先用 luci-base 主机构建装出来的 po2lmo（不依赖容器 PATH）
-PO2LMO_BIN:=$(if $(wildcard $(STAGING_DIR_HOST)/bin/po2lmo),$(STAGING_DIR_HOST)/bin/po2lmo,po2lmo)
-
 include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)/config
@@ -60,7 +57,7 @@ define Build/Prepare
 	# Replace the @OPENCLASH_VERSION@ token with the package version (browser asset cache keys).
 	sed -i 's|@OPENCLASH_VERSION@|$(PKG_VERSION)|g' $(PKG_BUILD_DIR)/luasrc/openclash.lua $(PKG_BUILD_DIR)/luasrc/view/openclash/*.htm
 	$(foreach po,$(wildcard ${CURDIR}/po/zh-cn/*.po), \
-		$(PO2LMO_BIN) $(po) $(PKG_BUILD_DIR)/$(patsubst %.po,%.lmo,$(notdir $(po)));)
+		po2lmo $(po) $(PKG_BUILD_DIR)/$(patsubst %.po,%.lmo,$(notdir $(po)));)
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/init.d/openclash
 	chmod -R 0755 $(PKG_BUILD_DIR)/root/usr/share/openclash/
 	exit 0
@@ -144,7 +141,7 @@ endef
 
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
-	-$(INSTALL_DATA) $(PKG_BUILD_DIR)/*.*.lmo $(1)/usr/lib/lua/luci/i18n/
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/*.*.lmo $(1)/usr/lib/lua/luci/i18n/
 	$(CP) $(PKG_BUILD_DIR)/root/* $(1)/
 	$(CP) $(PKG_BUILD_DIR)/luasrc/* $(1)/usr/lib/lua/luci/
 endef
