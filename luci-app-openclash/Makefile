@@ -6,9 +6,10 @@ PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
-# Build/Prepare éç¨è£¸ po2lmo æ po/ ç¼æ lmoï¼po2lmo ç± luci-base çä¸»æºæå»ºäº§åºã
-# include luci.mk çåä¼èªå¨å¸¦ä¸ luci-base/host ä¾èµï¼luci.mk: PKG_BUILD_DEPENDSï¼ï¼
-# æ¬ package æ²¡æ include luci.mkï¼åç¬ç¼è¯æ¶ä¼ç¼º po2lmoï¼bash: po2lmo: command not found / Error 127ï¼ã
+# po2lmo (used by Build/Prepare) is produced by luci-base host build. Packages that
+# include luci.mk get that dependency automatically (PKG_BUILD_DEPENDS += luci-base/host);
+# this package does not include luci.mk, so declare it explicitly. Without it a
+# standalone build fails with "po2lmo: command not found" (Error 127).
 PKG_BUILD_DEPENDS:+=luci-base/host
 
 include $(INCLUDE_DIR)/package.mk
