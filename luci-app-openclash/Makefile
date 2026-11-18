@@ -6,12 +6,6 @@ PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
-# po2lmo (used by Build/Prepare) is produced by luci-base host build. Packages that
-# include luci.mk get that dependency automatically (PKG_BUILD_DEPENDS += luci-base/host);
-# this package does not include luci.mk, so declare it explicitly. Without it a
-# standalone build fails with "po2lmo: command not found" (Error 127).
-PKG_BUILD_DEPENDS:+=luci-base/host
-
 include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)/config
@@ -48,7 +42,7 @@ define Package/$(PKG_NAME)
 	SUBMENU:=3. Applications
 	TITLE:=LuCI support for clash
 	PKGARCH:=all
-	DEPENDS:=+luci-base +dnsmasq-full +bash +curl +ca-bundle +ip-full \
+	DEPENDS:=+dnsmasq-full +bash +curl +ca-bundle +ip-full \
 	+ruby +ruby-yaml +kmod-tun +unzip
 	MAINTAINER:=vernesong
 endef
@@ -62,8 +56,6 @@ define Build/Prepare
 	$(CP) $(CURDIR)/luasrc $(PKG_BUILD_DIR)
 	# Replace the @OPENCLASH_VERSION@ token with the package version (browser asset cache keys).
 	sed -i 's|@OPENCLASH_VERSION@|$(PKG_VERSION)|g' $(PKG_BUILD_DIR)/luasrc/openclash.lua $(PKG_BUILD_DIR)/luasrc/view/openclash/*.htm
-	$(foreach po,$(wildcard ${CURDIR}/po/zh-cn/*.po), \
-		po2lmo $(po) $(PKG_BUILD_DIR)/$(patsubst %.po,%.lmo,$(notdir $(po)));)
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/init.d/openclash
 	chmod -R 0755 $(PKG_BUILD_DIR)/root/usr/share/openclash/
 	exit 0
@@ -147,7 +139,7 @@ endef
 
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/*.*.lmo $(1)/usr/lib/lua/luci/i18n/
+	-$(INSTALL_DATA) $(PKG_BUILD_DIR)/*.*.lmo $(1)/usr/lib/lua/luci/i18n/
 	$(CP) $(PKG_BUILD_DIR)/root/* $(1)/
 	$(CP) $(PKG_BUILD_DIR)/luasrc/* $(1)/usr/lib/lua/luci/
 endef
