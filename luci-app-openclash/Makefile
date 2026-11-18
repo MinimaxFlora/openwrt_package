@@ -7,6 +7,7 @@ PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
 include $(INCLUDE_DIR)/package.mk
+PKG_BUILD_DEPENDS:+=luci-base/host
 
 define Package/$(PKG_NAME)/config
 	config PACKAGE_kmod-inet-diag
@@ -42,7 +43,7 @@ define Package/$(PKG_NAME)
 	SUBMENU:=3. Applications
 	TITLE:=LuCI support for clash
 	PKGARCH:=all
-	DEPENDS:=+dnsmasq-full +bash +curl +ca-bundle +ip-full \
+	DEPENDS:=+luci-base +dnsmasq-full +bash +curl +ca-bundle +ip-full \
 	+ruby +ruby-yaml +kmod-tun +unzip
 	MAINTAINER:=vernesong
 endef
