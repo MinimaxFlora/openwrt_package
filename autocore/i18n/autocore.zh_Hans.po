@@ -1,0 +1,36 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: autocore\n"
+"Language: zh_Hans\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "CPU usage"
+msgstr "CPU 使用率"
+
+msgid "Help & Feedback"
+msgstr "帮助与反馈"
+
+msgid "Project Website"
+msgstr "项目主页"
+
+msgid "Issue Feedback"
+msgstr "问题反馈"
+
+msgid "Donation Address"
+msgstr "捐赠地址"
+
+msgid "Network Speed"
+msgstr "网络速率"
+
+msgid "Download Rate (RX)"
+msgstr "下行速率"
+
+msgid "Upload Rate (TX)"
+msgstr "上行速率"
+
+msgid "Calculating..."
+msgstr "计算中..."
+
+msgid "No active network interfaces"
+msgstr "无活动的网络接口"
