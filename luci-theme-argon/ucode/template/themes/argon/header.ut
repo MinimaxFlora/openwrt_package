@@ -1,0 +1,84 @@
+{#
+	Argon is a clean HTML5 theme for LuCI. It is based on luci-theme-material Argon Template
+
+	luci-theme-argon
+	Copyright 2020 Jerrykuku <jerrykuku@qq.com>
+
+	Have a bug? Please create an issue here on GitHub!
+	https://github.com/jerrykuku/luci-theme-argon/issues
+
+	luci-theme-material:
+	Copyright 2015 Lutty Yang <lutty@wcan.in>
+
+	Argon Theme
+	https://demos.creative-tim.com/argon-dashboard/index.html
+
+	Licensed to the public under the Apache License 2.0
+-#}
+
+{%
+	import { access } from 'fs';
+	import { cursor } from 'uci';
+	import { getuid, getspnam } from 'luci.core';
+
+	const hostname = striptags(ubus.call('system', 'board')?.hostname ?? '?');
+	// First-child routes keep the entry URL while resolving to a deeper page.
+	const page_path = length(ctx.path) > length(ctx.request_path) ? ctx.path : ctx.request_path;
+	const cfg = cursor();
+	const has_config = access('/etc/config/argon');
+	const wallpaper = has_config && cfg.get_first('argon', 'global', 'main_background') == '1'
+		&& cfg.get_first('argon', 'global', 'main_glass') != '0';
+	include('themes/' + theme + '/head', { hostname: hostname, is_login: false });
+%}
+
+<body
+	class="lang_{{ dispatcher.lang }} {{ node?.title ? ` - ${striptags(node.title)}` : '' }} {% if (ctx.authsession): %}logged-in{% endif %}{% if (wallpaper): %} argon-wallpaper{% endif %}"
+	data-page="{{ entityencode(join('-', page_path), true) }}">
+
+	<a class="skip-link" href="#maincontent">{{ _('Skip to content') }}</a>
+	{% if (wallpaper): %}
+	{% include('themes/' + theme + '/login_background', { cfg: cfg }) %}
+	{% endif %}
+	<div class="main">
+		<div class="main-left" role="navigation" id="mainmenu" aria-label="{{ entityencode(_('Navigation'), true) }}" style="display:none">
+			<div class="sidenav-header">
+				<a class="brand" href="#">{{ hostname }}</a>
+				<button type="button" class="sidebar-close" aria-label="{{ entityencode(_('Close'), true) }}"></button>
+			</div>
+		</div>
+		<div class="main-right">
+			<header class="bg-primary">
+				<div class="fill">
+					<div class="container">
+						<div class="flex1">
+							<button type="button" class="showSide" aria-label="{{ entityencode(_('Toggle navigation'), true) }}" aria-controls="mainmenu" aria-expanded="false"></button>
+							<a class="brand" href="#" title="{{ entityencode(hostname, true) }}">{{ hostname }}</a>
+						</div>
+						<div class="header-actions">
+							<div class="status" id="indicators"></div>
+							<div id="argon-appearance" hidden></div>
+						</div>
+					</div>
+				</div>
+			</header>
+			<div class="darkMask"></div>
+			<main id="maincontent" tabindex="-1">
+				<div class="container">
+					{% if (getuid() == 0 && getspnam('root')?.pwdp === ''): %}
+					<div class="alert-message error">
+						<h4>{{ _('No password set!') }}</h4>
+						<p>{{ _('There is no password set on this router. Please configure a root password to protect the web interface.') }}</p>
+						{% if (dispatcher.lookup("admin/system/admin")): %}
+						<div class="right"><a class="btn" href="{{ dispatcher.build_url("admin/system/admin") }}">{{ _('Go to password configuration...') }}</a></div>
+						{% endif %}
+					</div>
+					{% endif %}
+
+				<noscript>
+					<div class="alert-message error">
+						<h4>{{ _('JavaScript required!') }}</h4>
+						<p>{{ _('You must enable JavaScript in your browser or LuCI will not work properly.') }}</p>
+					</div>
+				</noscript>
+
+					<div id="tabmenu" style="display:none"></div>

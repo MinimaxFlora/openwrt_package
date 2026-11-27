@@ -1,0 +1,156 @@
+#!/bin/sh
+# author jjm2473
+
+. /lib/functions.sh
+. /usr/share/libubox/jshn.sh
+
+# Default to Bing for the legacy bing_background configuration.
+WEB_PIC_SRC="$(uci -q get argon.@global[0].online_wallpaper || echo 'bing')"
+
+# EXACT_RESO is used for exact resolution by default, if not use 'atleast' instead of 'resolutions'
+case "$WEB_PIC_SRC" in
+	unsplash|unsplash_*) API_KEY="$(uci -q get 'argon.@global[0].unsplash_api_key')" ;;
+	wallhaven_*) API_KEY="$(uci -q get 'argon.@global[0].wallhaven_api_key')" ;;
+esac
+EXACT_RESO="$(uci -q get argon.@global[0].use_exact_resolution || echo '1')"
+
+CACHE="/var/run/argon_${WEB_PIC_SRC}.url"
+WRLOCK="/var/lock/argon_${WEB_PIC_SRC}.lock"
+
+# Older releases give wget-ssl and wget-nossl the same alternative priority.
+# Use the TLS binary directly even when /usr/bin/wget still selects wget-nossl.
+WGET=/usr/libexec/wget-ssl
+if [ ! -x "$WGET" ]; then
+	# Keep source-only deployments compatible with the firmware's downloader.
+	WGET="$(command -v uclient-fetch || command -v wget)"
+fi
+
+fetch_url() {
+	# GNU wget may retry beyond -T. Bound the whole request below rpcd's timeout.
+	timeout -k 1 "${2:-6}" "$WGET" -T 5 -qO- "$1"
+}
+
+fetch_pic_url() {
+	case "$WEB_PIC_SRC" in
+	bing)
+		local host picpath
+		# Give each Bing endpoint half of the normal request budget.
+		for host in www.bing.com cn.bing.com; do
+			picpath="$(fetch_url "https://${host}/HPImageArchive.aspx?format=js&n=1" 3 |
+				jsonfilter -qe '@.images[0].url')"
+			case "$picpath" in
+				/th\?id=*)
+					printf 'https://%s%s\n' "$host" "$picpath"
+					return
+					;;
+			esac
+		done
+		;;
+	unsplash)
+		if [ -n "$API_KEY" ]; then
+			fetch_url "https://api.unsplash.com/photos/random?client_id=${API_KEY}" |
+				jsonfilter -qe '@["urls"]["regular"]'
+		fi
+		;;
+	unsplash_*)
+		local collection_id="${WEB_PIC_SRC#unsplash_}"
+		if [ -n "$API_KEY" ]; then
+			fetch_url \
+				"https://api.unsplash.com/photos/random?client_id=${API_KEY}&collections=${collection_id}" |
+				jsonfilter -qe '@["urls"]["regular"]'
+		fi
+		;;
+	wallhaven)
+		fetch_url \
+			"https://wallhaven.cc/api/v1/search?resolutions=1920x1080&sorting=random" |
+			jsonfilter -qe "@.data[0].path"
+		;;
+	wallhaven_*)
+		local tag_id="${WEB_PIC_SRC#wallhaven_}"
+		local use_reso="resolutions"
+		[ "$EXACT_RESO" -eq "1" ] || use_reso="atleast"
+		[ -z "$API_KEY" ] || API_KEY="apikey=$API_KEY&"
+		fetch_url \
+			"https://wallhaven.cc/api/v1/search?${API_KEY}q=id%3A${tag_id}&${use_reso}=1920x1080&sorting=random" |
+			jsonfilter -qe '@.data[0].path'
+		;;
+	esac
+}
+
+recent() {
+	[ -f "$1" ] || return 1
+	local modified
+	modified="$(date -r "$1" '+%s' 2>/dev/null)" || return 1
+	[ "$(($(date '+%s') - modified))" -le "$2" ]
+}
+
+cache_current() {
+	local ttl=120
+	[ ! -s "$CACHE" ] || ttl=43200
+	recent "$CACHE" "$ttl"
+}
+
+refresh_cache() (
+	exec 9>"$WRLOCK" || exit 1
+	flock -n 9 || exit 0
+	# Another request may have populated the cache before we acquired the lock.
+	cache_current && exit 0
+
+	local picurl
+	picurl="$(fetch_pic_url)"
+	if [ -n "$picurl" ]; then
+		# Warm Wallhaven images before publishing their URL.
+		case "$WEB_PIC_SRC" in
+			wallhaven*) fetch_url "$picurl" > /dev/null ;;
+		esac
+		printf '%s\n' "$picurl" > "$CACHE.tmp" || exit 1
+	else
+		# Stop serving the stale URL once the refresh has failed.
+		: > "$CACHE.tmp" || exit 1
+	fi
+	mv -f "$CACHE.tmp" "$CACHE"
+)
+
+case "$1" in
+"list")
+	json_init
+	json_add_object "get_url"
+	json_close_object
+	json_add_object "get_cached_url"
+	json_close_object
+	json_dump
+	json_cleanup
+	;;
+"call")
+	case "$2" in
+	"get_url"|"get_cached_url")
+		read -r input
+		case "$WEB_PIC_SRC" in
+		unsplash|unsplash_*)
+			if [ -z "$API_KEY" ]; then
+				json_init
+				json_add_string "url" ""
+				json_dump
+				json_cleanup
+				exit 0
+			fi
+			;;
+		esac
+		if ! cache_current; then
+			if [ "$2" = get_cached_url ]; then
+				# rpcd must be able to collect this reply while the worker is downloading.
+				(trap '' HUP; refresh_cache) </dev/null >/dev/null 2>&1 &
+			else
+				refresh_cache
+			fi
+		fi
+
+		json_init
+		json_add_string "url" "$(cat "$CACHE" 2>/dev/null)"
+		json_dump
+		json_cleanup
+		exit 0
+		;;
+	esac
+	;;
+esac
