@@ -1,0 +1,250 @@
+import { defineConfig, rspack } from "@rsbuild/core";
+import { pluginSass } from "@rsbuild/plugin-sass";
+import { type Compiler, SwcJsMinimizerRspackPlugin } from "@rspack/core";
+import { gzipSync } from "node:zlib";
+import { generateIcons } from "./script/generate-fluent-icons";
+import { generateThemeDefaults } from "./script/generate-theme-defaults";
+
+const luciRequires = `"use strict";
+"require baseclass";
+"require ui";
+"require dom";
+`;
+const minify = process.env.RSBUILD_MINIFY === "true" || process.env.RSBUILD_MINIFY === "1";
+
+export default defineConfig(({ envMode }) => {
+  const variant = envMode === "lite" ? "lite" : "full";
+  const packageRoot = variant === "lite" ? "../package/luci-theme-fluent-lite" : "../package/luci-theme-fluent";
+  const menuFeatures = variant === "lite" ? "./web/resources/utils/menu-features-lite.ts" : "./web/resources/utils/menu-features.ts";
+
+  return {
+    environments: {
+      js: {
+        source: {
+          entry: {
+            "menu-fluent": "./web/resources/menu-fluent.tsx",
+            "view/fluent-config": variant === "lite" ? "./web/resources/view/fluent-config-lite.tsx" : "./web/resources/view/fluent-config.tsx",
+          },
+          tsconfigPath: "./tsconfig.json",
+        },
+        resolve: {
+          aliasStrategy: "prefer-alias",
+          alias: {
+            "./utils/menu-features": menuFeatures,
+          },
+        },
+        output: {
+          module: true,
+          charset: "ascii",
+          overrideBrowserslist: ["defaults", "not ie <= 11", "not op_mini all", "chrome >= 125", "firefox >= 147", "safari >= 26", "edge >= 125"],
+          distPath: {
+            root: `${packageRoot}/htdocs/luci-static/resources`,
+            js: ".",
+          },
+          filename: {
+            js: "[name].js",
+          },
+          assetPrefix: "",
+          minify: minify,
+          cleanDistPath: false,
+        },
+        tools: {
+          htmlPlugin: false,
+          swc: {
+            jsc: {
+              parser: {
+                syntax: "typescript",
+                tsx: true,
+                decorators: true,
+              },
+              transform: {
+                react: {
+                  runtime: "automatic",
+                  importSource: "@lazulikao/luci-types",
+                  useBuiltins: true,
+                },
+                optimizer: {
+                  simplify: true,
+                },
+              },
+              minify: {
+                compress: true,
+                mangle: {},
+              },
+            },
+          },
+          rspack: (config) => {
+            config.output = config.output || {};
+            config.optimization = config.optimization || {};
+            config.optimization.splitChunks = false;
+            config.optimization.runtimeChunk = false;
+            config.optimization.avoidEntryIife = true;
+            config.optimization.usedExports = false;
+            config.optimization.sideEffects = false;
+
+            config.plugins = config.plugins || [];
+            if (minify) {
+              // Ensure "main" is not mangled so "return main;" works correctly
+              config.optimization.minimizer = [
+                new SwcJsMinimizerRspackPlugin({
+                  minimizerOptions: {
+                    // Treat as module to avoid IIFE wrapping (keeps variables at top level)
+                    module: true,
+                    compress: true,
+                    mangle: {
+                      reserved: ["main"],
+                    },
+                  },
+                }),
+              ];
+              config.plugins.push({
+                name: "AddLuCIWrapperPlugin",
+                apply(compiler: Compiler) {
+                  compiler.hooks.emit.tapAsync("AddLuCIWrapperPlugin", (compilation, callback) => {
+                    for (const name of Object.keys(compilation.assets)) {
+                      if (name.endsWith(".js")) {
+                        const asset = compilation.assets[name];
+                        const src = asset.source();
+                        const sourceEdit = `${luciRequires}${src}\nreturn main;`;
+                        compilation.assets[name] = {
+                          source: () => sourceEdit,
+                          buffer: () => Buffer.from(sourceEdit),
+                          size: () => sourceEdit.length,
+                          map: () => null,
+                          sourceAndMap: () => ({ source: sourceEdit, map: null }),
+                          updateHash: (hash: { update(s: string): void }) => hash.update(sourceEdit),
+                          buffers: () => [Buffer.from(sourceEdit)],
+                          clearCache: () => undefined,
+                        };
+                      }
+                    }
+                    callback();
+                  });
+                },
+              });
+            } else {
+              config.plugins.push(new rspack.BannerPlugin({ banner: `${luciRequires}// WARN: generated by rsbuild - do not edit\n`, raw: true, entryOnly: true }));
+              config.plugins.push(new rspack.BannerPlugin({ banner: "return main;", raw: true, entryOnly: true, footer: true }));
+              config.optimization.minimize = false;
+            }
+            return config;
+          },
+        },
+        performance: {
+          chunkSplit: {
+            strategy: "all-in-one",
+          },
+        },
+      },
+      css: {
+        plugins: [pluginSass()],
+        source: {
+          entry: {
+            fluent: variant === "lite" ? "./scss/fluent-lite.scss" : "./scss/fluent.scss",
+          },
+        },
+        output: {
+          distPath: {
+            root: `${packageRoot}/htdocs/luci-static/fluent/css`,
+            css: ".",
+            js: ".",
+          },
+          filename: {
+            css: "[name].css",
+            js: "[name].js",
+          },
+          cleanDistPath: true,
+          charset: "ascii",
+          minify: minify,
+          dataUriLimit: Number.MAX_SAFE_INTEGER,
+        },
+        tools: {
+          htmlPlugin: false,
+          cssLoader: (config) => {
+            config.url = {
+              filter: (url: string) => url.startsWith("../assets/") || url.startsWith("./assets/"),
+            };
+            return config;
+          },
+          rspack: (config) => {
+            config.plugins = config.plugins || [];
+            config.plugins.push({
+              name: "RemoveEntryJsPlugin",
+              apply(compiler: Compiler) {
+                compiler.hooks.emit.tapAsync("RemoveEntryJsPlugin", (compilation, callback) => {
+                  delete compilation.assets["fluent.js"];
+                  delete compilation.assets["fluent.js.map"];
+                  callback();
+                });
+              },
+            });
+            if (variant === "lite") {
+              config.plugins.push({
+                name: "GzipLiteCssPlugin",
+                apply(compiler: Compiler) {
+                  compiler.hooks.emit.tapAsync("GzipLiteCssPlugin", (compilation, callback) => {
+                    const asset = compilation.assets["fluent.css"];
+                    if (!asset) {
+                      callback(new Error("Expected fluent.css in lite CSS build output"));
+                      return;
+                    }
+
+                    const source = asset.source();
+                    const compressed = gzipSync(Buffer.isBuffer(source) ? source : Buffer.from(source), { level: 9 });
+                    compilation.assets["fluent.css.gz"] = {
+                      source: () => compressed,
+                      buffer: () => compressed,
+                      size: () => compressed.length,
+                      map: () => null,
+                      sourceAndMap: () => ({ source: compressed, map: null }),
+                      updateHash: (hash: { update(value: Buffer): void }) => hash.update(compressed),
+                      buffers: () => [compressed],
+                      clearCache: () => undefined,
+                    };
+                    delete compilation.assets["fluent.css"];
+                    callback();
+                  });
+                },
+              });
+            }
+            config.plugins.push({
+              name: "GenerateFluentIconsPlugin",
+              apply(compiler: Compiler) {
+                const regenerate = () => {
+                  if (!generateIcons()) {
+                    throw new Error("Failed to generate Fluent icons");
+                  }
+                };
+                compiler.hooks.beforeRun.tapAsync("GenerateFluentIconsPlugin", (_, callback) => {
+                  regenerate();
+                  callback();
+                });
+                compiler.hooks.watchRun.tapAsync("GenerateFluentIconsPlugin", (_, callback) => {
+                  regenerate();
+                  callback();
+                });
+              },
+            });
+            config.plugins.push({
+              name: "GenerateThemeDefaultsPlugin",
+              apply(compiler: Compiler) {
+                const regenerate = () => {
+                  generateThemeDefaults();
+                };
+                compiler.hooks.beforeRun.tapAsync("GenerateThemeDefaultsPlugin", (_, callback) => {
+                  regenerate();
+                  callback();
+                });
+                compiler.hooks.watchRun.tapAsync("GenerateThemeDefaultsPlugin", (_, callback) => {
+                  regenerate();
+                  callback();
+                });
+              },
+            });
+            return config;
+          },
+        },
+      },
+    },
+  };
+});

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="75 75 362 362" role="img" aria-labelledby="title desc">
+  <title id="title">Ethernet port with disconnected plug</title>
+  <desc id="desc">A Fluent UI style ethernet port icon with eight RJ45 contacts and a plug disconnected symbol.</desc>
+  <g fill="none" stroke="#424242" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M333 135H139c-8.8 0-16 7.2-16 16v221c0 8.8 7.2 16 16 16h239c8.8 0 16-7.2 16-16V206" stroke-width="10"/>
+    <path d="M171 209h173v101h-33v27h-27v23h-55v-23h-27v-27h-31z" stroke-width="10"/>
+    <path d="M195 211v26" stroke-width="9"/>
+    <path d="M213 211v26" stroke-width="9"/>
+    <path d="M231 211v26" stroke-width="9"/>
+    <path d="M249 211v26" stroke-width="9"/>
+    <path d="M267 211v26" stroke-width="9"/>
+    <path d="M285 211v26" stroke-width="9"/>
+    <path d="M303 211v26" stroke-width="9"/>
+    <path d="M321 211v26" stroke-width="9"/>
+  </g>
+  <path fill="#424242" transform="translate(312 86) scale(6.6)" d="M17.854 2.146a.5.5 0 0 1 0 .708l-1.668 1.668a4.04 4.04 0 0 1-.332 5.331l-.3.3l-.003.003l-.309.309a1.05 1.05 0 0 1-1.484 0L9.535 6.242a1.05 1.05 0 0 1 0-1.485l.611-.61a4.036 4.036 0 0 1 5.332-.332l1.668-1.669a.5.5 0 0 1 .708 0M15.14 4.847a3.037 3.037 0 0 0-4.286.006l-.3.3a.49.49 0 0 0 0 .693l3.6 3.6c.19.191.5.192.691.002l.002-.002l.3-.3a3.036 3.036 0 0 0 .006-4.286l-.007-.006zm-5.786 3.8a.5.5 0 0 1 0 .707L7.707 11L9 12.293l1.646-1.647a.5.5 0 0 1 .708.708L9.707 13l.447.447a1.49 1.49 0 0 1 0 2.107l-.3.3a4.036 4.036 0 0 1-5.332.332l-1.668 1.668a.5.5 0 0 1-.708-.708l1.669-1.668a4.036 4.036 0 0 1 .331-5.331l.3-.3a1.49 1.49 0 0 1 2.108 0l.446.446l1.646-1.647a.5.5 0 0 1 .708 0m-4.495 6.505a3.036 3.036 0 0 0 4.287-.005l.3-.3a.49.49 0 0 0 0-.693l-3.6-3.6a.49.49 0 0 0-.692 0l-.3.3a3.036 3.036 0 0 0 0 4.292z"/>
+</svg>

@@ -1,0 +1,86 @@
+#!/bin/sh
+
+. /usr/share/libubox/jshn.sh
+
+readonly bg_path="/www/luci-static/fluent/background"
+readonly tmp_path="/tmp/fluent_background.tmp"
+
+case "$1" in
+	list)
+		json_init
+		for method in avail get_version; do
+			json_add_object "$method"
+			json_close_object
+		done
+		for pair in remove:filename rename:newname set_mode:mode start_update:manifest update_status:job; do
+			json_add_object "${pair%:*}"
+			json_add_string "${pair#*:}" ""
+			json_close_object
+		done
+		json_dump
+		;;
+	call)
+		case "$2" in
+			start_update|update_status)
+				exec /bin/sh /usr/libexec/fluent/update "$2"
+				;;
+			avail)
+				json_init
+				json_add_int avail "$(df | grep -E '/$' | awk '{print $4}')"
+				json_dump
+				;;
+			remove|rename)
+				read -r input
+				json_load "$input"
+				if [ "$2" = remove ]; then
+					json_get_var name filename
+				else
+					json_get_var name newname
+				fi
+				case "$name" in
+					''|.|..|*/*) echo '{"result":255}'; exit 0 ;;
+				esac
+				if [ "$2" = remove ]; then
+					rm -f "$bg_path/$name"
+					result=$?
+				else
+					mkdir -p "$bg_path"
+					mv "$tmp_path" "$bg_path/$name" && chmod 0644 "$bg_path/$name"
+					result=$?
+				fi
+				printf '{"result":%s}\n' "$result"
+				;;
+			set_mode)
+				read -r input
+				json_load "$input"
+				json_get_var mode mode
+				case "$mode" in
+					light|dark|auto) ;;
+					*) echo '{"result":255}'; exit 0 ;;
+				esac
+				uci -q set fluent.@global[0].mode="$mode" && uci -q commit fluent
+				printf '{"result":%s}\n' "$?"
+				;;
+			get_version)
+				if command -v apk >/dev/null 2>&1; then
+					pkg_type=apk
+					version=$(apk list -I luci-theme-fluent 2>/dev/null | awk '{print $1}' | sed 's/^luci-theme-fluent-//' | head -1)
+					installed_i18n=$(apk info 2>/dev/null | sed -n 's/^luci-i18n-fluent-//p')
+				else
+					pkg_type=ipk
+					version=$(opkg status luci-theme-fluent 2>/dev/null | sed -n 's/^Version: //p')
+					installed_i18n=$(opkg list-installed 2>/dev/null | awk '/^luci-i18n-fluent-/ { sub(/^luci-i18n-fluent-/, "", $1); print $1 }')
+				fi
+				json_init
+				json_add_string version "$version"
+				json_add_string pkg_type "$pkg_type"
+				json_add_array installed_i18n
+				for lang in $installed_i18n; do
+					json_add_string "" "$lang"
+				done
+				json_close_array
+				json_dump
+				;;
+		esac
+		;;
+esac

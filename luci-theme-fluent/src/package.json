@@ -1,0 +1,25 @@
+{
+  "name": "luci-theme-fluent-src",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "rsbuild build --env-mode full && rsbuild build -c rsbuild.dashboard.config.ts",
+    "build:lite": "rsbuild build --env-mode lite",
+    "watch": "rsbuild build --env-mode full --watch",
+    "watch:dashboard": "rsbuild build -c rsbuild.dashboard.config.ts --watch",
+    "watch:lite": "rsbuild build --env-mode lite --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@lazulikao/luci-types": "github:LazuliKao/luci-types#90a8e40b9bd5258262394209bccac6b0320549db",
+    "@rsbuild/core": "^2.1.9",
+    "@rsbuild/plugin-sass": "^2.0.1",
+    "@rspack/core": "^2.1.7",
+    "@types/node": "^22.19.19",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "gridstack": "12.3.3"
+  }
+}

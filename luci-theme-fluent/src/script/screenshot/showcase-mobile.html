@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <title>luci-theme-fluent Mobile Showcase</title>
+  <style>
+    :root {
+      --canvas: #202020;
+      --surface-subtle: #252525;
+      --stroke: rgba(255, 255, 255, 0.09);
+      --text-primary: #ffffff;
+      --text-secondary: #c7c7c7;
+      --text-tertiary: #9d9d9d;
+      --accent: #60cdff;
+      --accent-subtle: rgba(96, 205, 255, 0.12);
+      --shadow-device: 0 24px 56px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.22);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 1600px;
+      height: 1080px;
+      margin: 0;
+      padding: 52px 64px 42px;
+      overflow: hidden;
+      color: var(--text-primary);
+      background: var(--canvas);
+      font-family: "Segoe UI Variable", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+      text-rendering: optimizeLegibility;
+    }
+
+    .page-shell {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 22px;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      color: var(--text-secondary);
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    .brand-mark {
+      display: block;
+      flex: none;
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+    }
+
+    .title-area h1 {
+      max-width: 1180px;
+      margin: 0 0 10px;
+      color: var(--text-primary);
+      font-size: 64px;
+      font-weight: 600;
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+    }
+
+    .title-area p {
+      max-width: 960px;
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 25px;
+      font-weight: 400;
+      line-height: 1.4;
+    }
+
+    .header-meta {
+      flex: none;
+      margin-top: 4px;
+      padding: 8px 14px;
+      border: 1px solid var(--stroke);
+      border-radius: 999px;
+      color: var(--text-secondary);
+      background: var(--surface-subtle);
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .hero-layout {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 500px minmax(0, 1fr);
+      align-items: center;
+      gap: 48px;
+    }
+
+    .content-column {
+      min-width: 0;
+    }
+
+    .features {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .feature-item {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr);
+      column-gap: 14px;
+      padding: 18px;
+      border: 1px solid var(--stroke);
+      border-radius: 10px;
+      background: var(--surface-subtle);
+    }
+
+    .feature-icon {
+      grid-row: 1 / span 2;
+      width: 44px;
+      height: 44px;
+      padding: 10px;
+      border-radius: 8px;
+      color: var(--accent);
+      background: var(--accent-subtle);
+    }
+
+    .feature-icon svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .feature-title {
+      color: var(--text-primary);
+      font-size: 21px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .feature-desc {
+      margin-top: 4px;
+      color: var(--text-tertiary);
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    .device-stage {
+      min-width: 0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .device-showcase {
+      position: relative;
+      width: 900px;
+      height: 720px;
+    }
+
+    .device {
+      position: absolute;
+      overflow: hidden;
+      width: 318px;
+      height: 690px;
+      border: 7px solid #111111;
+      border-radius: 28px;
+      background: #111111;
+      box-shadow: var(--shadow-device);
+      transform-origin: center bottom;
+    }
+
+    .device::before {
+      content: "";
+      position: absolute;
+      top: 7px;
+      left: 50%;
+      z-index: 5;
+      width: 70px;
+      height: 16px;
+      border-radius: 999px;
+      background: #111111;
+      transform: translateX(-50%);
+    }
+
+    .device-left {
+      left: 20px;
+      top: 30px;
+      z-index: 1;
+      opacity: 0.72;
+      transform: rotate(-4deg) scale(0.92);
+    }
+
+    .device-center {
+      left: 286px;
+      top: 0;
+      z-index: 3;
+      border-color: #151515;
+      box-shadow: 0 30px 72px rgba(0, 0, 0, 0.5), 0 6px 20px rgba(0, 0, 0, 0.26);
+    }
+
+    .device-right {
+      right: 18px;
+      top: 30px;
+      z-index: 2;
+      opacity: 0.72;
+      transform: rotate(4deg) scale(0.92);
+    }
+
+    .device img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 44px;
+      padding-top: 16px;
+      border-top: 1px solid var(--stroke);
+    }
+
+    .footer-note {
+      color: var(--text-tertiary);
+      font-size: 15px;
+    }
+
+    .github-link {
+      padding: 9px 16px;
+      border: 1px solid var(--stroke);
+      border-radius: 999px;
+      color: var(--text-secondary);
+      background: var(--surface-subtle);
+      font-size: 15px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header>
+      <div class="title-area">
+        <div class="brand">
+          <img class="brand-mark" src="../../../package/luci-theme-fluent/htdocs/luci-static/fluent/img/fluent.svg" alt="" aria-hidden="true">
+          <span>luci-theme-fluent</span>
+        </div>
+        <h1>Fluent Theme Mobile Experience</h1>
+        <p>Optimized, responsive, and elegant mobile interface for OpenWrt LuCI</p>
+      </div>
+      <div class="header-meta">Fluent UI 2 · OpenWrt LuCI</div>
+    </header>
+
+    <section class="hero-layout">
+      <div class="content-column">
+        <div class="features">
+          <div class="feature-item">
+            <span class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+            </span>
+            <span class="feature-title">Intuitive Navigation</span>
+            <span class="feature-desc">Slide-out sidebar drawer designed for quick and easy mobile access</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="13" height="10" rx="1.8"/><path d="M7 19h4M9 15v4"/><rect x="17" y="8" width="4.5" height="11" rx="1.2"/></svg>
+            </span>
+            <span class="feature-title">Responsive Layout</span>
+            <span class="feature-desc">Adaptive controls and tables optimized for single-handed touch interactions</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m13.5 2-8 12h6l-1 8 8-12h-6l1-8Z"/></svg>
+            </span>
+            <span class="feature-title">Ultra-Lightweight</span>
+            <span class="feature-desc">Under 200KB package and less than 1MB compiled assets for minimal storage footprint</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+            </span>
+            <span class="feature-title">Rich Customization</span>
+            <span class="feature-desc">Configure layout, brand colors, login backdrops, and custom CSS easily via UCI settings</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="device-stage">
+        <div class="device-showcase">
+          <div class="device device-left">
+            <img src="../../../screenshots/.cache/mobile_dark_sidebar_open.png" alt="Mobile Sidebar Open">
+          </div>
+          <div class="device device-center">
+            <img src="../../../screenshots/.cache/mobile_dark_system_settings.png" alt="Mobile System Settings">
+          </div>
+          <div class="device device-right">
+            <img src="../../../screenshots/.cache/mobile_dark_software_management.png" alt="Mobile Software Management">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <span class="footer-note">Responsive by design · Desktop to mobile</span>
+      <div class="github-link">GitHub: LazuliKao/luci-theme-fluent</div>
+    </footer>
+  </div>
+</body>
+</html>

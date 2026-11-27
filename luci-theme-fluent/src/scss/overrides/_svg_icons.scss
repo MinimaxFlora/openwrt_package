@@ -1,0 +1,151 @@
+@use "sass:string";
+@use "../icons" as *;
+@use "../mixins" as *;
+
+// --- Cellular Data Icon Paths (from Fluent UI System Icons) ---
+// 5 bars (full strength)
+$cell-5-path: "M4.75 12a.75.75 0 0 1 .742.64l.008.11v2.5a.75.75 0 0 1-1.492.11L4 15.25v-2.5a.75.75 0 0 1 .75-.75m3-2a.75.75 0 0 1 .742.64l.008.11v4.5a.75.75 0 0 1-1.492.11L7 15.25v-4.5a.75.75 0 0 1 .75-.75m3-2a.75.75 0 0 1 .742.64l.008.11v6.5a.75.75 0 0 1-1.492.11L10 15.25v-6.5a.75.75 0 0 1 .75-.75m3-2a.75.75 0 0 1 .742.64l.008.11v8.499a.75.75 0 0 1-1.492.11L13 15.25v-8.5a.75.75 0 0 1 .75-.75m3-2a.74.74 0 0 1 .74.626l.01.11l-.014 10.515a.743.743 0 0 1-1.477.124l-.009-.11l.014-10.515A.743.743 0 0 1 16.75 4";
+// 4 bars
+$cell-4-path: "M4.75 12a.75.75 0 0 1 .741.639l.009.11v2.496a.75.75 0 0 1-1.492.11L4 15.246V12.75a.75.75 0 0 1 .75-.75m3-2a.75.75 0 0 1 .741.639l.009.11v4.496a.75.75 0 0 1-1.492.11L7 15.246V10.75a.75.75 0 0 1 .75-.75m3-2a.75.75 0 0 1 .741.639l.008.11v6.501a.75.75 0 0 1-1.49.111l-.009-.11V8.75a.75.75 0 0 1 .75-.75m3-2a.75.75 0 0 1 .741.639l.008.11v8.501a.75.75 0 0 1-1.49.111l-.009-.11V6.75a.75.75 0 0 1 .75-.75";
+// 3 bars
+$cell-3-path: "M4.75 12a.75.75 0 0 1 .742.64l.008.11v2.496a.75.75 0 0 1-1.492.11L4 15.246V12.75a.75.75 0 0 1 .75-.75m3-2a.75.75 0 0 1 .742.64l.008.11v4.496a.75.75 0 0 1-1.492.11L7 15.246V10.75a.75.75 0 0 1 .75-.75m3-2a.75.75 0 0 1 .742.64l.008.11v6.5a.75.75 0 0 1-1.492.11L10 15.25v-6.5a.75.75 0 0 1 .75-.75";
+// 2 bars
+$cell-2-path: "M4.75 12a.75.75 0 0 1 .742.64l.008.11v2.5a.75.75 0 0 1-1.492.11L4 15.25v-2.5a.75.75 0 0 1 .75-.75m3-2a.75.75 0 0 1 .742.64l.008.11v4.5a.75.75 0 0 1-1.492.11L7 15.25v-4.5a.75.75 0 0 1 .75-.75";
+// 1 bar
+$cell-1-path: "M4.75 12a.75.75 0 0 1 .743.64l.008.11v2.503a.75.75 0 0 1-1.493.11L4 15.254V12.75a.75.75 0 0 1 .75-.75";
+
+@function get-combined-cellular-svg($active-path, $color-scheme-dark: false) {
+    $bg-color: "rgba(0,0,0,0.18)";
+    $active-color: "%23616161"; // matches var(--fluent-text-secondary)
+    @if $color-scheme-dark {
+        $bg-color: "rgba(255,255,255,0.18)";
+        $active-color: "%23adadad";
+    }
+
+    $svg: "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'>" +
+        "<path fill='#{$bg-color}' d='#{$cell-5-path}'/>" + "<path fill='#{$active-color}' d='#{$active-path}'/>" +
+        "</svg>";
+
+    // URL encode
+    $svg: str-replace($svg, " ", "%20");
+    $svg: str-replace($svg, "<", "%3C");
+    $svg: str-replace($svg, ">", "%3E");
+    $svg: str-replace($svg, "'", "%27");
+    $svg: str-replace($svg, "#", "%23");
+
+    @return $svg;
+}
+$icon-size: 24px;
+
+@mixin cell-signal-icon($active-path) {
+    $svg-light: get-combined-cellular-svg($active-path, false);
+    $svg-dark: get-combined-cellular-svg($active-path, true);
+
+    content: url("data:image/svg+xml,#{$svg-light}") !important;
+    display: inline-block;
+    width: $icon-size;
+    height: $icon-size;
+    vertical-align: middle;
+
+    @include theme-dark-context {
+        content: url("data:image/svg+xml,#{$svg-dark}") !important;
+    }
+}
+img[src="/luci-static/resources/icons/port_down.svg"] {
+    @include fluent-mask-icon-by-path(
+        "../assets/icons/override/ethernet_plug_disconnected.svg",
+        $icon-size,
+        var(--fluent-text-secondary)
+    );
+}
+img[src="/luci-static/resources/icons/port_up.svg"] {
+    @include fluent-mask-icon-by-path(
+        "../assets/icons/override/ethernet_plug_connected.svg",
+        $icon-size,
+        var(--fluent-primary)
+    );
+}
+img[src="/luci-static/resources/icons/ethernet.svg"] {
+    @include fluent-mask-icon-by-path(
+        "../assets/icons/override/ethernet_default.svg",
+        $icon-size,
+        var(--fluent-text-secondary)
+    );
+}
+img[src="/luci-static/resources/icons/ethernet_disabled.svg"] {
+    @include fluent-mask-icon-by-path(
+        "../assets/icons/override/ethernet_disabled.svg",
+        $icon-size,
+        var(--fluent-text-secondary)
+    );
+}
+img[src="/luci-static/resources/icons/bridge.svg"] {
+    @include fluent-mask-icon-by-path("../assets/icons/override/bridge.svg", $icon-size, var(--fluent-text-secondary));
+}
+img[src="/luci-static/resources/icons/bridge_disabled.svg"] {
+    @include fluent-mask-icon-by-path(
+        "../assets/icons/override/bridge_disabled.svg",
+        $icon-size,
+        var(--fluent-text-secondary)
+    );
+}
+img[src="/luci-static/resources/icons/tunnel.svg"] {
+    @include fluent-mask-icon-by-path("../assets/icons/override/tunnel.svg", $icon-size, var(--fluent-text-secondary));
+}
+img[src="/luci-static/resources/icons/tunnel_disabled.svg"] {
+    @include fluent-mask-icon-by-path(
+        "../assets/icons/override/tunnel_disabled.svg",
+        $icon-size,
+        var(--fluent-text-secondary)
+    );
+}
+img[src="/luci-static/resources/icons/vlan.svg"] {
+    @include fluent-mask-icon-by-path("../assets/icons/override/vlan.svg", $icon-size, var(--fluent-text-secondary));
+}
+img[src="/luci-static/resources/icons/vlan_disabled.svg"] {
+    @include fluent-mask-icon-by-path("../assets/icons/override/vlan_disabled.svg", $icon-size, var(--fluent-text-secondary));
+}
+img[src="/luci-static/resources/icons/alias.svg"] {
+    @include fluent-mask-icon-by-path("../assets/icons/override/alias.svg", $icon-size, var(--fluent-text-secondary));
+}
+img[src="/luci-static/resources/icons/alias_disabled.svg"] {
+    @include fluent-mask-icon-by-path("../assets/icons/override/alias_disabled.svg", $icon-size, var(--fluent-text-secondary));
+}
+img[src="/luci-static/resources/icons/switch.svg"] {
+    @include fluent-mask-icon-by-path("../assets/icons/override/switch.svg", $icon-size, var(--fluent-text-secondary));
+}
+img[src="/luci-static/resources/icons/switch_disabled.svg"] {
+    @include fluent-mask-icon-by-path(
+        "../assets/icons/override/switch_disabled.svg",
+        $icon-size,
+        var(--fluent-text-secondary)
+    );
+}
+
+img[src="/luci-static/resources/icons/signal-000-000.svg"] {
+    @include cell-signal-icon($cell-1-path);
+}
+img[src="/luci-static/resources/icons/signal-000-025.svg"] {
+    @include cell-signal-icon($cell-2-path);
+}
+img[src="/luci-static/resources/icons/signal-025-050.svg"] {
+    @include cell-signal-icon($cell-3-path);
+}
+img[src="/luci-static/resources/icons/signal-050-075.svg"] {
+    @include cell-signal-icon($cell-4-path);
+}
+img[src="/luci-static/resources/icons/signal-075-100.svg"] {
+    @include cell-signal-icon($cell-5-path);
+}
+img[src="/luci-static/resources/icons/signal-none.svg"] {
+    @include fluent-mask-icon-by-name("fluent:cellular-warning-20-filled", $icon-size, var(--fluent-text-secondary));
+    @include set-mask-content();
+}
+img[src="/luci-static/resources/icons/wifi.svg"] {
+    @include fluent-mask-icon-by-name("fluent:wifi-1-20-filled", $icon-size, var(--fluent-text-secondary));
+    @include set-mask-content();
+}
+img[src="/luci-static/resources/icons/wifi_disabled.svg"] {
+    @include fluent-mask-icon-by-name("fluent:wifi-off-20-filled", $icon-size, var(--fluent-text-secondary));
+    @include set-mask-content();
+}

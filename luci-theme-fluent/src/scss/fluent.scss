@@ -1,0 +1,23 @@
+// Luci-Theme-Fluent Main Entry Point
+// This file uses @use/@forward (modern Sass syntax)
+
+// This file imports all partials and compiles to fluent.css
+
+@use "core";
+
+// Full-only enhancements
+@use "components/menu-search";
+@use "components/menu-editor";
+@use "components/about";
+@use "components/mac-selector";
+@use "overrides/index";
+
+// Layouts
+@use "layouts/login";
+@use "layouts/sidebar";
+@use "layouts/header";
+@use "layouts/main";
+
+// Theme variations
+@use "themes/light";
+@use "themes/dark";

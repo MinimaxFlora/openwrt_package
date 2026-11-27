@@ -1,0 +1,149 @@
+// ============================================================
+// ICONS - Fluent UI System Icons (CSS data URIs)
+// SVG paths from Microsoft Fluent UI System Icons (MIT license)
+// 20x20 viewBox, regular style
+// ============================================================
+
+@use "sass:map";
+@use "sass:string";
+// Import auto-generated icons from @iconify-json/fluent
+@use "fluent-icons" as *;
+@forward "fluent-icons";
+
+// ---- String replace helper ----
+/// Replace all occurrences of $search in $string with $replace.
+@function str-replace($string, $search, $replace: "") {
+  $index: string.index($string, $search);
+  @if $index {
+    @return string.slice($string, 1, $index - 1) + $replace +
+      str-replace(string.slice($string, $index + string.length($search)), $search, $replace);
+  }
+  @return $string;
+}
+
+// ---- Mixins ----
+
+/// URL-encode an SVG string and apply as background-image.
+/// @param {String} $icon - SVG markup string (from $fluent-icon-* variables)
+/// @param {Length} $size [16px] - Icon display size (width & height)
+/// @param {Color|null} $color [null] - Optional fill color override (replaces #212121)
+@mixin fluent-icon($icon, $size: 16px, $color: null) {
+  $encoded: $icon;
+  @if $color != null {
+    $color-str: "#{$color}";
+    // Strip leading # if present (Sass colors interpolate with #)
+    @if string.slice($color-str, 1, 1) == "#" {
+      $color-str: string.slice($color-str, 2);
+    }
+    $encoded: str-replace($encoded, "currentColor", "%23" + $color-str);
+  }
+  // Escape double quotes to prevent broken url() parsing in CSS
+  $encoded: str-replace($encoded, '"', "%22");
+  background-image: url("data:image/svg+xml,#{$encoded}");
+  background-size: $size $size;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+/// Apply a Fluent icon via a pseudo-element (content + background).
+/// Sets content: "" and applies the icon as background-image on the element.
+/// Use on ::before or ::after pseudo-elements.
+/// @param {String} $icon - SVG markup string
+/// @param {Length} $size [16px] - Icon display size
+/// @param {Color|null} $color [null] - Optional fill color override
+@mixin fluent-icon-content($icon, $size: 16px, $color: null) {
+  content: "";
+  display: inline-block;
+  width: $size;
+  height: $size;
+  flex-shrink: 0;
+  @include fluent-icon($icon, $size, $color);
+}
+
+// ── Name-based icon mixins (resolve from auto-generated $fluent-icons map) ──
+
+/// Apply a Fluent icon by Iconify name.
+/// E.g. @include fluent-icon-by-name("person-20-regular", 16px, #242424);
+/// @param {String} $name - Iconify icon name (e.g. "person-20-regular")
+/// @param {Length} $size [16px] - Icon display size
+/// @param {Color|null} $color [null] - Optional fill color override
+@mixin fluent-icon-by-name($name, $size: 16px, $color: null) {
+  $svg: map.get($fluent-icons, $name);
+  @if $svg == null {
+    @warn "Icon '#{$name}' not found in $fluent-icons map";
+    $svg: "";
+  }
+  @include fluent-icon($svg, $size, $color);
+}
+
+/// Apply a Fluent icon via pseudo-element by Iconify name.
+/// E.g. @include fluent-icon-content-by-name("person-20-regular", 16px);
+@mixin fluent-icon-content-by-name($name, $size: 16px, $color: null) {
+  content: "";
+  display: inline-block;
+  width: $size;
+  height: $size;
+  flex-shrink: 0;
+  @include fluent-icon-by-name($name, $size, $color);
+}
+
+/// Apply a Fluent icon via CSS mask for dynamic CSS custom property coloring.
+/// E.g. @include fluent-mask-icon-by-name("person-20-regular", 16px, var(--fluent-text));
+@mixin fluent-mask-icon-by-name($name, $size: 16px, $color-var: var(--fluent-text)) {
+  $svg: map.get($fluent-icons, $name);
+  @if $svg == null {
+    @warn "Icon '#{$name}' not found in $fluent-icons map";
+    $svg: "";
+  }
+  @include set-mask-content();
+  display: inline-block;
+  width: $size;
+  height: $size;
+  background: $color-var !important;
+  @include set-icon-mask("data:image/svg+xml,#{$svg}", $name);
+  mask-size: contain;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  user-select: none;
+}
+
+/// Apply an icon from a file path via CSS mask for dynamic CSS custom property coloring.
+/// E.g. @include fluent-mask-icon-by-path("../assets/icons/override/ethernet_default.svg", $icon-size, var(--fluent-text-secondary));
+@mixin fluent-mask-icon-by-path($path, $size: 16px, $color-var: var(--fluent-text)) {
+  @include set-mask-content();
+  display: inline-block;
+  width: $size;
+  height: $size;
+  background: $color-var !important;
+  @include set-icon-mask($path);
+  mask-size: contain;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  user-select: none;
+}
+
+@mixin set-icon-mask($icon, $name: null) {
+  // Escape double quotes in SVG data URI to prevent broken url() parsing
+  $escaped: str-replace($icon, '"', "%22");
+  @if $name {
+    // Use a unique variable name per icon to prevent Lightning CSS from
+    // incorrectly merging rules that share identical properties but differ
+    // in --icon-data values (e.g. multiple mask-icon-by-name rules).
+    $var-name: str-replace(str-replace($name, ":", "-"), ".", "-");
+    --fluent-mask-#{$var-name}: url("#{$escaped}");
+    mask-image: var(--fluent-mask-#{$var-name});
+  } @else {
+    --icon-data: url("#{$escaped}");
+    mask-image: var(--icon-data);
+  }
+}
+
+@mixin set-icon-data($icon) {
+  // Escape double quotes in SVG data URI to prevent broken url() parsing
+  $escaped: str-replace($icon, '"', "%22");
+  --icon-data: url("#{$escaped}");
+}
+$mask-content: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'></svg>");
+// $mask-content: url("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
+@mixin set-mask-content() {
+  content: $mask-content;
+}

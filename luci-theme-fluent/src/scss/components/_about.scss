@@ -1,0 +1,175 @@
+// About and Update Manager Styles for Fluent Theme
+
+.fluent-about-manager {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--fluent-card-padding);
+  background-color: var(--fluent-bg-card);
+  border-radius: var(--fluent-radius-md);
+  // box-shadow: var(--fluent-card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  [hidden] {
+    display: none;
+  }
+
+  > .fluent-update-changelog {
+    max-height: 12rem;
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  h3 {
+    margin: 8px 0 4px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--fluent-text);
+  }
+}
+
+.fluent-about-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 12px 0;
+
+  img {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 12px;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--fluent-text);
+  }
+
+  .fluent-about-subtitle {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--fluent-text-secondary);
+  }
+}
+
+.fluent-about-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+
+  .fluent-about-detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--fluent-text);
+
+    strong {
+      font-weight: 500;
+      color: var(--fluent-text-secondary);
+    }
+
+    a {
+      color: var(--fluent-primary);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.fluent-about-divider {
+  border: none;
+  border-top: 1px solid var(--fluent-border);
+  margin: 8px 0;
+}
+
+.fluent-update-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+
+}
+
+.fluent-update-status {
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: var(--fluent-radius-sm);
+  background-color: var(--fluent-bg);
+  border-left: 3px solid transparent;
+  color: var(--fluent-text);
+
+  &.status-info {
+    border-left-color: var(--fluent-primary);
+  }
+
+  &.status-success {
+    border-left-color: #107c41; // WinUI Success color
+    background-color: rgba(16, 124, 65, 0.05);
+  }
+
+  &.status-warn {
+    border-left-color: #ffb900; // WinUI Warning color
+    background-color: rgba(255, 185, 0, 0.05);
+  }
+
+  &.status-error {
+    border-left-color: #a80000; // WinUI Error color
+    background-color: rgba(168, 0, 0, 0.05);
+    color: #a80000;
+  }
+}
+
+.fluent-update-card {
+  padding: 12px;
+  border: 1px solid var(--fluent-border);
+  border-radius: var(--fluent-radius-sm);
+  background-color: var(--fluent-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .fluent-update-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .fluent-update-badge {
+      background-color: var(--fluent-primary);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .fluent-update-date {
+      font-size: 12px;
+      color: var(--fluent-text-secondary);
+    }
+  }
+
+  .fluent-update-changelog {
+    margin: 0;
+    padding: 8px;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--fluent-text);
+    background-color: var(--fluent-bg-card);
+    border: 1px solid var(--fluent-border);
+    border-radius: var(--fluent-radius-sm);
+    max-height: 120px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+
+}

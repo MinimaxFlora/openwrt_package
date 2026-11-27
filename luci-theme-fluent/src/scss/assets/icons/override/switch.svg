@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 48 48" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Network switch</title>
+  <desc id="desc">A Fluent UI style network switch icon showing three ethernet ports connected via a central bus.</desc>
+  
+  <!-- Connection bus dots -->
+  <g fill="#0078D4">
+      <circle cx="13.5" cy="24" r="1.5" />
+      <circle cx="17.16" cy="24" r="1.5" />
+      <circle cx="20.83" cy="24" r="1.5" />
+      <circle cx="24.5" cy="24" r="1.5" />
+      <circle cx="28.16" cy="24" r="1.5" />
+      <circle cx="31.83" cy="24" r="1.5" />
+      <circle cx="35.5" cy="24" r="1.5" />
+  </g>
+
+  <!-- Port 1 (Top-Left) -->
+  <g transform="translate(4, 2) scale(0.074) translate(-123, -135)" stroke="#0078D4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M139 135h239c8.8 0 16 7.2 16 16v221c0 8.8-7.2 16-16 16H139c-8.8 0-16-7.2-16-16V151c0-8.8 7.2-16 16-16z" stroke-width="0.75" vector-effect="non-scaling-stroke" />
+    <path d="M171 186h173v101h-33v27h-27v23h-55v-23h-27v-27h-31z" stroke-width="0.6" vector-effect="non-scaling-stroke" />
+    <path d="M195 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M213 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M231 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M249 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M267 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M285 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M303 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M321 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+  </g>
+
+  <!-- Port 2 (Top-Right) -->
+  <g transform="translate(26, 2) scale(0.074) translate(-123, -135)" stroke="#0078D4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M139 135h239c8.8 0 16 7.2 16 16v221c0 8.8-7.2 16-16 16H139c-8.8 0-16-7.2-16-16V151c0-8.8 7.2-16 16-16z" stroke-width="0.75" vector-effect="non-scaling-stroke" />
+    <path d="M171 186h173v101h-33v27h-27v23h-55v-23h-27v-27h-31z" stroke-width="0.6" vector-effect="non-scaling-stroke" />
+    <path d="M195 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M213 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M231 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M249 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M267 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M285 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M303 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M321 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+  </g>
+
+  <!-- Port 3 (Bottom-Center) -->
+  <g transform="translate(15, 27) scale(0.074) translate(-123, -135)" stroke="#0078D4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M139 135h239c8.8 0 16 7.2 16 16v221c0 8.8-7.2 16-16 16H139c-8.8 0-16-7.2-16-16V151c0-8.8 7.2-16 16-16z" stroke-width="0.75" vector-effect="non-scaling-stroke" />
+    <path d="M171 186h173v101h-33v27h-27v23h-55v-23h-27v-27h-31z" stroke-width="0.6" vector-effect="non-scaling-stroke" />
+    <path d="M195 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M213 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M231 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M249 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M267 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M285 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M303 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+    <path d="M321 188v26" stroke-width="0.4" vector-effect="non-scaling-stroke" />
+  </g>
+</svg>

@@ -1,0 +1,170 @@
+// ============================================================
+// CBI NETWORK - LuCI Network Status Components
+// FluentUI 2 badges, zone indicators, interface cards, log output
+// ============================================================
+@use "../mixins" as *;
+$indicator-inline-offset: 10px;
+.ifacebadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--fluent-space-xs);
+  min-height: calc(var(--fluent-input-height) - var(--fluent-space-sm));
+  max-width: 100%;
+  padding: var(--fluent-space-xxs) var(--fluent-space-sm);
+  border: 1px solid var(--fluent-border);
+  border-radius: var(--fluent-radius-sm);
+  background: var(--fluent-primary-lightest);
+  color: var(--fluent-text);
+  font-size: var(--fluent-font-size-sm);
+  font-weight: var(--fluent-font-weight-semibold);
+  line-height: var(--fluent-line-height-tight);
+  box-sizing: border-box;
+  vertical-align: middle;
+
+  @include rtl {
+    img {
+      order: -1;
+    }
+  }
+
+  // Truncate name with ellipsis when container overflows (only for inline single-item badges)
+  &:not(.cbi-tooltip):not(.large) > span:not(.cbi-tooltip-container) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex-shrink: 1;
+  }
+
+  > em {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--fluent-space-lg);
+    color: var(--fluent-text-secondary);
+    font-style: normal;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .cbi-tooltip-container {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  img {
+    width: var(--fluent-space-lg);
+    height: var(--fluent-space-lg);
+    flex-shrink: 0;
+    object-fit: contain;
+  }
+}
+
+td > .ifacebadge,
+.td > .ifacebadge {
+  margin: var(--fluent-space-xxs) 0;
+}
+
+.zonebadge {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--fluent-space-sm);
+  padding: var(--fluent-space-xs) var(--fluent-space-sm);
+  border: 1px solid var(--fluent-card-border);
+  border-radius: var(--fluent-radius-circular);
+  background: var(--fluent-card-bg);
+  box-shadow: none;
+  justify-content: center;
+  color: var(--fluent-zonebadge-text);
+}
+
+.zonebadge .ifacebadge {
+  background: var(--fluent-bg-page);
+  border-color: var(--fluent-table-border);
+}
+
+.zonebadge > input[type="text"] {
+  @include input-base;
+  @include input-focus-ripple-v2;
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.zonebadge > em,
+.zonebadge > strong {
+  color: inherit;
+  font-style: normal;
+  line-height: var(--fluent-line-height-normal);
+}
+
+.zonebadge > strong {
+  font-weight: var(--fluent-font-weight-semibold);
+}
+
+.zonebadge-empty {
+  border-style: dashed;
+  border-inline-start-color: var(--fluent-warning);
+  background: var(--fluent-bg-page);
+  color: var(--fluent-text-secondary);
+}
+
+.zone-forwards {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--fluent-space-sm);
+  color: var(--fluent-text-secondary);
+}
+
+.zone-forwards .zone-src,
+.zone-forwards .zone-dest {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--fluent-space-xs);
+  min-height: calc(var(--fluent-input-height) - var(--fluent-space-sm));
+  padding: var(--fluent-space-xxs) var(--fluent-space-sm);
+  border: 1px solid var(--fluent-border);
+  border-radius: var(--fluent-radius-sm);
+  background: var(--fluent-bg-page);
+  color: var(--fluent-text);
+}
+
+#syslog {
+  @include custom-scrollbar;
+  width: 100%;
+  min-height: 20rem;
+  padding: var(--fluent-space-md);
+  border: 1px solid var(--fluent-border-hover);
+  border-radius: var(--fluent-radius-lg);
+  background: var(--fluent-black);
+  color: var(--fluent-white);
+  font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: var(--fluent-font-size-sm);
+  line-height: var(--fluent-line-height-relaxed);
+  box-sizing: border-box;
+}
+
+#syslog:focus {
+  border-color: var(--fluent-border-active);
+  outline: none;
+}
+
+#diag-rc-output > pre,
+#command-rc-output > pre {
+  @include custom-scrollbar;
+  margin: 0;
+  padding: var(--fluent-space-lg);
+  border: 1px solid var(--fluent-card-border);
+  border-radius: var(--fluent-radius-lg);
+  background: var(--fluent-black);
+  color: var(--fluent-white);
+  font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  font-size: var(--fluent-font-size-sm);
+  line-height: var(--fluent-line-height-relaxed);
+  white-space: pre-wrap;
+  word-break: break-word;
+  box-shadow: var(--fluent-shadow-sm);
+  overflow: auto;
+}

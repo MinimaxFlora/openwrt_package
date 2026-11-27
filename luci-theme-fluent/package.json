@@ -1,0 +1,68 @@
+{
+  "name": "luci-theme-fluent",
+  "version": "1.0.9",
+  "type": "module",
+  "description": "FluentUI theme for OpenWrt LuCI",
+  "scripts": {
+    "css:build": "cd src && pnpm exec rsbuild build --environment css --env-mode full",
+    "css:build:lite": "cd src && pnpm exec rsbuild build --environment css --env-mode lite",
+    "build:js": "cd src && pnpm exec rsbuild build --environment js --env-mode full",
+    "build:js:lite": "cd src && pnpm exec rsbuild build --environment js --env-mode lite",
+    "build:dashboard": "cd src && pnpm exec rsbuild build -c rsbuild.dashboard.config.ts",
+    "build": "cd src && pnpm run build",
+    "build:lite": "cd src && pnpm run build:lite",
+    "watch:css": "cd src && pnpm exec rsbuild build --environment css --env-mode full --watch",
+    "watch:js": "cd src && pnpm exec rsbuild build --environment js --env-mode full --watch",
+    "watch:dashboard": "cd src && pnpm exec rsbuild build -c rsbuild.dashboard.config.ts --watch",
+    "watch:lite": "cd src && pnpm run watch:lite",
+    "watch": "cd src && pnpm run watch",
+    "lint": "biome lint --no-errors-on-unmatched package/luci-theme-fluent/htdocs package/luci-mod-fluentdashboard/htdocs src/web/resources src/web/fluentdashboard src/rsbuild.dashboard.config.ts luci-dashboard-i18n.config.ts",
+    "format": "biome format --write --no-errors-on-unmatched package/luci-theme-fluent/htdocs package/luci-mod-fluentdashboard/htdocs src/web/resources src/web/fluentdashboard src/rsbuild.dashboard.config.ts luci-dashboard-i18n.config.ts",
+    "i18n:extract-ucode": "tsx src/script/extract-ucode.ts",
+    "i18n:extract": "pnpm run i18n:extract-ucode -- --generate && luci-types i18n --no-translate",
+    "i18n:build": "pnpm run i18n:extract-ucode -- --generate && dotenvx run -- luci-types i18n",
+    "i18n:dashboard": "luci-types i18n --config luci-dashboard-i18n.config.ts --no-translate",
+    "test": "pnpm run test:menu-layout && pnpm run test:apply-change-preview && pnpm run test:dashboard",
+    "test:menu-layout": "tsx --test src/web/resources/menu-layout.test.ts",
+    "test:apply-change-preview": "tsx --test src/web/resources/utils/apply-change-preview.test.ts",
+    "test:dashboard": "tsx --test src/web/fluentdashboard/model.test.ts src/web/fluentdashboard/core/*.test.ts src/web/fluentdashboard/layout/*.test.ts src/web/fluentdashboard/data/*.test.ts src/web/fluentdashboard/persistence/*.test.ts src/web/fluentdashboard/widgets/*.test.ts",
+    "dev:remote": "luci-types dev",
+    "dev:dashboard:remote": "tsx src/script/dev-dashboard-remote.ts",
+    "dev:lite:remote": "tsx src/script/dev-lite-remote.ts",
+    "icons:generate": "tsx src/script/generate-icons.ts",
+    "screenshot": "pnpm run screenshot:run && pnpm run screenshot:showcase && pnpm run screenshot:run:zh-Hans && pnpm run screenshot:showcase:zh-Hans",
+    "screenshot:run": "tsx src/script/screenshot/run.ts",
+    "screenshot:showcase": "tsx src/script/screenshot/generate-showcase.ts",
+    "screenshot:run:zh-Hans": "tsx src/script/screenshot/run.ts -- --lang=zh-Hans",
+    "screenshot:showcase:zh-Hans": "tsx src/script/screenshot/generate-showcase.ts -- --lang=zh-Hans",
+    "typecheck": "cd src && pnpm exec tsc -p tsconfig.json --noEmit",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "src/**/*.{js,ts,tsx,jsx,json}": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
+    "@commitlint/cli": "^21.2.1",
+    "@commitlint/config-conventional": "^21.2.0",
+    "@commitlint/types": "^21.2.0",
+    "@dotenvx/dotenvx": "^2.19.1",
+    "@iconify-json/fluent": "^1.2.51",
+    "@iconify-json/fluent-mdl2": "^1.2.1",
+    "@lazulikao/luci-types": "github:LazuliKao/luci-types#90a8e40b9bd5258262394209bccac6b0320549db",
+    "@types/node": "^22.19.21",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.2.0",
+    "playwright": "^1.61.0",
+    "sass": "^1.101.0",
+    "sharp": "^0.35.3",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@10.12.4"
+}
