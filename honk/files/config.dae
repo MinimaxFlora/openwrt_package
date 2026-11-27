@@ -1,0 +1,102 @@
+# 监听器密钥单独存放：主配置里出现 secret 字段，核心会把整份配置标成只读，
+# doona 因此加不了订阅和节点。密钥由面板写进 secrets.dae。
+include {
+    secrets.dae
+}
+
+global {
+    wan_interface: auto
+    lan_interface: br-lan
+    log_level: info
+    dial_mode: domain
+    allow_insecure: false
+    auto_config_kernel_parameter: true
+    data_dir: '/etc/honk'
+    # 默认只走 logread，由面板日志页读取。需要跨重启排障时再指定持久路径。
+    log_file: ''
+    # 节点健康检查目标：经节点访问，用国外可达的地址，避免误判。
+    tcp_check_url: 'https://www.gstatic.com/generate_204'
+    tcp_check_http_method: HEAD
+    udp_check_dns: dns.google.com:53, 8.8.8.8
+    check_interval: 300s
+    # DNS 上游写域名时用它自举；写死 IP 时不会用到。
+    bootstrap_resolver: '1.1.1.1:53'
+    store_subscribe: true
+    nfqueue_enable: true
+}
+
+experimental {
+    native_api {
+        enabled: true
+        listen: '127.0.0.1:9527'
+        password_auth: true
+        allow_anonymous_loopback: false
+        config_write: true
+        ui: '/usr/share/doona'
+    }
+
+    # Clash API 由面板按需开启（概览页 → Clash API）。开启时密钥写进 secrets.dae，
+    # 这里不预置块，免得不认证的 9090 端口一直敞着。
+
+    # 缓存解析结果与订阅，重启后首包更快。
+    cache_file {
+        enabled: true
+    }
+}
+
+group {
+    proxy {
+        policy: min_moving_avg
+    }
+}
+
+dns {
+    # 直连查询带上客户端网段，国内 CDN 才会返回就近地址
+    client_subnet: auto
+    upstream {
+        default: 'https://223.5.5.5/dns-query?tls_server_name=dns.alidns.com' -> direct
+        remote: 'https://8.8.8.8/dns-query?tls_server_name=dns.google' -> proxy
+        # 私有域名交本机 dnsmasq；asis 依赖原始目的地址，多拨下出口不可控
+        local: 'udp://127.0.0.1:53' -> direct
+    }
+    routing {
+        request {
+            qname(geosite: private) -> local
+            qname(geosite: cn) -> default
+            fallback: remote
+        }
+        # 远端返回国内 IP 时也采信，避免两边解析结果不一致
+        response {
+            upstream(remote) -> accept
+            qname(geosite: private) -> accept
+            ip(geoip: cn) -> accept
+            fallback: remote
+        }
+    }
+}
+
+routing {
+    dip(224.0.0.0/3, 'ff00::/8') -> direct
+    # 其它代理核心和 DNS 守护进程的出站不能再被抓一次，否则成环。
+    pname(AdGuardHome, mosdns, mihomo, sing-box, clash, frpc, xray, v2ray) -> direct(must)
+    # BT 走代理既费流量又拖慢节点。
+    pname(qbittorrent) -> direct(must)
+    dscp(4) -> direct(must)
+    # dnsmasq 用 127.0.0.1 源地址查上游，private 规则兜不住，单独放行。
+    pname(dnsmasq) && l4proto(udp) && dport(53) -> direct(must)
+    # 路由器自身地址直连，管理面板不被代理；服务启动时按本机地址重写下面区块
+    # honk:local-direct-begin
+    # honk:local-direct-end
+    dip(geoip: private) && !dport(53) -> direct(must)
+    dip(geoip: cn) && !dport(53) -> direct(must)
+    domain(geosite: private) -> direct
+    domain(geosite: cn) -> direct
+    # 这几类在 geosite: cn 里覆盖不全，单独列出
+    domain(geosite: apple-cn) -> direct
+    domain(geosite: category-games@cn) -> direct
+    domain(geosite: steam@cn) -> direct
+    domain(geosite: category-ai-cn) -> direct
+    domain(geosite: onedrive) -> direct
+    # 前面全是直连，未命中的就是国外流量，进代理组。
+    fallback: proxy
+}
