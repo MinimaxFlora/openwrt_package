@@ -1,0 +1,28 @@
+{
+	"luci-app-adguardhome": {
+		"description": "Grant file, exec and UCI access for luci-app-adguardhome",
+		"read": {
+			"file": {
+				"/bin/sh": [ "exec" ],
+				"/etc/init.d/AdGuardHome": [ "exec" ],
+				"/etc/init.d/dnsmasq": [ "exec" ],
+				"/usr/share/AdGuardHome/*": [ "read", "exec" ],
+				"/etc/AdGuardHome.yaml": [ "read" ],
+				"/etc/AdGuardHome/*": [ "read", "list" ],
+				"/tmp/*": [ "read" ],
+				"/run/*": [ "read" ],
+				"/var/*": [ "read" ]
+			},
+			"uci": [ "AdGuardHome" ]
+		},
+		"write": {
+			"file": {
+				"/tmp/*": [ "write" ],
+				"/run/*": [ "write" ],
+				"/var/*": [ "write" ],
+				"/etc/AdGuardHome.yaml": [ "write" ]
+			},
+			"uci": [ "AdGuardHome" ]
+		}
+	}
+}
