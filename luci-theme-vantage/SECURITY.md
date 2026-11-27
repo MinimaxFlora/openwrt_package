@@ -1,0 +1,82 @@
+# Security policy
+
+## Supported versions
+
+| Version | OpenWrt | Supported |
+|---|---|---|
+| 1.2.x | 25.12 | Yes |
+| 1.2.x | 24.10 | Yes |
+| 1.2.x | 23.05 and older | No (untested) |
+| 1.1.x and older | any | No: update to 1.2 |
+
+Fixes go into the latest release. Only the newest release is supported.
+
+## Reporting a vulnerability
+
+Please report security problems **privately**, not in a public issue:
+
+1. Open the repository's **Security** tab on GitHub.
+2. Choose **Report a vulnerability**. This uses GitHub's private
+   vulnerability reporting, so only the maintainers see your report.
+
+If the button is missing, open an issue that asks for a private contact,
+without any details of the problem.
+
+Please include:
+
+- the affected package (`luci-theme-vantage`, `luci-app-vantage`,
+  `luci-app-vantage-aps`, `luci-app-vantage-traffic` or the dev tooling)
+  and version, and your
+  OpenWrt version
+- what an attacker can do, and what they need first (logged in or not,
+  on the LAN, a Wi-Fi client, a limited LuCI user, ...)
+- steps to reproduce, ideally a proof of concept
+- any real addresses, MACs, SSIDs or keys removed from your report
+
+## Scope
+
+In scope:
+
+- the theme's templates (`header.ut`, `footer.ut`, `sysauth.ut`), for
+  example escaping, or information shown to visitors who are not logged in
+- the theme's and the dashboard's JavaScript, for example markup injection
+  through host names, SSIDs or other data a client controls
+- the rpcd ACLs: permissions broader than documented, or writes outside
+  `/etc/config/vantage` (the dashboard) and `/etc/config/vantage_theme`
+  (the theme)
+- the dashboard's one program: its rpcd plugin `luci.vantage.ports`
+  starting anything but `/usr/sbin/ethtool -S` with the name of one of
+  the device's own DSA ports (through `popen`, which hands that line to
+  `/bin/sh -c`), or anything a caller sends reaching that command line
+- the optional access point add-on (`luci-app-vantage-aps`): a router's
+  key doing more on an access point than fetching its report, a router
+  accepting another device's report as a paired access point's, pairing
+  without the add-on's permission, or its writes going beyond
+  `/etc/vantage`, its own lines of `/etc/dropbear/authorized_keys`, its
+  service's boot links and `/var/run/vantage-collector`
+- the optional per-device traffic add-on (`luci-app-vantage-traffic`):
+  its answer giving away more than a MAC and byte counts per device (an
+  address of either end), the call answered without its permission, its
+  state in `/var/run/vantage-traffic` readable by another account, or
+  the add-on writing anything else on the device
+- packaging: the install and removal scripts, file permissions
+- the dev tooling that handles recorded device data (`dev/replay/`),
+  for example real identifiers leaking into demo output or the
+  repository
+
+Out of scope:
+
+- bugs in LuCI, rpcd, uhttpd, OpenWrt or other packages that Vantage only
+  uses. Report those to the OpenWrt project. If you are unsure where a
+  problem belongs, report it here and we will help route it.
+- information that LuCI's core templates put on every page, including
+  error pages for visitors who are not logged in (the `L.env` script with
+  the LuCI build, and on 404 pages the menu tree); see
+  `docs/luci-contract.md` section 2
+
+## What to expect
+
+This is a small project maintained in spare time. We will acknowledge your
+report as soon as we can, keep you informed while we work on a fix, and
+agree on a disclosure date with you. We will credit you in the release
+notes if you want.

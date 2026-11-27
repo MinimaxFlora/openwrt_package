@@ -1,0 +1,1414 @@
+# Installing Vantage
+
+This guide covers installing the Vantage theme (`luci-theme-vantage`) and
+dashboard (`luci-app-vantage`) on a router running OpenWrt, building them
+into your own firmware, and undoing all of it again.
+
+All examples use `192.0.2.1` for the router. That is a placeholder from the
+documentation address range; replace it with your router's LAN address.
+
+## Quick install
+
+**From the signed repository** (recommended). On the router, over SSH,
+once:
+
+```sh
+key=$(mktemp) &&
+wget -O "$key" https://anothadev.github.io/luci-theme-vantage/vantage-signing.pem &&
+echo "c8a6c83eeb49ca2407932fb5e95785776128cef87db75ebaea0fe4171eee2157  $key" | sha256sum -c - &&
+cp "$key" /etc/apk/keys/vantage-signing.pem &&
+echo 'https://anothadev.github.io/luci-theme-vantage/25.12/packages.adb' >> /etc/apk/repositories.d/customfeeds.list &&
+apk update &&
+apk add luci-theme-vantage luci-app-vantage
+```
+
+The commands stop before anything is installed if the key's hash
+differs. Later versions install with `apk update && apk upgrade`. See
+[Signed repository](#signed-repository).
+
+**From files**, on OpenWrt 25.12, with the theme's and the dashboard's `.apk` files and `SHA256SUMS` from a
+[release](#from-a-github-release) (or your [own build](#build-from-source))
+in the current directory on your computer:
+
+```sh
+f=$(awk '/ luci-(theme|app)-vantage-[0-9].*\.apk$/ {print $2}' SHA256SUMS) &&
+grep -E ' luci-(theme|app)-vantage-[0-9].*\.apk$' SHA256SUMS | sha256sum -c - &&
+ssh root@192.0.2.1 'mkdir -m 700 /tmp/vantage' &&
+scp -O $f root@192.0.2.1:/tmp/vantage/ &&
+ssh root@192.0.2.1 'apk add --no-network --allow-untrusted /tmp/vantage/*.apk; s=$?; rm -r /tmp/vantage; exit $s'
+```
+
+Then **log out of LuCI and log in again**. The dashboard is now the first
+page you see after login. Every step is explained below.
+
+## Contents
+
+- [Requirements](#requirements)
+- [Get the packages](#get-the-packages)
+  - [From a GitHub release](#from-a-github-release)
+  - [Build from source](#build-from-source)
+- [Install on the router](#install-on-the-router)
+- [What the install changes](#what-the-install-changes)
+- [Switch themes](#switch-themes)
+- [Languages](#languages)
+- [Upgrade, downgrade, uninstall](#upgrade-downgrade-uninstall)
+- [Build it into your firmware](#build-it-into-your-firmware)
+- [Troubleshooting](#troubleshooting)
+- [Security notes](#security-notes)
+- [Agent-assisted install](#agent-assisted-install)
+
+## Requirements
+
+### OpenWrt
+
+| OpenWrt | Package manager | Status |
+|---|---|---|
+| 25.12.x | apk (`.apk`) | Supported. Built with the 25.12 SDK and tested. |
+| 24.10.x | opkg (`.ipk`) | Supported since 1.0.8: signed packages, built with the 24.10 SDK and tested on a 24.10.8 router without Wi-Fi. See [OpenWrt 24.10](#openwrt-2410). |
+| 23.05.x | opkg (`.ipk`) | Untested. `dev/build/sdk-build.sh` can build `.ipk` files for it, but the LuCI differences have not been checked and nothing is guaranteed. |
+| Snapshots | apk | Untested. |
+
+Check what your router runs:
+
+```sh
+ssh root@192.0.2.1 'cat /etc/openwrt_release'
+```
+
+`DISTRIB_RELEASE` must start with `25.12` for the `.apk` files and the
+25.12 repository, or with `24.10` for the `.ipk` files and the 24.10
+repository. Both packages are architecture-independent (`noarch`), so the
+same two files install on every target: MIPS, ARM, x86 and the rest.
+
+### OpenWrt 24.10
+
+Releases since 1.0.8 also carry `.ipk` packages built with the 24.10.8
+SDK, and a signed 24.10 repository. That repository uses its own usign
+key. Its SHA-256 (of the key file) is:
+
+    427da4a0b83a258f831f18b5408fd91101b8ac8d34a7d7a4011670d3b8c6d5ba
+
+One-time setup on the router:
+
+```sh
+key=$(mktemp) &&
+wget -O "$key" https://anothadev.github.io/luci-theme-vantage/vantage-24.10.usign.pub &&
+echo "427da4a0b83a258f831f18b5408fd91101b8ac8d34a7d7a4011670d3b8c6d5ba  $key" | sha256sum -c - &&
+opkg-key add "$key" &&
+echo 'src/gz vantage https://anothadev.github.io/luci-theme-vantage/24.10' >> /etc/opkg/customfeeds.conf &&
+opkg update &&
+opkg install luci-theme-vantage luci-app-vantage
+```
+
+The commands stop before anything is installed if the key's hash differs.
+Earlier versions of this guide compared `usign -F` with `297430484082d03d`.
+That proves nothing: the number is stored in the key file, and any other key
+can carry the same one. If you set up the repository that way, compare
+`sha256sum /etc/opkg/keys/297430484082d03d` with the hash above.
+
+Upgrade with `opkg update && opkg upgrade luci-theme-vantage
+luci-app-vantage`. Upgrading from a self-built 1.0.7 or older `.ipk` switches
+LuCI back to Bootstrap once (opkg runs the old package's removal script
+during the upgrade); choose Vantage again under System → System →
+Language and Style. opkg checks `Packages.sig` against `/etc/opkg/keys`
+and each package against the hash in the index. Remove a language package
+before the app (`opkg remove luci-i18n-vantage-zh-cn
+luci-i18n-vantage-theme-zh-cn luci-app-vantage luci-theme-vantage`); opkg leaves the empty directories behind, which is
+harmless. Removing the packages keeps the key and the feed trusted; see
+[Uninstall](#uninstall).
+
+Tested on a 24.10.8 router (x86, without Wi-Fi or add-ons): an upgrade
+from 1.0.6, removal, a fresh install with the Chinese translation, and the
+main pages in light and dark mode. A tampered index is refused. Some
+differences come from 24.10's own LuCI: Status → Overview has no Hide
+button per card and shows the local time unformatted, and DHCP and DNS is
+one page. Not tested yet: the Wi-Fi pages and the dashboard's radio and
+client tiles, and pages for add-ons.
+
+### Packages on the router
+
+Nothing to install beforehand on a standard OpenWrt image with LuCI. The
+required packages are dependencies, so apk would fetch any that are missing
+from your configured package feeds.
+
+| Package | Needed by | Why | On standard LuCI images |
+|---|---|---|---|
+| `luci-base` | theme, app | LuCI itself | yes |
+| `rpcd` | app | LuCI's backend for ubus calls | yes |
+| `rpcd-mod-iwinfo` | app | lists radios and connected stations | yes (with `luci-mod-status`) |
+| `rpcd-mod-rrdns` | app, optional | client names from reverse DNS | yes (with `luci-light`) |
+| `umdns` | app, optional | client names from mDNS (`.local` announcements) | no |
+| `ethtool` | app, optional | a DSA switch's own byte counters for its ports | no |
+
+When an optional package is missing, the dashboard leaves that name source
+out and keeps working.
+
+`ethtool` matters on a router or access point whose Ethernet ports are a
+switch chip's under DSA (most with several LAN ports since OpenWrt 21.02;
+`ls /sys/class/net/*/dsa` lists the chip's link to the CPU there). The
+kernel counts on such a port only what passes the device's CPU: what the
+chip forwards from one of its ports to another (a computer on `lan1`
+fetching from a NAS on `lan2`, an access point on `lan3` and the devices
+behind it) never shows there, and the Ports tile and the Wired branch
+read near zero for it (#156). With `ethtool` installed the dashboard
+reads the chip's own counters instead, one `ethtool -S <port>` a port at
+each poll, and a paired access point's report carries its own. Without
+it nothing changes and nothing is started for it. Install it, then
+reload the dashboard:
+
+```sh
+apk add ethtool        # OpenWrt 25.12
+opkg install ethtool   # OpenWrt 24.10
+```
+
+(`ethtool-full` works as well.) The chip's counters are read for the
+switch drivers whose names the dashboard knows: `mt7530` (MT7530, MT7531,
+MT7988; from Linux 6.16 it puts them in the kernel's counters itself),
+`qca8k`, `mv88e6xxx`, `b53` and `bcm_sf2`, `lantiq_gswip` and
+`rtl8366rb`. For any other driver the kernel's counters stay; some
+(`rtl8365mb`, `ksz`, `felix`, `ar9331`, `xrs700x`) count the chip's
+traffic there already.
+
+Space: the download is about 250 KB in total, and the two packages take
+about 900 KB once installed (less on a compressed overlay).
+
+### Browser
+
+The theme and dashboard use current CSS (`:has()`, `color-mix()`, container
+queries, subgrid). Any evergreen browser from 2023 or later works: Chrome
+or Edge 117+, Firefox 121+, Safari 16.2+ (these minimum versions come from
+the features the CSS uses; older browsers are not tested). No external
+fonts, scripts or CDNs are loaded, so the UI works without internet access.
+
+## Get the packages
+
+You need three files: `luci-theme-vantage-<version>.apk`,
+`luci-app-vantage-<version>.apk` and `SHA256SUMS`. Install either package
+on its own or both together; the theme doesn't need the app, and the app
+on its own works under any LuCI theme (with both, see
+[Switch themes](#switch-themes)). For a translation, add its language packages
+(see [Languages](#languages)).
+
+### From a GitHub release
+
+Releases are published at
+<https://github.com/anothaDev/luci-theme-vantage/releases>.
+
+> **Note:** if the release you want has no packages attached,
+> [build from source](#build-from-source).
+
+Each release carries the theme's and the dashboard's `.apk` files, the
+optional access point add-on (`luci-app-vantage-aps`, see
+[Other access points](#other-access-points-optional)), the optional,
+experimental per-device traffic (`luci-app-vantage-traffic`, see
+[Per-device traffic](#per-device-traffic-optional-experimental)), the language packages of every
+translation it has (`luci-i18n-vantage-*.apk`, see [Languages](#languages))
+and a `SHA256SUMS` file listing their SHA-256 hashes. Download the packages
+you want and `SHA256SUMS` from the release page, then check them on your
+computer:
+
+```sh
+sha256sum -c --ignore-missing SHA256SUMS            # Linux
+grep luci-theme-vantage SHA256SUMS | shasum -a 256 -c    # macOS, per file
+```
+
+Every file must report `OK`. (`--ignore-missing` skips listed files you did
+not download; with macOS's `shasum`, check each file as shown.) On Windows, `Get-FileHash <file>` in
+PowerShell prints the hash to compare by hand.
+
+`SHA256SUMS` comes from the same place as the packages, so this check
+catches damaged or incomplete downloads, not a tampered release. For an
+independent check, rebuild the release yourself and compare hashes
+([below](#verify-a-release-by-rebuilding-it)).
+
+### Signed repository
+
+Every release is also published as an apk repository at
+`https://anothadev.github.io/luci-theme-vantage/25.12/`, with its index
+(`packages.adb`) signed by the project key. apk checks the signature
+against the keys in `/etc/apk/keys/` and each package against the hash in
+the index, so `--allow-untrusted` is not needed.
+
+The project's public key is `keys/vantage-signing.pem` in this repository
+and on the repository site. Its SHA-256 (of the PEM file) is:
+
+    c8a6c83eeb49ca2407932fb5e95785776128cef87db75ebaea0fe4171eee2157
+
+Set it up once on the router:
+
+```sh
+key=$(mktemp) &&
+wget -O "$key" https://anothadev.github.io/luci-theme-vantage/vantage-signing.pem &&
+echo "c8a6c83eeb49ca2407932fb5e95785776128cef87db75ebaea0fe4171eee2157  $key" | sha256sum -c - &&
+cp "$key" /etc/apk/keys/vantage-signing.pem &&
+echo 'https://anothadev.github.io/luci-theme-vantage/25.12/packages.adb' >> /etc/apk/repositories.d/customfeeds.list &&
+apk update &&
+apk add luci-theme-vantage luci-app-vantage
+```
+
+Upgrades then come with the rest of your packages:
+
+```sh
+apk update && apk upgrade luci-theme-vantage luci-app-vantage
+```
+
+After an upgrade, reload the dashboard once with Ctrl+Shift+R (Cmd+Shift+R
+on a Mac). LuCI tags its scripts with LuCI's own version, not the app's, so
+a browser can keep running the previous dashboard from its cache until the
+page is reloaded without it.
+
+**Switching from a file install:** when a package was installed from a
+`.apk` file, apk pins that exact file in `/etc/apk/world`
+(`luci-theme-vantage><Q1…`), so `apk upgrade` keeps it. After adding the
+key and the repository, run `apk add luci-theme-vantage luci-app-vantage`
+once: it replaces the pins with plain names and installs the repository
+version. From then on `apk upgrade` works. Check with
+`grep vantage /etc/apk/world` (plain names, no `><`).
+
+To stop trusting the project, remove the key and the repository line as
+shown under [Uninstall](#uninstall). Installed packages stay.
+
+The repository holds the latest release only; to install an older version,
+use its files from the release page. The key is used by CI on tagged
+releases; if it ever has to be replaced, the new hash will be announced in a
+release and in this guide. Remove the old key first (see
+[Uninstall](#uninstall)), then install the new one the same way: a key left
+in place stays trusted.
+
+### Build from source
+
+`dev/build/sdk-build.sh` builds the four packages, and a language package for
+each translation in the tree, inside the official OpenWrt SDK container
+image.
+
+You need:
+
+- Linux with **podman 4.3 or later** (rootless is fine; the script maps
+  your user to the image's build user with
+  `--userns=keep-id:uid=1000,gid=1000`, so any host UID works), `git`,
+  `bash` and **Node.js** (the built packages are verified with
+  `security-tests/verify_built_apk.js`). The script calls `podman`
+  directly and does not use Docker.
+- About **5 GB of disk** for the SDK image
+  (`ghcr.io/openwrt/sdk:x86_64-25.12.6`, pulled by digest) plus a few
+  hundred MB while building. The container is removed afterwards; the image
+  stays.
+- **Network access**: the first run pulls the image, and every build clones
+  OpenWrt's package feeds (over HTTPS, at the commits pinned in the SDK
+  image) inside the container.
+- **Time**: pulling the image takes longest. The build itself takes a few
+  minutes.
+
+```sh
+git clone https://github.com/anothaDev/luci-theme-vantage.git
+cd luci-theme-vantage
+dev/build/sdk-build.sh              # SDK 25.12.6, current commit (HEAD)
+dev/build/sdk-build.sh 25.12.6 <tag-or-commit>
+```
+
+The first argument is the SDK release, the second any git revision. The
+script builds from a fresh clone of that commit, not from your working
+tree, so uncommitted changes are not included.
+
+What goes into a build is pinned:
+
+- **SDK image by digest.** The script keeps a table of SDK releases and
+  image digests and refuses a release that is not in it. The image already
+  contains the extracted SDK; the script checks that it is the SDK tarball
+  whose SHA-256 is recorded in the table (and in OpenWrt's signed
+  `sha256sums` for that release) and skips the image's `setup.sh`, which
+  would download the SDK again.
+- **Package feeds by commit.** The SDK image's `feeds.conf.default` names a
+  commit for every feed; the build clones those commits over HTTPS. The feed
+  pins come from the pinned image.
+- **Build entrypoint by hash** (`dev/build/entrypoint.sh`, from
+  `openwrt/gh-action-sdk`).
+
+The container runs without capabilities (`--cap-drop=all`,
+`no-new-privileges`), sees the commit's clone read-only and can write only
+to a fresh output directory. It keeps network access, which the feed clone
+needs.
+
+Before anything is written to `dist/<release>/`, the script checks every
+package with `security-tests/verify_built_apk.js`, using the SDK's own
+`apk`, `jsmin` and `po2lmo`: the file list, modes and owners, metadata and
+dependencies, install and remove scripts, and that every packaged file is
+the commit's source after LuCI's build transforms (JavaScript minification,
+`?v=<version>` in templates, catalogues compiled by `po2lmo`). The set of
+packages must be exactly the four plus one language package per
+`po/<lang>/` directory of each, named the way the SDK's `luci.mk` names
+them. Then it replaces the previous contents of `dist/<release>/` (only its
+own file names) with:
+
+| File | Contents |
+|---|---|
+| `luci-theme-vantage-<version>.apk`, `luci-app-vantage-<version>.apk` | the packages |
+| `luci-app-vantage-aps-<version>.apk` | the optional access point add-on |
+| `luci-app-vantage-traffic-<version>.apk` | the optional, experimental per-device traffic |
+| `luci-i18n-vantage-<lang>-<version>.apk`, `luci-i18n-vantage-aps-<lang>-<version>.apk`, `luci-i18n-vantage-traffic-<lang>-<version>.apk`, `luci-i18n-vantage-theme-<lang>-<version>.apk` | language packages, one of each per translation (none without translations) |
+| `SHA256SUMS` | their SHA-256 hashes |
+| `BUILDINFO` | commit, SDK release, image digest, SDK tarball hash, entrypoint hash, feed commits |
+| `packages.adb` | only with signing, see [Signed packages](#signed-packages) |
+
+The script exits 0 only when all packages were built, verified and
+hashed. After a successful build it deletes its work directory; after a
+failure it keeps it (`vantage-build.XXXXXX` under `$TMPDIR`, or `/tmp`) and
+prints its path, with the full `build.log`. Delete it once you no longer
+need the log. It also leaves the SDK's `apk`, `jsmin`, `po2lmo` and
+`luci.mk` in `dist/.tools/` so the packages can be re-checked later:
+
+```sh
+node security-tests/verify_built_apk.js dist/25.12.6
+```
+
+**Other SDK releases.** 25.12.6 and 24.10.8 are pinned, and 25.12.4, which
+built the releases up to 1.2.0. For another release, add
+its digest and SDK tarball line to the table in `sdk-build.sh` (the comment
+above the table shows how to get and cross-check both), or pass them for
+one build:
+
+```sh
+VANTAGE_SDK_IMAGE=ghcr.io/openwrt/sdk@sha256:<digest> \
+VANTAGE_SDK_SUM='<sha256> *openwrt-sdk-<release>-x86-64_<...>.tar.zst' \
+dev/build/sdk-build.sh <release>
+```
+
+`VANTAGE_SDK_IMAGE` must be a digest reference; a tag is refused.
+
+#### Verify a release by rebuilding it
+
+The same commit, SDK release and pinned SDK image produce byte-identical
+packages. To confirm that a release's files were built from the source they
+claim, build the release tag with the SDK release it was built with (its
+`BUILDINFO` says which), then compare:
+
+```sh
+dev/build/sdk-build.sh 25.12.6 <tag>      # 1.2.0 and older: 25.12.4
+diff dist/25.12.6/SHA256SUMS /path/to/downloaded/SHA256SUMS && echo identical
+diff dist/25.12.6/BUILDINFO /path/to/downloaded/BUILDINFO && echo same inputs
+```
+
+`BUILDINFO` differs only when the builds used different inputs, for
+example another SDK image digest.
+
+To check downloaded packages against a tag's source without rebuilding
+(after one build, so that `dist/.tools/` has the SDK's `apk`):
+
+```sh
+node security-tests/verify_built_apk.js --rev <tag> /path/to/downloads
+```
+
+#### Signed packages
+
+By default the packages are unsigned, and installing them needs
+`--allow-untrusted` plus your own hash check. A maintainer who publishes
+packages can instead sign a package index. The `.apk` files themselves stay
+unsigned and byte-identical (OpenWrt signs indexes, not single packages),
+so rebuilding and comparing still works.
+
+Maintainer, once: create an EC key pair **outside the repository** (the
+script refuses a key inside it, and `.gitignore` ignores `*.pem` and
+`key-build*`), keep the private key secret, and publish the public key and
+its SHA-256 somewhere other than the release page:
+
+```sh
+( umask 077 && mkdir -p ~/.config/vantage-signing &&
+  openssl ecparam -name prime256v1 -genkey -noout -out ~/.config/vantage-signing/vantage.key.pem )
+openssl ec -in ~/.config/vantage-signing/vantage.key.pem -pubout -out vantage-signing.pub.pem
+sha256sum vantage-signing.pub.pem
+```
+
+Build with the key: the packages are built and verified without it,
+then the index is signed in a second SDK container that has no network.
+The key goes to it on standard input (never on the command line or in a
+mount) and nothing else reads it. That container deletes the key after
+signing and checks the index before handing it out: the signature
+verifies with the public key, and the index lists exactly the packages,
+each with its hash. The public key is the committed one
+(`keys/vantage-signing.pem`); for another key, name its public half in
+`VANTAGE_SIGN_PUB`. `dist/<release>/` then also holds `packages.adb`, the
+index signed with that key, and `BUILDINFO` records the public key's
+SHA-256. `dev/build/sdk-build.sh --sign <release>` signs a
+`dist/<release>/` an earlier build left, and only a complete one; with
+`VANTAGE_SIGN_KEY=-` it takes the key on standard input.
+
+```sh
+VANTAGE_SIGN_KEY=~/.config/vantage-signing/vantage.key.pem VANTAGE_SIGN_PUB=vantage-signing.pub.pem \
+  dev/build/sdk-build.sh 25.12.6 <tag>
+```
+
+`VANTAGE_SIGN_PUB` names the public key the signature has to verify with.
+Leave it out only when the key is the one whose public half is committed
+as `keys/vantage-signing.pem` (the project's own releases, or your fork
+once your key is committed there): without it the signer checks against
+that file and refuses any other key.
+
+For 23.05/24.10 (opkg) use a usign key (`usign -G -s key-build -p
+key-build.pub`, then `VANTAGE_SIGN_KEY=key-build
+VANTAGE_SIGN_PUB=key-build.pub`); the index is then `Packages` with
+`Packages.sig`, and `BUILDINFO` records the key's fingerprint. For 24.10
+the default public key is `keys/vantage-24.10.usign.pub`; 23.05 has no
+committed key and always needs `VANTAGE_SIGN_PUB`. The 24.10 repository
+is signed this way, with the key given under
+[OpenWrt 24.10](#openwrt-2410).
+
+In CI, both private keys are secrets of the GitHub environment
+`release-signing`: only a pushed `v*` tag can use it, and I approve each
+such run. Only the job that signs is in that environment, on a machine
+of its own that has the packages as built and runs nothing the build
+produced; the build job has no secret. The key goes from the secret to
+the signing container's standard input, without a file.
+
+On the router, once: with the public key copied to `/tmp/vantage/` (made as
+in [step 1](#1-copy-the-files-to-the-router)), install it only if its SHA-256
+matches the published value:
+
+```sh
+echo '<published SHA-256>  /tmp/vantage/vantage-signing.pub.pem' | sha256sum -c - &&
+cp /tmp/vantage/vantage-signing.pub.pem /etc/apk/keys/vantage-signing.pem
+```
+
+Then, with the two packages and `packages.adb` copied to the same folder,
+install without `--allow-untrusted`:
+
+```sh
+apk add --no-network --repository /tmp/vantage/packages.adb luci-theme-vantage luci-app-vantage
+```
+
+apk checks the index signature against `/etc/apk/keys` and each package
+against the hash in the index, and ignores an index it cannot verify.
+Remove the key with `rm /etc/apk/keys/vantage-signing.pem` when you no
+longer want to trust it. The hash-checked `--allow-untrusted` route below
+keeps working for unsigned builds.
+
+## Install on the router
+
+### 1. Copy the files to the router
+
+From your computer, make a folder only root can use, then copy the files
+into it:
+
+```sh
+ssh root@192.0.2.1 'mkdir -m 700 /tmp/vantage' &&
+scp -O SHA256SUMS $(awk '/ luci-(theme|app)-vantage-[0-9].*\.apk$/ {print $2}' SHA256SUMS) root@192.0.2.1:/tmp/vantage/
+```
+
+This copies the theme and the dashboard as `SHA256SUMS` lists them by name
+(the `[0-9]` after the name keeps the optional `luci-app-vantage-aps` and
+`luci-app-vantage-traffic` out),
+so an older download in the same folder stays behind.
+
+Files go in their own folder because `/tmp` is open to every process on the
+router, and installing turns signature checks off. If `mkdir` says the
+folder exists, look inside it. When it is a leftover of yours, remove it with
+`rm -r /tmp/vantage` and start again.
+
+`-O` makes scp use the classic SCP protocol. OpenWrt's SSH server
+(Dropbear) has no SFTP server, and OpenSSH 9.0 and later use SFTP unless
+told otherwise; without `-O` the copy fails with an error such as
+`ash: /usr/libexec/sftp-server: not found` followed by
+`scp: Connection closed`. On Windows, the built-in
+`scp` accepts `-O` too; in WinSCP, choose the SCP protocol.
+
+`/tmp` is RAM, so the files are gone after a reboot, which is fine: they
+are only needed during installation.
+
+**Or download on the router** once releases are public (OpenWrt's `wget`
+follows GitHub's redirects over HTTPS). Take the tag and file names from
+the release page:
+
+```sh
+mkdir -m 700 /tmp/vantage && cd /tmp/vantage &&
+BASE='https://github.com/anothaDev/luci-theme-vantage/releases/download/<tag>' &&
+for f in SHA256SUMS luci-theme-vantage-<version>.apk luci-app-vantage-<version>.apk; do
+	wget -O "$f" "$BASE/$f" || break
+done
+```
+
+### 2. Check the hashes on the router
+
+```sh
+ssh root@192.0.2.1
+cd /tmp/vantage
+sha256sum -c SHA256SUMS
+```
+
+When you copied only some of the packages listed (one of the two, or no
+language packages), check just those (`sha256sum -c` fails for files that
+are listed but missing):
+
+```sh
+grep -E 'luci-(theme|app)-vantage-[0-9]' SHA256SUMS | sha256sum -c
+```
+
+Continue only when every file says `OK`. This catches a damaged or incomplete
+copy, not a tampered release ([why](#from-a-github-release)).
+
+### 3. Install
+
+Both packages:
+
+```sh
+apk add --no-network --allow-untrusted /tmp/vantage/luci-theme-vantage-[0-9]*.apk /tmp/vantage/luci-app-vantage-[0-9]*.apk
+```
+
+Theme only:
+
+```sh
+apk add --no-network --allow-untrusted /tmp/vantage/luci-theme-vantage-[0-9]*.apk
+```
+
+Dashboard only (works under Bootstrap or any other theme; installed with
+the theme, the dashboard shows only while Vantage is the selected theme):
+
+```sh
+apk add --no-network --allow-untrusted /tmp/vantage/luci-app-vantage-[0-9]*.apk
+```
+
+**Why `--allow-untrusted`?** On OpenWrt 25.12, apk only installs packages
+signed by a key in `/etc/apk/keys`, normally the OpenWrt release keys.
+Vantage is not part of OpenWrt and its packages are not signed, so apk
+refuses them (`UNTRUSTED signature`) unless you pass this flag. It turns off
+signature checking for that command, which means:
+
+- The hash check in step 2 is the only check left, and it only finds a
+  damaged or incomplete copy: `SHA256SUMS` comes from the same place as the
+  packages, so it can't show a release wasn't tampered with. Do not skip
+  it, and use the [signed repository](#signed-repository) for that
+  protection.
+- The flag covers everything that command installs, including anything
+  apk would fetch from your package feeds in the same run. `--no-network`
+  prevents that: apk installs only the named files and fails instead of
+  downloading a missing dependency without a signature check. If it
+  reports a missing dependency such as `luci-base`, `rpcd` or
+  `rpcd-mod-iwinfo` (unusual on a standard image), install it with a
+  normal, signature-checked `apk update && apk add <package>`, then repeat
+  the `--no-network` command.
+- The globs match every version in the folder. Keep only one version of
+  each package there, or name the files exactly.
+- A maintainer who publishes a signed index lets you skip
+  `--allow-untrusted` altogether; see [Signed packages](#signed-packages).
+
+Check the result:
+
+```sh
+apk list --installed | grep vantage
+```
+
+### 4. Clean up and log in again
+
+```sh
+rm -r /tmp/vantage
+```
+
+In the browser, **log out and log in again** (or close the LuCI tab and open
+a new one, then log in). Two reasons:
+
+- rpcd gives a LuCI session its permissions at login. A session that
+  started before the dashboard was installed doesn't have the dashboard's
+  permissions, so the dashboard is missing from its menu.
+- LuCI caches the menu for the session in the browser's `sessionStorage`.
+
+## What the install changes
+
+| | `luci-theme-vantage` | `luci-app-vantage` |
+|---|---|---|
+| Files | `/www/luci-static/vantage/` (CSS, icons, logo), `/www/luci-static/resources/menu-vantage.js`, `/www/luci-static/resources/vantage-theme/`, `/usr/share/ucode/luci/template/themes/vantage/` | `/www/luci-static/resources/view/vantage/`, `/www/luci-static/resources/vantage/`, `/usr/share/luci/menu.d/zz-luci-app-vantage.json`, `/usr/share/rpcd/acl.d/luci-app-vantage.json`, `/usr/libexec/rpcd/luci.vantage.ports`, `/etc/config/vantage` |
+| Configuration | Registers the theme as `luci.themes.Vantage`. Makes it the active theme (`luci.main.mediaurlbase=/luci-static/vantage`) **only on a first install**, never on an upgrade or reinstall. Adds `/etc/config/vantage_theme` (Appearance, and the dashboard's layout and chart style) and the rpcd group `luci-theme-vantage`. | None besides its own `/etc/config/vantage` (client names, and which clients' weak signal is not warned about). |
+| Menu | – | Adds **Dashboard** (`admin/dashboard`) as the first menu entry, so it is the page LuCI opens after login. Status → Overview is unchanged. With `luci-mod-dashboard` also installed, which uses the same entry, Dashboard opens Vantage's and LuCI's moves to Status → Dashboard. With the Vantage theme installed but not selected, Dashboard opens LuCI's own page instead (see [Switch themes](#switch-themes)). |
+| After install | Clears LuCI's caches (`/tmp/luci-indexcache.*`, `/tmp/luci-modulecache/`) and reloads rpcd. | Same. |
+
+Nothing else changes. Neither package adds a service, cron job or init
+script, and neither touches network, wireless, firewall, DHCP or password
+settings. The dashboard only reads status. Its only writes are a name you
+give a device and its "Don't warn about its signal" mark, both stored in
+`/etc/config/vantage`, and an empty lock file in RAM
+(`/var/run/vantage-ports/lock`) where it reads a switch's counters.
+
+The dashboard's URL is `http://192.0.2.1/cgi-bin/luci/admin/dashboard`.
+
+### Other access points (optional)
+
+To see your other OpenWrt access points on the router's dashboard,
+install the add-on on the router **and** on each access point (both
+already run Vantage):
+
+```sh
+apk add luci-app-vantage-aps        # OpenWrt 25.12
+opkg install luci-app-vantage-aps   # OpenWrt 24.10
+```
+
+Then pair each access point once, under **Network → Access points**:
+
+1. On the router, **Add an access point** shows the router's code. Copy it.
+2. On the access point, **Let a router read this access point**, paste the
+   code, and copy the reply it shows.
+3. Back on the router, paste the reply and **Add**.
+
+What it needs:
+
+- **On the access point:** Dropbear, OpenWrt's default SSH server, running
+  and reachable from the router, with root login by key allowed (the
+  default); and an IPv4 address on its `lan` interface. The page says what
+  is missing.
+- **On the router:** `dbclient`, Dropbear's SSH client, which OpenWrt
+  ships with Dropbear.
+- **An address that stays, or DHCP from this router.** If the access
+  point's IPv4 address changes, the router finds it again by its MAC
+  address in its own DHCP leases and neighbour table, on the network it
+  was paired on; the page names that network beside the address
+  (`network lan`). A DHCP reservation avoids the question. Changing the
+  router's own subnet is such a change too: the network keeps its name,
+  and the access point is found at its new address. An access point
+  moved to another of the router's networks has to be paired again, and
+  so has one whose network you renamed or removed: the router looks on
+  the network of that name and on no other. A row that names no network
+  (its address was on none of the router's networks when it was paired)
+  is looked for only inside the subnet the pairing address is in.
+  Pairing again means **Remove** on the router, then adding the access
+  point with a new reply.
+- **After a firmware upgrade,** install the add-on again on the upgraded
+  device, as with the other Vantage packages (see
+  [Upgrading OpenWrt itself](#upgrading-openwrt-itself)). The pairing
+  itself survives the upgrade. Until then the router shows that the
+  add-on is not installed on that access point.
+
+Its own translation is a package of its own:
+`luci-i18n-vantage-aps-<lang>` (for example `luci-i18n-vantage-aps-zh-cn`).
+
+What pairing changes. On the access point, one line in
+`/etc/dropbear/authorized_keys`, for the router's own key and limited to a
+read-only report: that key cannot open a shell, run anything else or
+forward ports. That holds on every SSH listener that leaves a key its
+own command. Dropbear runs a listener's own command (`ForceCommand` in
+`/etc/config/dropbear`) in place of a key's, so the add-on lets no
+router in while any listener that takes root has one, and its page
+warns when one is added after routers were let in: remove the command
+or revoke the routers, then restart Dropbear (`service dropbear
+restart`) so that a session already open there ends too. The add-on
+looks at the Dropbear instances OpenWrt's service manager runs; one
+started some other way it cannot see. On the router, its key and the paired access points in
+`/etc/vantage/` (kept on sysupgrade), and a service, `vantage-collector`,
+that runs only while an access point is paired and logs in to the access
+points only while a dashboard or this page is open. Until you pair, the
+add-on shares nothing and runs nothing. Its page needs the
+`luci-app-vantage-aps` permission, which only an administrator should
+have: whoever holds it can let a router read the device.
+
+Two things to know:
+
+- **A backup contains it.** `/etc/vantage/` is part of a configuration
+  backup (System → Backup / Flash Firmware), so such an archive holds the
+  key that reads every paired access point. Keep it as you would keep the
+  router's own SSH keys.
+- **Seeing the access points is a permission of its own.** An
+  administrator has it. A login you restricted to the dashboard
+  (`luci-app-vantage`) sees the dashboard without the access points;
+  add `luci-app-vantage-aps-view` to that login's `read` list in
+  `/etc/config/rpcd` to show them. Whoever holds that sees the access
+  points' clients, and each look makes the router log in to them.
+
+To unpair, **Remove** the access point on the router and **Revoke** the
+router on the access point. Revoke also cuts off a router that still has
+a connection open: from then on it gets no report. Two things can undo
+it. LuCI's own System → Administration → SSH-Keys page saves the whole
+key file, so a tab of that page opened before the Revoke puts the line
+back when it is saved afterwards: reload that page first. And restoring
+a configuration backup made before the Revoke restores the key file with
+it. Revoke, like the key's limits, counts only on an access point with a
+root password: without one, OpenWrt's Dropbear lets anyone on the
+network in as root with no key at all, unless password logins are
+turned off.
+
+If the page says this device's SSH keys cannot be read, the file
+(`/etc/dropbear/authorized_keys`) is damaged or larger than 256 KiB.
+LuCI's SSH-Keys page cannot open such a file either: shorten it over
+SSH. Until then the page cannot say which routers read the device, and
+pairing is off. If it says the router's list of access points cannot be
+read, `/etc/vantage/aps.json` was changed by hand or is damaged: put it
+right over SSH, or delete it and pair the access points again. The
+add-on never rewrites a list it cannot read whole.
+
+Before removing the add-on:
+
+- **From an access point:** revoke its routers first. Otherwise their
+  lines stay in `authorized_keys`; they can then only run a command that
+  is gone, but would work again if the add-on came back (and on an SSH
+  listener with a command of its own, they still run that command). Without the
+  add-on, delete them under System → Administration → SSH-Keys (the lines
+  ending in `vantage-router@<name>+<id>`).
+- **From a router:** revoke it on each access point, then delete its key
+  and list with `rm -r /etc/vantage`. Removing the package leaves that
+  folder, and every access point keeps accepting the key until it is
+  revoked there.
+
+### Per-device traffic (optional, experimental)
+
+On a router, a device that shares a port with others (behind a switch,
+or behind an access point that is not paired or not OpenWrt) has no
+traffic of its own on the dashboard: the port counts them together. This
+add-on counts it per device from the router's connection tracking and
+shows it in the Clients list and the device's details, marked "Through
+this router". It is experimental: reports of how it behaves on your
+router are welcome in
+[#110](https://github.com/anothaDev/luci-theme-vantage/issues/110).
+
+Install it on the router, the device that routes the traffic (on an
+access point that only bridges, there is nothing to count):
+
+```sh
+apk add luci-app-vantage-traffic        # OpenWrt 25.12
+opkg install luci-app-vantage-traffic   # OpenWrt 24.10
+```
+
+From release files, copy `luci-app-vantage-traffic-<version>.apk` with
+the others and install it the same way. Then reload the dashboard.
+
+What it counts and what it doesn't:
+
+- **Traffic through the router**: to and from the internet, to the router
+  itself, and between the router's networks. Not what devices of one
+  network send each other: the switch or the bridge passes that without
+  the router counting it. A device's own port, where it has one, and a
+  paired access point that has the device alone on a port count all of
+  it, so the dashboard shows their numbers first.
+- **Devices the router knows by address**, from its neighbour table: not
+  devices behind another router, and not an IPv6 address the neighbour
+  table has dropped.
+- Rates are averages between two reads, 5 s apart (30 s with Low-power
+  router).
+
+What it changes: nothing but its files
+(`/usr/libexec/rpcd/luci.vantage.traffic` and
+`/usr/share/rpcd/acl.d/luci-app-vantage-traffic.json`) and its counters'
+state in `/var/run/vantage-traffic`: RAM, readable by root alone, gone at
+a reboot (the counting then starts over). No firewall rule, no sysctl
+setting, no service, no config file, and nothing runs while no dashboard
+is open.
+
+What it costs: rpcd runs the plugin as a process of its own when a
+dashboard asks, and goes on answering LuCI meanwhile, so a read never
+holds LuCI up. A read takes the router's CPU for a moment: on a quad-core
+ARM access point about 0.4 s at 2,000 entries and 1.5 s at 8,000 (beyond
+about 12,500 entries the 2 s limit ends the read); on an x86 VM 22 ms at
+2,000 entries and 0.2 s at 16,384. It is shared by everyone
+looking, one at a time, every 5 s at most; a slow one makes the next wait
+ten times as long as it took, so the reads take about a tenth of one core at
+most, and the table is read for 2 s at most. Where connections come and
+go quickly a read costs a little more: the add-on keeps the connections
+that ended since the read before, and those of 64 KiB or more that ended
+in the last 150 s (16,384 at most), so that one a read missed does not
+count twice; on a desktop, 2,000 entries of which 80 end each second, a
+tenth of them large, take 30 ms a read instead of 22 ms. A smaller
+connection missed by two reads running can count twice, by less than
+64 KiB, for one step of the rate. `cat /proc/net/nf_conntrack
+| wc -l` tells how many entries your router has now;
+`dev/traffic/bench.uc` in the source measures what a read costs it
+(`bench.uc <dir> churn` with connections coming and going).
+
+Things that make the numbers low, which the device's details point out:
+
+- **Connection accounting switched off.** OpenWrt has it on
+  (`net.netfilter.nf_conntrack_acct=1` in
+  `/etc/sysctl.d/11-nf-conntrack.conf`); if someone switched it off,
+  nothing is counted and the details say so. The add-on never switches
+  it on.
+- **nlbwmon.** Where it runs (luci-app-nlbwmon, Bandwidth Monitor), it
+  resets these counters every time it reads them (every 30 s by
+  default), and what passed since the add-on's last read is lost. Use one
+  of the two; a longer `refresh_interval` in `/etc/config/nlbwmon` makes
+  the loss smaller.
+- **Hardware flow offloading** (Network → Firewall → Routing/NAT
+  Offloading). Many drivers don't count offloaded connections, so their
+  traffic may be missing; software flow offloading counts as usual.
+
+Its permission is its own: `luci-app-vantage-traffic`. An administrator
+has it; a login you restricted to the dashboard (`luci-app-vantage`) sees
+the dashboard as before. To show per-device traffic to that login, add
+`luci-app-vantage-traffic` to its `read` list in `/etc/config/rpcd`;
+whoever holds it sees how much each device sends and receives. Its
+translation is a package of its own, `luci-i18n-vantage-traffic-<lang>`
+(it translates the permission's description).
+
+To remove it:
+
+```sh
+apk del luci-app-vantage-traffic        # OpenWrt 25.12
+opkg remove luci-app-vantage-traffic    # OpenWrt 24.10
+```
+
+Where its translation is installed, name that package in the same
+command (`luci-i18n-vantage-traffic-<lang>`): neither package manager
+removes a package that another one still needs.
+
+Nothing stays behind on the router: the removal deletes
+`/var/run/vantage-traffic` and has rpcd let go of the plugin (a reload,
+as installing a LuCI package does); a read running at that moment can
+make the folder again, in RAM until the next reboot. A dashboard left
+open asks once a minute whether it is back, and no more once its page
+is reloaded.
+
+## Switch themes
+
+In LuCI: **System → System → Language and Style → Design**, pick a theme,
+then **Save & Apply**. Vantage is listed as `Vantage`. The light / dark /
+auto switch in Vantage's top bar (Appearance, with the login and network
+path backgrounds) is saved on the router for every browser, in
+`/etc/config/vantage_theme`, and so are the dashboard's layout and chart
+style; it doesn't touch any other configuration.
+
+From SSH:
+
+```sh
+uci set luci.main.mediaurlbase=/luci-static/vantage     # Vantage
+uci set luci.main.mediaurlbase=/luci-static/bootstrap   # back to Bootstrap
+uci commit luci
+```
+
+Reload the page afterwards. No service needs a restart.
+
+With both packages installed, the Vantage dashboard goes with the Vantage
+theme. Under another theme, Dashboard and the page after login open
+LuCI's own instead: Status → Dashboard when `luci-mod-dashboard` is
+installed, otherwise Status → Overview. Without the theme package, the
+dashboard shows under any theme.
+
+## Languages
+
+Vantage's texts go through LuCI's translation system. A translation ships
+as small packages per language, one for each Vantage package you have:
+
+| Package | Translates |
+|---|---|
+| `luci-i18n-vantage-<lang>` | the dashboard (`luci-app-vantage`) |
+| `luci-i18n-vantage-theme-<lang>` | the theme (`luci-theme-vantage`) |
+| `luci-i18n-vantage-aps-<lang>` | the access points add-on (`luci-app-vantage-aps`) |
+| `luci-i18n-vantage-traffic-<lang>` | the traffic add-on (`luci-app-vantage-traffic`) |
+
+`<lang>` is LuCI's language suffix, the same as in OpenWrt's own
+`luci-i18n-base-<lang>`: for example `de`, `fr`, `pt-br`, or `zh-cn` for
+Simplified Chinese. Each language package depends on its Vantage package
+and has the same version. The [README](../README.md#languages) lists the
+translations that exist; a release carries the language packages of all
+of them.
+
+From the [signed repository](#signed-repository):
+
+```sh
+apk update && apk add luci-i18n-vantage-zh-cn luci-i18n-vantage-theme-zh-cn
+```
+
+From release files: the language packages are assets of the release, next
+to the two packages and listed in the same `SHA256SUMS`. Check, copy and
+install them like the others, for example:
+
+```sh
+apk add --no-network --allow-untrusted /tmp/vantage/luci-i18n-vantage-zh-cn-*.apk /tmp/vantage/luci-i18n-vantage-theme-zh-cn-*.apk
+```
+
+For LuCI's own pages in the same language, install OpenWrt's
+`luci-i18n-base-<lang>` too (`apk add luci-i18n-base-zh-cn`).
+
+Then choose the language in LuCI: **System → System → Language and Style
+→ Language**, then **Save & Apply**. `auto` follows the browser's
+language. Installing a language package adds its language to that list.
+
+A language package contains only the compiled catalogue
+(`/usr/lib/lua/luci/i18n/vantage.<lang>.lmo`, or `vantage-theme`,
+`vantage-aps` or `vantage-traffic` in that name) and a first-boot script that registers the
+language (`luci.languages.<lang>`). Texts that are not translated yet stay
+in English. `apk upgrade` upgrades installed language packages with the
+rest; if you upgrade by package name, name them too; with files, install the new language packages together with the new
+packages. To remove a translation, `apk del` its packages; when you
+uninstall Vantage, name its language packages too.
+
+## Upgrade, downgrade, uninstall
+
+### Upgrade Vantage
+
+With the [signed repository](#signed-repository):
+
+```sh
+apk update && apk upgrade luci-theme-vantage luci-app-vantage
+```
+
+With the access points add-on, name `luci-app-vantage-aps` as well, here
+and in the commands below, on the router and on every access point; with
+per-device traffic, `luci-app-vantage-traffic` on the router.
+
+(If you first installed from files, run
+`apk add luci-theme-vantage luci-app-vantage` once instead; see
+[Switching from a file install](#signed-repository).)
+
+With files: get the newer ones, check their hashes as above, copy them to
+`/tmp/vantage` as in [step 1](#1-copy-the-files-to-the-router), then:
+
+```sh
+apk add --no-network --allow-untrusted /tmp/vantage/luci-theme-vantage-[0-9]*.apk /tmp/vantage/luci-app-vantage-[0-9]*.apk
+```
+
+apk replaces the installed version. Your theme choice is kept (the
+upgrade never selects a theme), and so are your device names in
+`/etc/config/vantage` and your Appearance in `/etc/config/vantage_theme`.
+The packaged copy that apk saves next to a changed file
+(`vantage.apk-new`, `vantage_theme.apk-new`; on 24.10 opkg's
+`vantage-opkg`, `vantage_theme-opkg`) holds no setting, and since 1.2.0
+the install removes it. opkg may print a harmless error line about it.
+Log out and in once after upgrading.
+
+### Downgrade
+
+Install the older files the same way. apk installs the exact file you
+name, also when it is older than the installed version, and treats it as
+an upgrade: theme choice and names are kept. If apk refuses, remove the
+package first (below) and then install the older file; removing the theme
+switches LuCI to Bootstrap, and the reinstall selects Vantage again.
+
+### Uninstall
+
+```sh
+apk del luci-app-vantage luci-theme-vantage        # OpenWrt 25.12
+opkg remove luci-app-vantage luci-theme-vantage    # OpenWrt 24.10
+```
+
+Or name just one of them, and add any installed language packages
+(`apk list --installed | grep vantage` shows them, e.g.
+`luci-i18n-vantage-zh-cn`) and the optional `luci-app-vantage-aps`
+(revoke its routers first, see [Other access points](#other-access-points-optional))
+and `luci-app-vantage-traffic`. What happens:
+
+- **Theme:** if Vantage is the active theme, LuCI switches to Bootstrap (or,
+  when Bootstrap isn't installed, to another installed theme), and the
+  `Vantage` entry is removed from the theme list. LuCI also falls back to a
+  working theme on its own if its theme ever goes missing, so you can't lock
+  yourself out of the web interface this way.
+- **Dashboard:** the Dashboard entry disappears and LuCI opens Status →
+  Overview after login again. If you named devices, apk leaves your
+  modified `/etc/config/vantage` in place; delete it with
+  `rm /etc/config/vantage` if you don't want to keep it.
+- **Appearance:** a saved `/etc/config/vantage_theme` stays behind the same
+  way; `rm /etc/config/vantage_theme` removes it.
+  The login page's switch, `luci.main.vantage_https`, is removed with the
+  theme.
+- **Signing key and repository:** these stay, so your router keeps trusting
+  the project's key and any package it signs. Unless you plan to reinstall,
+  remove them, using the lines for your version:
+
+```sh
+# OpenWrt 25.12
+rm /etc/apk/keys/vantage-signing.pem
+sed -i '/anothadev\.github\.io\/luci-theme-vantage/d' /etc/apk/repositories.d/customfeeds.list
+
+# OpenWrt 24.10
+rm /etc/opkg/keys/297430484082d03d
+sed -i '/anothadev\.github\.io\/luci-theme-vantage/d' /etc/opkg/customfeeds.conf
+```
+
+Log out and in afterwards to refresh the menu.
+
+### Keep your device names
+
+Device names live in `/etc/config/vantage` and nowhere else. LuCI's backup
+(**System → Backup / Flash Firmware → Generate archive**) includes it, and
+`/etc/config/vantage_theme` with your Appearance. To copy just that file:
+
+```sh
+scp -O root@192.0.2.1:/etc/config/vantage ./vantage.config        # back up
+scp -O ./vantage.config root@192.0.2.1:/etc/config/vantage        # restore
+```
+
+### Upgrading OpenWrt itself
+
+A firmware upgrade (sysupgrade) keeps your settings but not the packages
+you installed with apk. After the upgrade LuCI can't find the Vantage theme
+and falls back to Bootstrap on its own. Install the packages again as
+above; since your settings, theme choice included, were kept, Vantage
+becomes the active theme again and your device names are still there.
+
+Attended Sysupgrade (the LuCI app or `owut`) requests a new image with your
+installed packages from OpenWrt's build servers. Vantage is not in
+OpenWrt's package feeds, so leave it out of that request (or uninstall it
+first) and reinstall it afterwards.
+
+## Build it into your firmware
+
+### OpenWrt build system or SDK: add the feed
+
+The repository is an OpenWrt package feed. In your OpenWrt source tree:
+
+```sh
+[ -f feeds.conf ] || cp feeds.conf.default feeds.conf
+echo 'src-git vantage https://github.com/anothaDev/luci-theme-vantage.git' >> feeds.conf
+./scripts/feeds update -a
+./scripts/feeds install luci-theme-vantage luci-app-vantage
+make menuconfig
+```
+
+In menuconfig, select **LuCI → Themes → luci-theme-vantage** and **LuCI →
+Applications → luci-app-vantage** (`y` builds them into the image, `m` only
+as packages). Or add them to your `.config`:
+
+```
+CONFIG_PACKAGE_luci-theme-vantage=y
+CONFIG_PACKAGE_luci-app-vantage=y
+```
+
+The packages need the `luci` feed (the default feeds include it).
+
+To pin a release, append `;<tag>` to the URL
+(`https://github.com/anothaDev/luci-theme-vantage.git;<tag>`). To build
+from a local checkout instead:
+
+```sh
+echo 'src-link vantage /path/to/luci-theme-vantage' >> feeds.conf
+```
+
+### ImageBuilder
+
+With a 25.12 ImageBuilder, copy the theme's and the dashboard's `.apk` files into its `packages/`
+directory and name them in `PACKAGES`:
+
+```sh
+cp /path/to/luci-theme-vantage-[0-9]*.apk /path/to/luci-app-vantage-[0-9]*.apk packages/
+make image PROFILE=<your-profile> PACKAGES="luci luci-theme-vantage luci-app-vantage"
+```
+
+The ImageBuilder indexes its `packages/` directory itself. The project has
+not tested this route, so check the result before you flash it.
+
+### Theme selection on first boot
+
+In a firmware image, the theme registers and selects itself on the first
+boot through `/etc/uci-defaults/30_luci-theme-vantage`. Scripts in
+`/etc/uci-defaults/` run in alphabetical order, so a script that runs later
+and sets the theme (some firmware projects force Bootstrap this way) wins.
+To make sure Vantage is selected, add your own script that sorts last, for
+example as `files/etc/uci-defaults/zzzz-vantage-theme` in the build tree
+(or in the ImageBuilder's `FILES=` directory):
+
+```sh
+#!/bin/sh
+uci set luci.main.mediaurlbase=/luci-static/vantage
+uci commit luci
+exit 0
+```
+
+The script runs once and is deleted after it succeeds. On a running router,
+the two `uci` lines alone do the same.
+
+## Troubleshooting
+
+### Blank page or a spinner that never stops
+
+1. Reload without the cache: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>
+   (<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> on macOS).
+2. Log out and in again, or open LuCI in a new tab.
+3. Clear LuCI's caches on the router and reload rpcd:
+
+   ```sh
+   rm -f /tmp/luci-indexcache.*
+   rm -rf /tmp/luci-modulecache/
+   /etc/init.d/rpcd reload
+   ```
+
+4. Check your browser version against the [requirements](#browser), and
+   look at the browser console (<kbd>F12</kbd>) for errors.
+5. Still broken? [Switch back to Bootstrap](#switch-themes) from SSH and
+   open an issue with the console output.
+
+### Vantage is not in the Design list
+
+```sh
+uci show luci.themes
+```
+
+must include `luci.themes.Vantage='/luci-static/vantage'`. If it doesn't,
+check that the package is installed (`apk list --installed | grep vantage`)
+and that `/usr/share/ucode/luci/template/themes/vantage/header.ut` exists,
+then register the theme by hand:
+
+```sh
+uci set luci.themes.Vantage=/luci-static/vantage
+uci commit luci
+```
+
+### The Dashboard is missing, or says permission denied
+
+- Log out and in again. Permissions are fixed when a session starts.
+- Dashboard opens Status → Overview or LuCI's Status → Dashboard: the
+  Vantage theme is installed but not selected, see
+  [Switch themes](#switch-themes).
+- Check that `/usr/share/rpcd/acl.d/luci-app-vantage.json` exists, then run
+  `/etc/init.d/rpcd reload`.
+- `root` may use everything. Other LuCI users (set up in `/etc/config/rpcd`)
+  see the Dashboard only when their `read` list includes `luci-app-vantage`
+  (or `*`). To let them name devices, add `luci-app-vantage-names` to their
+  `write` list. Without that, the dashboard works but offers no rename
+  button. Names from reverse DNS need `luci-app-vantage-rdns` in the `read`
+  list as well (see [Security notes](#security-notes) before you add it).
+  The paired access points need `luci-app-vantage-aps-view` there (see
+  [Other access points](#other-access-points-optional)), and per-device
+  traffic `luci-app-vantage-traffic` (see
+  [Per-device traffic](#per-device-traffic-optional-experimental)). The WireGuard
+  tile needs LuCI's own `luci-proto-wireguard` there, the group that
+  opens Status → WireGuard: Vantage grants nothing for it.
+- The dashboard's radios and SSIDs come from the app's rpcd plugin
+  (`/usr/share/rpcd/ucode/luci.vantage`). If they are missing, check that
+  `ubus list luci.vantage` shows the object; `/etc/init.d/rpcd reload`
+  loads a newly installed plugin.
+
+### Realtime Graphs are empty
+
+Status → Realtime Graphs is a stock LuCI page. It gets its data from the
+`luci-bwc` program in `luci-mod-status`:
+
+```sh
+which luci-bwc          # normally /usr/bin/luci-bwc
+```
+
+If nothing is printed, your firmware image doesn't include it and the stock
+graphs have no data under any theme. The Vantage dashboard doesn't use
+`luci-bwc`; its throughput charts compute rates from interface counters
+and work either way.
+
+### Clients show no names
+
+An access point that isn't the network's DHCP server knows little about its
+clients. The dashboard tries, in order: your own name for the device, reverse
+DNS, DHCP host names (on the router that hands out addresses), mDNS, the name
+the device sends during WPS, the vendor from the MAC address, and finally
+"Private device" for phones and laptops that use a randomised MAC address.
+The source of each name is shown next to it. Any host on the network can
+send mDNS announcements, so an mDNS name is only used when nothing better is
+known and nobody contradicts it.
+
+- Reverse DNS needs `rpcd-mod-rrdns` and a DNS server that knows your
+  clients. An OpenWrt router's dnsmasq answers for its DHCP leases.
+  Users other than `root` also need the `luci-app-vantage-rdns` group.
+- mDNS names need `umdns` (`apk add umdns`); names appear as devices
+  announce themselves.
+- Or name a device yourself: open it on the dashboard and choose **Name this
+  device**. Names are saved in `/etc/config/vantage`.
+
+### "not reported" next to noise, SNR or airtime
+
+The Wi-Fi driver didn't report that value, or reported a placeholder.
+Vantage says so instead of showing an invented number. Nothing needs fixing.
+
+### Channel Analysis makes Wi-Fi stutter briefly
+
+Status → Channel Analysis is a stock LuCI page. Its scan takes each radio
+off its channel for a moment, so clients may notice a short hiccup while the
+page is open. The Vantage dashboard never scans.
+
+### No login works after installing the dashboard
+
+Seen on vendor firmware with an older ucode (the one OpenWrt 23.05 has),
+with netlink modules taken from another distribution's feed, on Vantage
+1.1.1 and older: the dashboard's rpcd plugin could not load them, and
+rpcd went down with it, so LuCI refused every login (#134). From 1.2.0
+on the plugin fails without touching LuCI. To get LuCI back over SSH,
+remove the dashboard and restart rpcd:
+
+```sh
+apk del luci-app-vantage        # 24.10 and older: opkg remove luci-app-vantage
+/etc/init.d/rpcd restart
+```
+
+OpenWrt 24.10 and 25.12 with their own packages are not affected.
+
+### The login page moves from http:// to https://
+
+Opened over plain HTTP, the login page looks whether the router's HTTPS
+port answers with a certificate the browser accepts, and moves there if
+it does, so that the password is not typed over plain HTTP where HTTPS
+works. LuCI's base login page, the one themes without their own use,
+does the same; Bootstrap's does not. It happens only where the browser
+trusts the certificate or has stored an exception for it, and it is not
+`uhttpd`'s `redirect_https`, which forces every request. To stay on HTTP
+all the same:
+
+```sh
+uci set luci.main.vantage_https='stay'
+uci commit luci
+```
+
+`uci delete luci.main.vantage_https` and `uci commit luci` bring the move
+back. The switch sits in LuCI's own config on purpose: a login that may
+only save Vantage's Appearance cannot set it.
+
+### Get back to Bootstrap from SSH
+
+If the web interface is unusable, switch the theme without it:
+
+```sh
+uci set luci.main.mediaurlbase=/luci-static/bootstrap
+uci commit luci
+```
+
+Then reload the page. To remove Vantage entirely, see
+[Uninstall](#uninstall).
+
+## Security notes
+
+- **What the dashboard may do.** Its rpcd permissions (ACL) are read-only:
+  system, network, radio and station status, host hints, mDNS,
+  `/proc/stat`, the kernel's route to the internet and the link state of a
+  swconfig switch's ports. It cannot
+  run commands; for that link state LuCI's own method runs `swconfig dev
+  <switch> show`, read-only. One program it starts itself, for a DSA
+  switch's own port counters: `/usr/sbin/ethtool -S <port>`, where
+  `ethtool` is installed, for each of the device's own DSA ports by its
+  kernel name, in a process of rpcd's own (the plugin
+  `luci.vantage.ports`, which takes nothing from the caller). Its only write permission, in a
+  separate group (`luci-app-vantage-names`), is the plugin methods
+  `luci.vantage set_alias` and `set_quiet`, which check each name and
+  station on the device and write nothing but `/etc/config/vantage` (at
+  most 512 names and 512 stations set not to warn about their signal). Details
+  in the [spec](SPEC.md#6-security-requirements).
+- **The access point add-on.** `luci-app-vantage-aps` is the one Vantage
+  package that does more than read, behind its own permission group
+  (`luci-app-vantage-aps`, for administrators): it creates the router's
+  SSH key, keeps the paired access points in `/etc/vantage`, runs the
+  collector service, and on an access point adds or removes a router's
+  key in `/etc/dropbear/authorized_keys`, each limited to a read-only
+  report. The reports of the paired access points are behind a second
+  group, `luci-app-vantage-aps-view`: asking for them makes the router's
+  collector log in to those access points, so the dashboard's own
+  permission does not include it. See
+  [Other access points](#other-access-points-optional).
+- **Per-device traffic.** `luci-app-vantage-traffic` (optional,
+  experimental) reads the router's connection table and neighbour tables,
+  in a process rpcd runs for it, and writes nothing but its counters'
+  state in `/var/run/vantage-traffic`, readable by root alone. Its answer
+  holds a MAC address and byte counts per device, never the addresses
+  they talk to; the state also keeps each connection's addresses and
+  ports, as the kernel's own table does. It is a permission of
+  its own (`luci-app-vantage-traffic`), since it shows how much each
+  device sends and receives. See
+  [Per-device traffic](#per-device-traffic-optional-experimental).
+- **The theme's Appearance.** The theme's own permission group,
+  `luci-theme-vantage`, may write `/etc/config/vantage_theme` and nothing
+  else. It exists to save the colour mode, the backgrounds, what shows next
+  to the logo, and the dashboard's layout and chart style for every browser, but it grants plain
+  `uci set`, so nothing limits option names or sizes when writing. The theme
+  and dashboard only use values that pass their checks when reading, so a bad
+  value can't reach the page, but a user with this group could fill the
+  router's storage. Give it only to users you trust that far. A user
+  without it keeps their picks in their own browser. rpcd grants groups at
+  login, and again to open logins when it reloads, as every LuCI package
+  install makes it do; a login that could have the group but doesn't yet
+  is asked to log in again. To let another user save, add the group to
+  their `list write` in `/etc/config/rpcd`.
+- **Wi-Fi keys.** The dashboard reads the wireless configuration through
+  its own plugin method (`luci.vantage wireless`), which returns SSIDs,
+  channels and the encryption mode but no Wi-Fi passwords, SAE passwords or
+  RADIUS secrets. A restricted LuCI user who only has the dashboard cannot
+  read the keys. (LuCI's own Status and Wireless pages grant more; check
+  what else such a user has.)
+- **Dashboard history.** The graphs and recent station list (up to 32 MAC
+  addresses) stay in the browser tab's `sessionStorage`, so a reload keeps
+  them. Vantage's login page clears them, so logging out leaves nothing
+  behind. Under another theme they stay in that tab after logout until the
+  dashboard opens again, which ignores what another login left.
+- **Reverse DNS is a separate group.** `luci-app-vantage-rdns` grants
+  `network.rrdns lookup`, whose caller may name the DNS server and port.
+  A user who holds it can make the device send DNS queries to any host it
+  can reach. Give it only to users you would trust with that; without it
+  the dashboard simply shows no reverse-DNS names.
+- **The theme** adds nothing about the device to what logged-out visitors
+  see (the login page, error pages) except the router's hostname as the
+  login page's heading, as LuCI's Bootstrap does, and the HTTPS ports
+  that page may move to, as LuCI's base login page has them. It loads
+  nothing from the
+  internet unless you click **Check for updates** under Appearance: then
+  your browser reads the project's 24.10 package list on GitHub Pages,
+  without cookies or a referrer (browsers still send the address you
+  opened LuCI at, as the request's Origin), and shows only the version it
+  finds. Nothing is installed by it.
+  **Daily update check**, also under Appearance, lets a browser make
+  that same request by itself, at most once every 24 hours, while a
+  Vantage page is open and in view; a newer version then shows as a dot
+  on the gear. It is off unless you switch it on, and it is set per
+  browser, never saved on the router: each day's request shows GitHub
+  Pages the IP address of the computer you manage the router from, the
+  address you opened LuCI at (the request's Origin, as above) and when.
+  A list larger than 256 KiB is not read. Switching it off also forgets
+  what it found. The login page never asks.
+  LuCI itself still puts its `L.env` script on those pages: the LuCI
+  build on every page and, on "not found" pages, the tree of installed
+  menu entries. That comes from LuCI's core templates, happens with every
+  theme, and cannot be changed by a theme.
+- **Signed repository.** The [signed repository](#signed-repository) is
+  the safest route: apk verifies the index signature and every package
+  hash itself. The install commands check the key's hash before trusting it.
+- **Unsigned packages.** Installing with `--allow-untrusted` means apk
+  doesn't check who made the files. Check the SHA-256 hashes every time to
+  catch a damaged copy; they can't show a release wasn't tampered with.
+  Keep `--no-network` on that command so nothing else is installed
+  unchecked, and rebuild the release if you want independent proof of what
+  it contains. With a [signed index](#signed-packages) apk checks the
+  signature itself.
+
+## Agent-assisted install
+
+If you use a coding agent that can run shell commands on your computer (and
+SSH to the router), you can have it do the installation. The prompt below
+sets the rules. Fill in the three lines at the top, and read its plan before
+you say yes.
+
+```text
+Install the Vantage LuCI theme and dashboard on my OpenWrt router.
+
+Router:   root@192.0.2.1   (SSH; copy files with `scp -O`, the router has no SFTP)
+Packages: <folder on my computer, or the release page URL> with
+      luci-theme-vantage-<version>.apk, luci-app-vantage-<version>.apk and SHA256SUMS
+Install:  <both | theme only | dashboard only>
+
+Guide: docs/INSTALL.md in https://github.com/anothaDev/luci-theme-vantage
+(sections "Install on the router" and "Uninstall").
+
+Rules. Follow every one; if one gets in the way, stop and ask me.
+1. Check first, change nothing: run `cat /etc/openwrt_release` and
+   `apk --version` on the router. Stop and tell me if DISTRIB_RELEASE does
+   not start with 25.12 or apk is missing.
+2. Verify with `sha256sum -c` against SHA256SUMS on my computer. Make the
+   router's folder with `mkdir -m 700 /tmp/vantage` (stop if it exists), copy
+   into it, and verify again there. Stop on any mismatch or missing file.
+   Never install a file whose hash you have not checked.
+3. Before changing anything, back up LuCI's settings:
+   `cp /etc/config/luci /tmp/luci.pre-vantage`, and copy that file to my
+   computer with `scp -O`.
+4. Show me the exact install commands and wait for my "yes" before any
+   `apk add` or `apk del`. Install only with
+   `apk add --no-network --allow-untrusted <exact /tmp/vantage paths of the Vantage files>`.
+   If it reports a missing dependency (such as luci-base, rpcd or
+   rpcd-mod-iwinfo), ask me, then install it with a plain `apk update && apk add <package>`
+   without --allow-untrusted, and repeat the --no-network command.
+5. Never run sysupgrade, firstboot, reboot, mtd or anything that flashes
+   firmware. Never change passwords, SSH keys, or the network, wireless,
+   firewall or DHCP configuration. Do not run `uci set`/`uci commit`
+   except the theme selection in the guide, and only if I ask for it.
+6. Delete only files you created in /tmp/vantage (the copied .apk files and
+   SHA256SUMS), by exact name, then `rmdir /tmp/vantage`. No `rm -r`, no
+   deleting anything else.
+7. If a command fails, stop and show me its output. Do not improvise
+   fixes. To roll back: `apk del luci-app-vantage luci-theme-vantage`
+   (LuCI switches back to Bootstrap by itself); restoring
+   /tmp/luci.pre-vantage to /etc/config/luci is only needed if my LuCI
+   settings changed in some other way, and only after I agree.
+
+When done, report the checklist below and remind me to log out of LuCI
+and log in again.
+```
+
+The agent's report should include:
+
+- OpenWrt release and target (from `/etc/openwrt_release`)
+- The hash check result for every file, on the computer and on the router
+- Where the backup of `/etc/config/luci` is, on the router and on your
+  computer
+- Every command that changed something, with its output (at least the
+  `apk add` output)
+- `apk list --installed | grep vantage`
+- `uci get luci.main.mediaurlbase` and `uci show luci.themes`
+- Anything it skipped, any warning, and which temporary files it deleted
